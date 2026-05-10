@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Strikepro (production)",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["server.js"],
+      "port": 3000
+    },
+    {
+      "name": "Strikepro (dev / nodemon)",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["nodemon", "--ignore", "db/", "--ignore", "public/", "server.js"],
+      "port": 3000
+    }
+  ]
+}

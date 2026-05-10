@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>My Clients – HQ Strikepro</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary:      #E63946;
+      --primary-dark: #c1121f;
+      --primary-bg:   rgba(230,57,70,.12);
+      --bg:           #0d0d0d;
+      --surface:      #1a1a1a;
+      --surface2:     #222;
+      --surface3:     #2a2a2a;
+      --border:       #2e2e2e;
+      --text:         #f1f1f1;
+      --text-muted:   #777;
+      --text-sub:     #555;
+      --green:        #4ade80;
+      --radius:       14px;
+      --radius-sm:    8px;
+      --nav-h:        56px;
+    }
+
+    html, body { height: 100%; background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      -webkit-font-smoothing: antialiased; }
+
+    /* ── Top Nav ───────────────────────────────────────────── */
+    .top-nav {
+      position: sticky; top: 0; z-index: 100;
+      height: var(--nav-h);
+      background: rgba(13,13,13,.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center;
+      padding: 0 16px; gap: 12px;
+    }
+    .nav-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; }
+    .nav-logo-mark {
+      width: 44px; height: 44px; background: transparent;
+      border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    }
+    .nav-logo-mark svg { width: 44px; height: 44px; }
+    .nav-logo-name { font-size: 16px; font-weight: 800; color: var(--text); letter-spacing: -.3px; }
+    .nav-logo-name span { color: var(--primary); }
+    .nav-spacer { flex: 1; }
+    .nav-user { font-size: 12px; color: var(--text-muted); max-width: 140px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .nav-signout {
+      background: none; border: 1px solid var(--border); color: var(--text-muted);
+      border-radius: 6px; padding: 5px 10px; font-size: 12px; cursor: pointer;
+      transition: border-color .15s, color .15s; white-space: nowrap;
+    }
+    .nav-signout:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* ── Page header ───────────────────────────────────────── */
+    .page-header {
+      display: flex; align-items: center; padding: 20px 16px 12px;
+      gap: 10px;
+    }
+    .page-title { font-size: 22px; font-weight: 800; flex: 1; }
+    .client-count { font-size: 13px; color: var(--text-muted); font-weight: 400; margin-left: 6px; }
+    .btn-add {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--primary); color: #fff; border: none;
+      border-radius: var(--radius-sm); padding: 10px 16px;
+      font-size: 14px; font-weight: 700; cursor: pointer;
+      transition: background .15s, transform .1s; white-space: nowrap;
+    }
+    .btn-add:hover { background: var(--primary-dark); }
+    .btn-add:active { transform: scale(.97); }
+    .btn-add svg { width: 16px; height: 16px; stroke: #fff; fill: none;
+      stroke-width: 2.5; stroke-linecap: round; }
+
+    /* ── Search ────────────────────────────────────────────── */
+    .search-bar {
+      padding: 0 16px 14px;
+      position: relative;
+    }
+    .search-bar svg {
+      position: absolute; left: 28px; top: 50%; transform: translateY(-50%);
+      width: 16px; height: 16px; stroke: var(--text-muted); fill: none;
+      stroke-width: 2; stroke-linecap: round; pointer-events: none;
+    }
+    .search-input {
+      width: 100%; padding: 11px 12px 11px 48px;
+      background: var(--surface); border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm); color: var(--text);
+      font-size: 14px; outline: none; transition: border-color .15s;
+      -webkit-appearance: none;
+    }
+    .search-input::placeholder { color: var(--text-sub); }
+    .search-input:focus { border-color: var(--primary); }
+
+    /* ── Client list ───────────────────────────────────────── */
+    .client-list { padding: 0 16px 100px; display: flex; flex-direction: column; gap: 10px; }
+
+    /* Empty state */
+    .empty-state {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; padding: 60px 20px; text-align: center;
+    }
+    .empty-icon {
+      width: 64px; height: 64px; background: var(--surface2);
+      border-radius: 50%; display: flex; align-items: center;
+      justify-content: center; margin-bottom: 16px;
+    }
+    .empty-icon svg { width: 28px; height: 28px; stroke: var(--text-sub);
+      fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+    .empty-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+    .empty-sub { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+
+    /* Client card */
+    .client-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px 14px 12px;
+      cursor: pointer; transition: border-color .15s, background .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .client-card:hover  { border-color: #444; background: #1e1e1e; }
+    .client-card:active { background: var(--surface2); }
+    .card-top { display: flex; align-items: flex-start; gap: 12px; }
+    .card-avatar {
+      width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px; font-weight: 800; color: #fff;
+    }
+    .card-main { flex: 1; min-width: 0; }
+    .card-name { font-size: 15px; font-weight: 700; margin-bottom: 3px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .card-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .card-phone { font-size: 13px; color: var(--text-muted); }
+    .badge {
+      font-size: 11px; font-weight: 600; padding: 2px 8px;
+      border-radius: 20px; white-space: nowrap;
+    }
+    .badge-branding   { background: rgba(99,102,241,.15); color: #818cf8; border: 1px solid rgba(99,102,241,.25); }
+    .badge-connection { background: rgba(16,185,129,.15);  color: #34d399; border: 1px solid rgba(16,185,129,.25); }
+    .card-actions { display: flex; gap: 6px; flex-shrink: 0; align-items: center; }
+    .card-chevron { color: var(--text-sub); font-size: 18px; line-height: 1; padding: 0 2px; }
+    .icon-btn {
+      width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--surface2); display: flex; align-items: center;
+      justify-content: center; cursor: pointer; transition: all .15s; flex-shrink: 0;
+    }
+    .icon-btn svg { width: 14px; height: 14px; stroke: var(--text-muted); fill: none;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .icon-btn.delete:hover { border-color: var(--primary); background: var(--primary-bg); }
+    .icon-btn.delete:hover svg { stroke: var(--primary); }
+    .card-bottom { margin-top: 10px; display: flex; align-items: center;
+      justify-content: space-between; flex-wrap: wrap; gap: 6px; }
+    .follow-pills { display: flex; gap: 4px; flex-wrap: wrap; }
+    .follow-pill {
+      font-size: 10px; padding: 2px 7px; border-radius: 20px; font-weight: 600;
+    }
+    .follow-pill.done { background: rgba(74,222,128,.15); color: var(--green);
+      border: 1px solid rgba(74,222,128,.25); }
+    .follow-pill.pending { background: var(--surface3); color: var(--text-sub);
+      border: 1px solid var(--border); }
+    .card-date { font-size: 11px; color: var(--text-sub); }
+
+    /* ── Form Overlay ──────────────────────────────────────── */
+    .overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: var(--bg);
+      display: flex; flex-direction: column;
+      transform: translateY(100%);
+      transition: transform .3s cubic-bezier(.4,0,.2,1);
+    }
+    .overlay.open { transform: translateY(0); }
+
+    .overlay-header {
+      position: sticky; top: 0; z-index: 10;
+      background: rgba(13,13,13,.95); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 12px;
+      padding: 0 16px; height: var(--nav-h); flex-shrink: 0;
+    }
+    .overlay-title { font-size: 16px; font-weight: 700; flex: 1; }
+    .btn-close {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: var(--surface2); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--text-muted); transition: color .15s;
+      font-size: 18px; line-height: 1;
+    }
+    .btn-close:hover { color: var(--text); }
+
+    .overlay-body { flex: 1; overflow-y: auto; padding: 16px 16px 0; }
+
+    .overlay-footer {
+      position: sticky; bottom: 0;
+      background: rgba(13,13,13,.95); backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border);
+      padding: 12px 16px;
+      display: flex; gap: 10px; flex-shrink: 0;
+    }
+    .btn-save {
+      flex: 1; padding: 14px; background: var(--primary); color: #fff;
+      border: none; border-radius: var(--radius-sm); font-size: 15px;
+      font-weight: 700; cursor: pointer; transition: background .15s, transform .1s;
+    }
+    .btn-save:hover { background: var(--primary-dark); }
+    .btn-save:active { transform: scale(.98); }
+    .btn-save:disabled { opacity: .6; cursor: not-allowed; }
+    .btn-cancel-form {
+      padding: 14px 20px; background: var(--surface2); color: var(--text-muted);
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      font-size: 15px; font-weight: 600; cursor: pointer; transition: all .15s;
+    }
+    .btn-cancel-form:hover { color: var(--text); border-color: #444; }
+
+    /* ── Form sections ─────────────────────────────────────── */
+    .form-section {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px; margin-bottom: 12px;
+    }
+    .section-header {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+    }
+    .section-num {
+      width: 24px; height: 24px; background: var(--primary);
+      border-radius: 6px; display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 800; color: #fff; flex-shrink: 0;
+    }
+    .section-title { font-size: 14px; font-weight: 700; }
+
+    /* Form fields */
+    .form-row { margin-bottom: 14px; }
+    .form-row:last-child { margin-bottom: 0; }
+    .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    label.field-label {
+      display: block; font-size: 11px; font-weight: 600;
+      color: var(--text-muted); text-transform: uppercase;
+      letter-spacing: .5px; margin-bottom: 6px;
+    }
+    label.field-label .req { color: var(--primary); margin-left: 2px; }
+
+    input[type=text], input[type=email], input[type=number],
+    select, textarea {
+      width: 100%; padding: 11px 12px;
+      background: #111; border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm); color: var(--text);
+      font-size: 14px; outline: none; font-family: inherit;
+      transition: border-color .15s; -webkit-appearance: none;
+    }
+    input::placeholder, textarea::placeholder { color: #3a3a3a; }
+    input:focus, select:focus, textarea:focus { border-color: var(--primary); }
+    input.error, select.error, textarea.error {
+      border-color: var(--primary); background: rgba(230,57,70,.05);
+    }
+    input[readonly] {
+      background: #0a0a0a; color: var(--green); font-weight: 700;
+      border-color: rgba(74,222,128,.2); cursor: default;
+    }
+    textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+    select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 12px center;
+      padding-right: 36px; }
+    option { background: #1a1a1a; }
+
+    /* Pill checkboxes */
+    .pill-group { display: flex; flex-wrap: wrap; gap: 7px; }
+    .pill-check { position: relative; }
+    .pill-check input[type=checkbox] { position: absolute; opacity: 0; width: 0; height: 0; }
+    .pill-check span {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 7px 13px; border: 1.5px solid var(--border);
+      border-radius: 20px; font-size: 13px; cursor: pointer;
+      color: var(--text-muted); background: #111; transition: all .15s;
+      user-select: none; white-space: nowrap;
+    }
+    .pill-check input:checked + span {
+      background: var(--primary-bg); border-color: var(--primary);
+      color: var(--primary); font-weight: 600;
+    }
+    .pill-check span::before {
+      content: ''; width: 6px; height: 6px; border-radius: 50%;
+      background: currentColor; opacity: 0; transition: opacity .15s;
+      flex-shrink: 0;
+    }
+    .pill-check input:checked + span::before { opacity: 1; }
+
+    /* Product grid */
+    .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    /* Estimated capital display */
+    .capital-display {
+      background: #0a0a0a; border: 1.5px solid rgba(74,222,128,.2);
+      border-radius: var(--radius-sm); padding: 11px 12px;
+      font-size: 18px; font-weight: 800; color: var(--green);
+      letter-spacing: -.3px; min-height: 44px;
+    }
+    .capital-display.empty { color: var(--text-sub); font-size: 13px; font-weight: 400; }
+
+    /* Alert */
+    .form-alert {
+      padding: 10px 14px; border-radius: var(--radius-sm);
+      font-size: 13px; margin-bottom: 12px;
+      background: var(--primary-bg); border: 1px solid rgba(230,57,70,.3);
+      color: #ff6b76; display: none;
+    }
+    .form-alert.show { display: block; }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: #1e1e1e; border: 1px solid var(--border); color: var(--text);
+      padding: 12px 20px; border-radius: 10px; font-size: 14px; font-weight: 600;
+      box-shadow: 0 8px 24px rgba(0,0,0,.4); z-index: 999;
+      opacity: 0; transition: opacity .25s, transform .25s; pointer-events: none;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.success { border-color: rgba(74,222,128,.3); color: var(--green); }
+    .toast.error   { border-color: rgba(230,57,70,.3);  color: #ff6b76; }
+
+    /* Loading spinner */
+    .spinner {
+      display: inline-block; width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,.3); border-top-color: #fff;
+      border-radius: 50%; animation: spin .6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  </style>
+</head>
+<body>
+
+<!-- ── Top Nav ── -->
+<nav class="top-nav">
+  <a class="nav-logo" href="/clients.html">
+    <div class="nav-logo-mark">
+      <img src="/logo.png.png" alt="HQ Strikepro" style="width:44px;height:44px;object-fit:contain;" />
+    </div>
+    <span class="nav-logo-name">HQ <span>STRIKEPRO</span></span>
+  </a>
+  <div class="nav-spacer"></div>
+  <span class="nav-user" id="navUser"></span>
+  <button class="nav-signout" onclick="signOut()">ออกจากระบบ</button>
+</nav>
+
+<!-- ── Main Page ── -->
+<div class="page-header">
+  <h1 class="page-title">My Clients <span class="client-count" id="clientCount"></span></h1>
+  <button class="btn-add" onclick="openForm()">
+    <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    เพิ่มลูกค้า
+  </button>
+</div>
+
+<div class="search-bar">
+  <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+  <input class="search-input" id="searchInput" type="text" placeholder="ค้นหาชื่อ, เบอร์โทร, Line ID…" oninput="filterClients()" />
+</div>
+
+<div class="client-list" id="clientList">
+  <!-- Cards rendered here -->
+</div>
+
+<!-- ── Form Overlay ── -->
+<div class="overlay" id="formOverlay">
+
+  <div class="overlay-header">
+    <button class="btn-close" onclick="closeForm()">✕</button>
+    <span class="overlay-title" id="overlayTitle">เพิ่มลูกค้าใหม่</span>
+  </div>
+
+  <div class="overlay-body">
+    <div class="form-alert" id="formAlert"></div>
+
+    <!-- 1. ข้อมูลลูกค้า -->
+    <div class="form-section">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <span class="section-title">ข้อมูลลูกค้า</span>
+      </div>
+
+      <div class="form-row">
+        <label class="field-label" for="f_name">ชื่อลูกค้า <span class="req">*</span></label>
+        <input type="text" id="f_name" placeholder="ชื่อ-นามสกุล" />
+      </div>
+      <div class="form-row">
+        <label class="field-label" for="f_phone">เบอร์โทรศัพท์</label>
+        <input type="text" id="f_phone" placeholder="0812345678" />
+      </div>
+      <div class="form-row">
+        <label class="field-label" for="f_email">Email Strikepro</label>
+        <input type="email" id="f_email" placeholder="example@email.com" />
+      </div>
+      <div class="form-row">
+        <label class="field-label" for="f_line">Line ID</label>
+        <input type="text" id="f_line" placeholder="@lineid" />
+      </div>
+      <div class="form-row">
+        <label class="field-label" for="f_channel">มาจากช่องทางไหน</label>
+        <select id="f_channel">
+          <option value="">— เลือกช่องทาง —</option>
+          <option value="Branding">Branding</option>
+          <option value="Connection">Connection</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 2. กิจกรรมที่เข้าร่วม -->
+    <div class="form-section">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <span class="section-title">กิจกรรมที่เข้าร่วม</span>
+      </div>
+      <div class="pill-group" id="activities-group">
+        <label class="pill-check"><input type="checkbox" name="activities" value="Unlock Your Wealth"><span>Unlock Your Wealth</span></label>
+        <label class="pill-check"><input type="checkbox" name="activities" value="Introduction to HQ"><span>Introduction to HQ</span></label>
+        <label class="pill-check"><input type="checkbox" name="activities" value="STP"><span>STP</span></label>
+        <label class="pill-check"><input type="checkbox" name="activities" value="Office Visit"><span>Office Visit</span></label>
+        <label class="pill-check"><input type="checkbox" name="activities" value="SBC"><span>SBC</span></label>
+      </div>
+    </div>
+
+    <!-- 3. เคยลงทุนอะไรมาก่อน -->
+    <div class="form-section">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <span class="section-title">เคยลงทุนอะไรมาก่อน?</span>
+      </div>
+      <div class="pill-group" id="investments-group">
+        <label class="pill-check"><input type="checkbox" name="prev_investments" value="Forex"><span>Forex</span></label>
+        <label class="pill-check"><input type="checkbox" name="prev_investments" value="หุ้น"><span>หุ้น</span></label>
+        <label class="pill-check"><input type="checkbox" name="prev_investments" value="กองทุนหุ้น/ดัชนี"><span>กองทุนหุ้น/ดัชนี</span></label>
+        <label class="pill-check"><input type="checkbox" name="prev_investments" value="Crypto Currency"><span>Crypto Currency</span></label>
+      </div>
+    </div>
+
+    <!-- 4. เป้าหมายการลงทุน -->
+    <div class="form-section">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <span class="section-title">เป้าหมายการลงทุน</span>
+      </div>
+
+      <div class="form-row">
+        <label class="field-label" for="f_reason">ทำไมถึงอยากลงทุน</label>
+        <textarea id="f_reason" placeholder="เหตุผลที่อยากลงทุน..."></textarea>
+      </div>
+      <div class="form-row form-row-2">
+        <div>
+          <label class="field-label" for="f_pct">อยากได้กำไรกี่ %</label>
+          <input type="number" id="f_pct" placeholder="เช่น 3" min="0" step="0.01" oninput="calcCapital()" />
+        </div>
+        <div>
+          <label class="field-label" for="f_monthly">กำไรเดือนละกี่บาท</label>
+          <input type="number" id="f_monthly" placeholder="เช่น 30000" min="0" step="1" oninput="calcCapital()" />
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="field-label">ประเมินเงินทุน (คำนวณอัตโนมัติ)</label>
+        <div class="capital-display empty" id="f_capital_display">— กรอกกำไร % และจำนวนเงินเพื่อคำนวณ —</div>
+        <input type="hidden" id="f_capital" />
+      </div>
+    </div>
+
+    <!-- 5. Product ที่ลงทุน -->
+    <div class="form-section">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <span class="section-title">Product ที่ลงทุน</span>
+      </div>
+
+      <div class="product-grid">
+        <div class="form-row">
+          <label class="field-label" for="f_ppvp">PPVP (USD)</label>
+          <input type="number" id="f_ppvp" value="0" min="0" step="0.01" />
+        </div>
+        <div class="form-row">
+          <label class="field-label" for="f_hq">HQ Ultimate (USD)</label>
+          <input type="number" id="f_hq" value="0" min="0" step="0.01" />
+        </div>
+        <div class="form-row">
+          <label class="field-label" for="f_gb">Golden Boy (USD)</label>
+          <input type="number" id="f_gb" value="0" min="0" step="0.01" />
+        </div>
+        <div class="form-row">
+          <label class="field-label" for="f_self">เทรดเอง (USD)</label>
+          <input type="number" id="f_self" value="0" min="0" step="0.01" />
+        </div>
+      </div>
+      <div class="form-row" style="margin-top:4px">
+        <label class="field-label" for="f_notinvested">หากยังไม่ลงทุน ติดเรื่องใด</label>
+        <textarea id="f_notinvested" placeholder="ระบุปัญหาหรืออุปสรรค..."></textarea>
+      </div>
+    </div>
+
+    <!-- 6. Follow Up -->
+    <div class="form-section">
+      <div class="section-header">
+        <div class="section-num">6</div>
+        <span class="section-title">Follow Up</span>
+      </div>
+      <div class="pill-group" id="followup-group">
+        <label class="pill-check"><input type="checkbox" name="follow_up" value="ครั้งที่ 1 (1-3 วัน)"><span>ครั้งที่ 1 (1-3 วัน)</span></label>
+        <label class="pill-check"><input type="checkbox" name="follow_up" value="ครั้งที่ 2 (7 วัน)"><span>ครั้งที่ 2 (7 วัน)</span></label>
+        <label class="pill-check"><input type="checkbox" name="follow_up" value="ครั้งที่ 3 (10 วัน)"><span>ครั้งที่ 3 (10 วัน)</span></label>
+      </div>
+    </div>
+
+    <!-- 7. หมายเหตุ -->
+    <div class="form-section">
+      <div class="section-header">
+        <div class="section-num">7</div>
+        <span class="section-title">หมายเหตุ</span>
+      </div>
+      <div class="form-row">
+        <label class="field-label" for="f_notes">หมายเหตุเพิ่มเติม</label>
+        <textarea id="f_notes" placeholder="บันทึกข้อมูลเพิ่มเติม..." style="min-height:100px"></textarea>
+      </div>
+    </div>
+
+    <div style="height:8px"></div>
+  </div><!-- /overlay-body -->
+
+  <div class="overlay-footer">
+    <button class="btn-cancel-form" onclick="closeForm()">ยกเลิก</button>
+    <button class="btn-save" id="btnSave" onclick="submitForm()">บันทึก</button>
+  </div>
+</div><!-- /overlay -->
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  const TOKEN_KEY = 'sp_token';
+  let currentEditId = null;
+  let allClients    = [];
+
+  // ── API helper ──────────────────────────────────────────────────────────────
+  async function api(path, options = {}) {
+    const token = localStorage.getItem(TOKEN_KEY);
+    const res   = await fetch(path, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      ...options,
+      body: options.body ? JSON.stringify(options.body) : undefined
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'เกิดข้อผิดพลาด');
+    return data;
+  }
+
+  // ── Auth guard ──────────────────────────────────────────────────────────────
+  async function init() {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) { window.location.href = '/'; return; }
+    try {
+      const { user } = await api('/api/auth/me');
+      document.getElementById('navUser').textContent = user.email;
+      loadClients();
+    } catch {
+      localStorage.removeItem(TOKEN_KEY);
+      window.location.href = '/';
+    }
+  }
+
+  async function signOut() {
+    try { await api('/api/auth/logout', { method: 'POST' }); } catch {}
+    localStorage.removeItem(TOKEN_KEY);
+    window.location.href = '/';
+  }
+
+  // ── Clients list ────────────────────────────────────────────────────────────
+  async function loadClients() {
+    try {
+      const { clients } = await api('/api/clients');
+      allClients = clients;
+      document.getElementById('searchInput').value = '';
+      renderClients(clients);
+    } catch (err) {
+      document.getElementById('clientList').innerHTML =
+        `<div class="empty-state"><div class="empty-title" style="color:#ff6b76">โหลดข้อมูลไม่สำเร็จ</div><div class="empty-sub">${err.message}</div></div>`;
+    }
+  }
+
+  function filterClients() {
+    const q = document.getElementById('searchInput').value.trim().toLowerCase();
+    if (!q) { renderClients(allClients); return; }
+    const filtered = allClients.filter(c =>
+      (c.name    || '').toLowerCase().includes(q) ||
+      (c.phone   || '').toLowerCase().includes(q) ||
+      (c.line_id || '').toLowerCase().includes(q) ||
+      (c.email   || '').toLowerCase().includes(q)
+    );
+    renderClients(filtered, q);
+  }
+
+  function renderClients(clients, query = '') {
+    const container  = document.getElementById('clientList');
+    const countEl    = document.getElementById('clientCount');
+    countEl.textContent = allClients.length > 0 ? `${allClients.length} คน` : '';
+
+    if (clients.length === 0 && allClients.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">
+            <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div class="empty-title">ยังไม่มีข้อมูลลูกค้า</div>
+          <div class="empty-sub">กดปุ่ม "เพิ่มลูกค้า" เพื่อเริ่มบันทึกข้อมูล</div>
+        </div>`;
+      return;
+    }
+
+    if (clients.length === 0 && query) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+          <div class="empty-title">ไม่พบผลการค้นหา</div>
+          <div class="empty-sub">ไม่มีลูกค้าที่ตรงกับ "<strong>${esc(query)}</strong>"</div>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = clients.map(c => clientCardHTML(c)).join('');
+  }
+
+  const ALL_FOLLOWUPS = ['ครั้งที่ 1 (1-3 วัน)', 'ครั้งที่ 2 (7 วัน)', 'ครั้งที่ 3 (10 วัน)'];
+  const AVATAR_COLORS = ['#E63946','#6366f1','#f59e0b','#10b981','#3b82f6','#ec4899'];
+
+  function avatarColor(name) {
+    let h = 0;
+    for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) & 0xffffffff;
+    return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
+  }
+
+  function fmtDate(iso) {
+    return new Date(iso).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' });
+  }
+
+  function clientCardHTML(c) {
+    const initial    = (c.name || '?')[0].toUpperCase();
+    const color      = avatarColor(c.name);
+    const badgeClass = c.channel === 'Branding' ? 'badge-branding' : c.channel === 'Connection' ? 'badge-connection' : '';
+    const followPills = ALL_FOLLOWUPS.map(f => {
+      const done = (c.follow_up || []).includes(f);
+      const label = f.replace('ครั้งที่ ', 'F').replace(/ \(.*\)/, '');
+      return `<span class="follow-pill ${done ? 'done' : 'pending'}">${label}</span>`;
+    }).join('');
+
+    return `
+      <div class="client-card" onclick="editClient(${c.id})">
+        <div class="card-top">
+          <div class="card-avatar" style="background:${color}">${initial}</div>
+          <div class="card-main">
+            <div class="card-name">${esc(c.name)}</div>
+            <div class="card-meta">
+              ${c.phone   ? `<span class="card-phone">${esc(c.phone)}</span>` : ''}
+              ${c.channel ? `<span class="badge ${badgeClass}">${esc(c.channel)}</span>` : ''}
+            </div>
+          </div>
+          <div class="card-actions">
+            <button class="icon-btn delete" title="ลบ"
+              onclick="event.stopPropagation(); deleteClient(${c.id}, '${esc(c.name)}')">
+              <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+            </button>
+            <span class="card-chevron">›</span>
+          </div>
+        </div>
+        <div class="card-bottom">
+          <div class="follow-pills">${followPills}</div>
+          <span class="card-date">${fmtDate(c.created_at)}</span>
+        </div>
+      </div>`;
+  }
+
+  function esc(str) {
+    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── Form open / close ───────────────────────────────────────────────────────
+  function openForm(client = null) {
+    currentEditId = client ? client.id : null;
+    document.getElementById('overlayTitle').textContent = client ? 'แก้ไขข้อมูลลูกค้า' : 'เพิ่มลูกค้าใหม่';
+    resetForm();
+    if (client) fillForm(client);
+    document.getElementById('formOverlay').classList.add('open');
+    document.getElementById('formAlert').classList.remove('show');
+    setTimeout(() => document.getElementById('f_name').focus(), 300);
+  }
+
+  function closeForm() {
+    document.getElementById('formOverlay').classList.remove('open');
+    currentEditId = null;
+  }
+
+  function resetForm() {
+    document.getElementById('f_name').value        = '';
+    document.getElementById('f_phone').value       = '';
+    document.getElementById('f_email').value       = '';
+    document.getElementById('f_line').value        = '';
+    document.getElementById('f_channel').value     = '';
+    document.getElementById('f_reason').value      = '';
+    document.getElementById('f_pct').value         = '';
+    document.getElementById('f_monthly').value     = '';
+    document.getElementById('f_capital').value     = '';
+    document.getElementById('f_ppvp').value        = '0';
+    document.getElementById('f_hq').value          = '0';
+    document.getElementById('f_gb').value          = '0';
+    document.getElementById('f_self').value        = '0';
+    document.getElementById('f_notinvested').value = '';
+    document.getElementById('f_notes').value       = '';
+    document.querySelectorAll('.overlay input[type=checkbox]').forEach(cb => cb.checked = false);
+    resetCapitalDisplay();
+    document.getElementById('f_name').classList.remove('error');
+    document.getElementById('formOverlay').querySelector('.overlay-body').scrollTop = 0;
+  }
+
+  function fillForm(c) {
+    document.getElementById('f_name').value        = c.name    || '';
+    document.getElementById('f_phone').value       = c.phone   || '';
+    document.getElementById('f_email').value       = c.email   || '';
+    document.getElementById('f_line').value        = c.line_id || '';
+    document.getElementById('f_channel').value     = c.channel || '';
+    document.getElementById('f_reason').value      = c.investment_reason  || '';
+    document.getElementById('f_pct').value         = c.expected_profit_pct     != null ? c.expected_profit_pct     : '';
+    document.getElementById('f_monthly').value     = c.expected_monthly_profit != null ? c.expected_monthly_profit : '';
+    document.getElementById('f_ppvp').value        = c.ppvp_usd        ?? 0;
+    document.getElementById('f_hq').value          = c.hq_ultimate_usd ?? 0;
+    document.getElementById('f_gb').value          = c.golden_boy_usd  ?? 0;
+    document.getElementById('f_self').value        = c.self_trade_usd  ?? 0;
+    document.getElementById('f_notinvested').value = c.not_invested_reason || '';
+    document.getElementById('f_notes').value       = c.notes  || '';
+
+    checkGroup('activities',      c.activities       || []);
+    checkGroup('prev_investments', c.prev_investments || []);
+    checkGroup('follow_up',        c.follow_up        || []);
+    calcCapital();
+  }
+
+  function checkGroup(name, values) {
+    document.querySelectorAll(`input[name="${name}"]`).forEach(cb => {
+      cb.checked = values.includes(cb.value);
+    });
+  }
+
+  function getChecked(name) {
+    return [...document.querySelectorAll(`input[name="${name}"]:checked`)].map(cb => cb.value);
+  }
+
+  // ── Capital calculation ─────────────────────────────────────────────────────
+  function calcCapital() {
+    const pct     = parseFloat(document.getElementById('f_pct').value);
+    const monthly = parseFloat(document.getElementById('f_monthly').value);
+    const display = document.getElementById('f_capital_display');
+    const hidden  = document.getElementById('f_capital');
+
+    if (pct > 0 && monthly > 0) {
+      const cap = monthly / (pct / 100);
+      hidden.value = cap;
+      display.textContent = '฿' + Math.round(cap).toLocaleString('th-TH');
+      display.className = 'capital-display';
+    } else {
+      resetCapitalDisplay();
+    }
+  }
+
+  function resetCapitalDisplay() {
+    document.getElementById('f_capital_display').textContent = '— กรอกกำไร % และจำนวนเงินเพื่อคำนวณ —';
+    document.getElementById('f_capital_display').className = 'capital-display empty';
+    document.getElementById('f_capital').value = '';
+  }
+
+  // ── Submit ──────────────────────────────────────────────────────────────────
+  async function submitForm() {
+    const nameEl = document.getElementById('f_name');
+    nameEl.classList.remove('error');
+    document.getElementById('formAlert').classList.remove('show');
+
+    if (!nameEl.value.trim()) {
+      nameEl.classList.add('error');
+      nameEl.focus();
+      showFormAlert('กรุณากรอกชื่อลูกค้า');
+      document.getElementById('formOverlay').querySelector('.overlay-body').scrollTop = 0;
+      return;
+    }
+
+    const body = {
+      name:                    nameEl.value.trim(),
+      phone:                   document.getElementById('f_phone').value.trim(),
+      email:                   document.getElementById('f_email').value.trim(),
+      line_id:                 document.getElementById('f_line').value.trim(),
+      channel:                 document.getElementById('f_channel').value,
+      activities:              getChecked('activities'),
+      prev_investments:        getChecked('prev_investments'),
+      investment_reason:       document.getElementById('f_reason').value.trim(),
+      expected_profit_pct:     document.getElementById('f_pct').value,
+      expected_monthly_profit: document.getElementById('f_monthly').value,
+      estimated_capital:       document.getElementById('f_capital').value,
+      ppvp_usd:                document.getElementById('f_ppvp').value,
+      hq_ultimate_usd:         document.getElementById('f_hq').value,
+      golden_boy_usd:          document.getElementById('f_gb').value,
+      self_trade_usd:          document.getElementById('f_self').value,
+      not_invested_reason:     document.getElementById('f_notinvested').value.trim(),
+      follow_up:               getChecked('follow_up'),
+      notes:                   document.getElementById('f_notes').value.trim(),
+    };
+
+    const btn = document.getElementById('btnSave');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>';
+
+    try {
+      if (currentEditId) {
+        await api(`/api/clients/${currentEditId}`, { method: 'PUT', body });
+        showToast('✓ อัปเดตข้อมูลลูกค้าแล้ว', 'success');
+      } else {
+        await api('/api/clients', { method: 'POST', body });
+        showToast('✓ เพิ่มลูกค้าใหม่แล้ว', 'success');
+      }
+      closeForm();
+      loadClients();
+    } catch (err) {
+      showFormAlert(err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'บันทึก';
+    }
+  }
+
+  // ── Edit ────────────────────────────────────────────────────────────────────
+  async function editClient(id) {
+    try {
+      const { client } = await api(`/api/clients/${id}`);
+      openForm(client);
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+
+  // ── Delete ──────────────────────────────────────────────────────────────────
+  async function deleteClient(id, name) {
+    if (!confirm(`ลบข้อมูลของ "${name}" ใช่หรือไม่?`)) return;
+    try {
+      await api(`/api/clients/${id}`, { method: 'DELETE' });
+      showToast('ลบข้อมูลลูกค้าแล้ว', 'success');
+      loadClients();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+
+  // ── UI helpers ───────────────────────────────────────────────────────────────
+  function showFormAlert(msg) {
+    const el = document.getElementById('formAlert');
+    el.textContent = msg;
+    el.classList.add('show');
+  }
+
+  let toastTimer;
+  function showToast(msg, type = '') {
+    const el = document.getElementById('toast');
+    clearTimeout(toastTimer);
+    el.textContent = msg;
+    el.className = `toast ${type} show`;
+    toastTimer = setTimeout(() => el.className = 'toast', 2800);
+  }
+
+  // Close overlay on back-swipe / Escape key
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeForm();
+  });
+
+  // ── Boot ────────────────────────────────────────────────────────────────────
+  init();
+</script>
+</body>
+</html>
