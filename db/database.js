@@ -72,6 +72,21 @@ async function init() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
+  await pool.execute(`
+    CREATE TABLE IF NOT EXISTS user_stats (
+      user_id             INT UNSIGNED NOT NULL PRIMARY KEY,
+      total_clients       INT UNSIGNED NOT NULL DEFAULT 0,
+      product_talk        INT UNSIGNED NOT NULL DEFAULT 0,
+      unlock_your_wealth  INT UNSIGNED NOT NULL DEFAULT 0,
+      introduction_to_hq  INT UNSIGNED NOT NULL DEFAULT 0,
+      office_visit        INT UNSIGNED NOT NULL DEFAULT 0,
+      sbc                 INT UNSIGNED NOT NULL DEFAULT 0,
+      invested            INT UNSIGNED NOT NULL DEFAULT 0,
+      updated_at          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
   // Purge expired sessions on startup
   await pool.execute('DELETE FROM sessions WHERE expires_at <= NOW()');
 
@@ -222,7 +237,11 @@ async function deleteClient(id, userId) {
 
 // ── Dashboard stats ───────────────────────────────────────────────────────────
 
-async function getDashboardStats(userId) {
+/**
+ * Recalculate all stats from the clients table and persist them to user_stats.
+ * Call this after any client create / update / delete.
+ */
+async function refreshUserStats(userId) {
   const [rows] = await pool.execute(
     `SELECT
        COUNT(*) AS total_clients,
@@ -238,15 +257,57 @@ async function getDashboardStats(userId) {
     [userId]
   );
   const r = rows[0];
-  return {
-    total_clients:      Number(r.total_clients)      || 0,
-    product_talk:       Number(r.product_talk)       || 0,
-    unlock_your_wealth: Number(r.unlock_your_wealth) || 0,
+  const s = {
+    total_clients:      Number(r.total_clients)       || 0,
+    product_talk:       Number(r.product_talk)        || 0,
+    unlock_your_wealth: Number(r.unlock_your_wealth)  || 0,
     introduction_to_hq: Number(r.introduction_to_hq) || 0,
-    office_visit:       Number(r.office_visit)       || 0,
-    sbc:                Number(r.sbc)                || 0,
-    invested:           Number(r.invested)           || 0,
+    office_visit:       Number(r.office_visit)        || 0,
+    sbc:                Number(r.sbc)                 || 0,
+    invested:           Number(r.invested)            || 0,
   };
+  await pool.execute(
+    `INSERT INTO user_stats
+       (user_id, total_clients, product_talk, unlock_your_wealth,
+        introduction_to_hq, office_visit, sbc, invested)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+     ON DUPLICATE KEY UPDATE
+       total_clients       = VALUES(total_clients),
+       product_talk        = VALUES(product_talk),
+       unlock_your_wealth  = VALUES(unlock_your_wealth),
+       introduction_to_hq  = VALUES(introduction_to_hq),
+       office_visit        = VALUES(office_visit),
+       sbc                 = VALUES(sbc),
+       invested            = VALUES(invested)`,
+    [userId, s.total_clients, s.product_talk, s.unlock_your_wealth,
+     s.introduction_to_hq, s.office_visit, s.sbc, s.invested]
+  );
+  return s;
+}
+
+/**
+ * Read the pre-computed stats for a user.
+ * Falls back to a live calculation if no row exists yet.
+ */
+async function getDashboardStats(userId) {
+  const [rows] = await pool.execute(
+    'SELECT * FROM user_stats WHERE user_id = ? LIMIT 1',
+    [userId]
+  );
+  if (rows[0]) {
+    const r = rows[0];
+    return {
+      total_clients:      Number(r.total_clients),
+      product_talk:       Number(r.product_talk),
+      unlock_your_wealth: Number(r.unlock_your_wealth),
+      introduction_to_hq: Number(r.introduction_to_hq),
+      office_visit:       Number(r.office_visit),
+      sbc:                Number(r.sbc),
+      invested:           Number(r.invested),
+    };
+  }
+  // First visit — compute and store
+  return refreshUserStats(userId);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -256,5 +317,5 @@ module.exports = {
   findUserByEmail, findUserById, createUser,
   createSession, findSession, deleteSession,
   getAllClients, getClientById, createClient, updateClient, deleteClient,
-  getDashboardStats,
+  getDashboardStats, refreshUserStats,
 };

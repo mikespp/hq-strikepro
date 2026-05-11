@@ -57,6 +57,7 @@ router.post('/', async (req, res) => {
     const data = sanitize(req.body);
     if (!validateName(data, res)) return;
     const client = await db.createClient(req.userId, data);
+    db.refreshUserStats(req.userId).catch(console.error); // async, non-blocking
     res.status(201).json({ client });
   } catch (err) {
     console.error(err);
@@ -85,6 +86,7 @@ router.put('/:id', async (req, res) => {
     if (!validateName(data, res)) return;
     const client = await db.updateClient(parseInt(req.params.id), req.userId, data);
     if (!client) return res.status(404).json({ error: 'ไม่พบข้อมูลลูกค้า' });
+    db.refreshUserStats(req.userId).catch(console.error); // async, non-blocking
     res.json({ client });
   } catch (err) {
     console.error(err);
@@ -98,6 +100,7 @@ router.delete('/:id', async (req, res) => {
   try {
     const ok = await db.deleteClient(parseInt(req.params.id), req.userId);
     if (!ok) return res.status(404).json({ error: 'ไม่พบข้อมูลลูกค้า' });
+    db.refreshUserStats(req.userId).catch(console.error); // async, non-blocking
     res.json({ message: 'ลบข้อมูลลูกค้าแล้ว' });
   } catch (err) {
     console.error(err);
