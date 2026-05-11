@@ -624,9 +624,9 @@
     }
   }
 
-  // ── After login → go to My Clients ──
+  // ── After login → go to Dashboard ──
   function loadDashboard() {
-    window.location.href = '/clients.html';
+    window.location.href = '/dashboard.html';
   }
 
   // ── Auto-login on reload ──
@@ -634,7 +634,7 @@
     if (!localStorage.getItem(TOKEN_KEY)) return;
     try {
       await apiFetch('/me');
-      window.location.href = '/clients.html';
+      window.location.href = '/dashboard.html';
     } catch {
       localStorage.removeItem(TOKEN_KEY);
     }
