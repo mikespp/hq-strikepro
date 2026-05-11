@@ -143,15 +143,7 @@
     .hq   .product-name { color: var(--hq); }
     .gb   .product-name { color: var(--gb); }
 
-    .product-desc { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
-
-    .product-stats { display: flex; gap: 16px; }
-    .pstat { display: flex; flex-direction: column; gap: 2px; }
-    .pstat-val { font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; }
-    .ppvp .pstat-val { color: var(--ppvp); }
-    .hq   .pstat-val { color: var(--hq); }
-    .gb   .pstat-val { color: var(--gb); }
-    .pstat-lbl { font-size: 10px; color: var(--text-sub); text-transform: uppercase; letter-spacing: .04em; }
+    .product-desc { font-size: 12px; color: var(--text-muted); }
 
     .product-arrow {
       flex-shrink: 0; color: var(--text-sub); font-size: 20px; line-height: 1;
@@ -164,7 +156,6 @@
       border-radius: 4px; display: inline-block;
     }
     @keyframes shimmer { to { background-position: -200% 0; } }
-    .sk-num { width: 32px; height: 18px; }
   </style>
 </head>
 <body>
@@ -210,16 +201,6 @@
       <div class="product-body">
         <div class="product-name">PPVP</div>
         <div class="product-desc">Private Portfolio Value Program</div>
-        <div class="product-stats">
-          <div class="pstat">
-            <span class="pstat-val" id="ppvp-count"><span class="skeleton sk-num"></span></span>
-            <span class="pstat-lbl">ผู้ลงทุน</span>
-          </div>
-          <div class="pstat">
-            <span class="pstat-val" id="ppvp-total"><span class="skeleton sk-num"></span></span>
-            <span class="pstat-lbl">USD รวม</span>
-          </div>
-        </div>
       </div>
       <div class="product-arrow">›</div>
     </a>
@@ -229,16 +210,6 @@
       <div class="product-body">
         <div class="product-name">HQ Ultimate</div>
         <div class="product-desc">Premium Investment Package</div>
-        <div class="product-stats">
-          <div class="pstat">
-            <span class="pstat-val" id="hq-count"><span class="skeleton sk-num"></span></span>
-            <span class="pstat-lbl">ผู้ลงทุน</span>
-          </div>
-          <div class="pstat">
-            <span class="pstat-val" id="hq-total"><span class="skeleton sk-num"></span></span>
-            <span class="pstat-lbl">USD รวม</span>
-          </div>
-        </div>
       </div>
       <div class="product-arrow">›</div>
     </a>
@@ -248,16 +219,6 @@
       <div class="product-body">
         <div class="product-name">Golden Boy</div>
         <div class="product-desc">High-Growth Strategy</div>
-        <div class="product-stats">
-          <div class="pstat">
-            <span class="pstat-val" id="gb-count"><span class="skeleton sk-num"></span></span>
-            <span class="pstat-lbl">ผู้ลงทุน</span>
-          </div>
-          <div class="pstat">
-            <span class="pstat-val" id="gb-total"><span class="skeleton sk-num"></span></span>
-            <span class="pstat-lbl">USD รวม</span>
-          </div>
-        </div>
       </div>
       <div class="product-arrow">›</div>
     </a>
@@ -295,34 +256,6 @@
     window.location.href = '/';
   }
 
-  function fmt(n) {
-    if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
-    if (n >= 1000)    return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
-    return n.toLocaleString();
-  }
-
-  function setVal(id, val) {
-    document.getElementById(id).textContent = val;
-  }
-
-  async function loadStats() {
-    const token = localStorage.getItem(TOKEN_KEY);
-    if (!token) return;
-    try {
-      const r = await fetch('/api/products', { headers: { Authorization: 'Bearer ' + token } });
-      const { stats } = await r.json();
-      setVal('ppvp-count', stats.ppvp.count);
-      setVal('ppvp-total', '$' + fmt(stats.ppvp.total));
-      setVal('hq-count',   stats.hq_ultimate.count);
-      setVal('hq-total',   '$' + fmt(stats.hq_ultimate.total));
-      setVal('gb-count',   stats.golden_boy.count);
-      setVal('gb-total',   '$' + fmt(stats.golden_boy.total));
-    } catch (err) {
-      console.error('[products]', err);
-    }
-  }
-
-  loadStats();
 </script>
 </body>
 </html>
