@@ -8,7 +8,10 @@
       "PowerShell(New-Item -ItemType Directory -Force -Path \"C:\\\\Users\\\\Lenovo\\\\OneDrive\\\\Documents\\\\Projects\\\\HQ Clients\\\\public\")",
       "PowerShell(Move-Item -Path \"C:\\\\Users\\\\Lenovo\\\\OneDrive\\\\Documents\\\\Projects\\\\HQ Clients\\\\index.html\" -Destination \"C:\\\\Users\\\\Lenovo\\\\OneDrive\\\\Documents\\\\Projects\\\\HQ Clients\\\\public\\\\index.html\" -Force)",
       "Bash(npm install *)",
-      "mcp__Claude_Preview__preview_start"
+      "mcp__Claude_Preview__preview_start",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)"
     ]
   }
 }
