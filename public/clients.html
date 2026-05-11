@@ -228,6 +228,30 @@
       border: 1px solid var(--border); }
     .card-date { font-size: 11px; color: var(--text-sub); }
 
+    /* Activity pills on card */
+    .card-activities {
+      display: flex; flex-wrap: wrap; gap: 4px;
+      margin-top: 8px; padding-top: 8px;
+      border-top: 1px solid var(--border);
+    }
+    .act-pill {
+      font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px;
+      white-space: nowrap;
+      background: rgba(99,102,241,.1); color: #818cf8;
+      border: 1px solid rgba(99,102,241,.18);
+    }
+
+    /* Product pills on card */
+    .card-products { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+    .prod-pill {
+      font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px;
+      white-space: nowrap; border: 1px solid transparent;
+    }
+    .prod-ppvp { background: rgba(129,140,248,.12); color: #818cf8; border-color: rgba(129,140,248,.2); }
+    .prod-hq   { background: rgba(212,175,55,.12);  color: #d4af37; border-color: rgba(212,175,55,.2); }
+    .prod-gb   { background: rgba(74,222,128,.12);  color: #4ade80; border-color: rgba(74,222,128,.2); }
+    .prod-self { background: rgba(248,113,113,.12); color: #f87171; border-color: rgba(248,113,113,.2); }
+
     /* ── Form Overlay ──────────────────────────────────────── */
     .overlay {
       position: fixed; inset: 0; z-index: 200;
@@ -750,6 +774,12 @@
     return new Date(iso).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' });
   }
 
+  function fmtUSD(n) {
+    const v = parseFloat(n) || 0;
+    if (v >= 1000) return '$' + (v / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+    return '$' + v.toLocaleString();
+  }
+
   function clientCardHTML(c) {
     const initial    = (c.name || '?')[0].toUpperCase();
     const color      = avatarColor(c.name);
@@ -759,6 +789,22 @@
       const label = f.replace('ครั้งที่ ', 'F').replace(/ \(.*\)/, '');
       return `<span class="follow-pill ${done ? 'done' : 'pending'}">${label}</span>`;
     }).join('');
+
+    // Activities
+    const acts = c.activities || [];
+    const actPills = acts.length > 0
+      ? `<div class="card-activities">${acts.map(a => `<span class="act-pill">${esc(a)}</span>`).join('')}</div>`
+      : '';
+
+    // Products invested
+    const prods = [];
+    if (parseFloat(c.ppvp_usd)        > 0) prods.push(`<span class="prod-pill prod-ppvp">PPVP ${fmtUSD(c.ppvp_usd)}</span>`);
+    if (parseFloat(c.hq_ultimate_usd) > 0) prods.push(`<span class="prod-pill prod-hq">HQ Ultimate ${fmtUSD(c.hq_ultimate_usd)}</span>`);
+    if (parseFloat(c.golden_boy_usd)  > 0) prods.push(`<span class="prod-pill prod-gb">Golden Boy ${fmtUSD(c.golden_boy_usd)}</span>`);
+    if (parseFloat(c.self_trade_usd)  > 0) prods.push(`<span class="prod-pill prod-self">เทรดเอง ${fmtUSD(c.self_trade_usd)}</span>`);
+    const prodPills = prods.length > 0
+      ? `<div class="card-products">${prods.join('')}</div>`
+      : '';
 
     return `
       <div class="client-card" onclick="editClient(${c.id})">
@@ -779,6 +825,8 @@
             <span class="card-chevron">›</span>
           </div>
         </div>
+        ${actPills}
+        ${prodPills}
         <div class="card-bottom">
           <div class="follow-pills">${followPills}</div>
           <span class="card-date">${fmtDate(c.created_at)}</span>
