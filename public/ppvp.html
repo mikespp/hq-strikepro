@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>PPVP Private Fund – HQ Strikepro</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#0f172a" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary:    #E63946;
+      --primary-bg: rgba(230,57,70,.12);
+      --accent:     #818cf8;
+      --accent-dim: rgba(129,140,248,.12);
+      --accent-mid: rgba(129,140,248,.25);
+      --bg:         #0d0d0d;
+      --surface:    #1a1a1a;
+      --surface2:   #222;
+      --surface3:   #2a2a2a;
+      --border:     #2e2e2e;
+      --text:       #f1f1f1;
+      --text-muted: #777;
+      --text-sub:   #555;
+      --green:      #4ade80;
+      --green-bg:   rgba(74,222,128,.12);
+      --amber:      #fbbf24;
+      --amber-bg:   rgba(251,191,36,.12);
+      --red-bg:     rgba(248,113,113,.12);
+      --red-text:   #f87171;
+      --radius:     14px;
+      --radius-sm:  8px;
+      --nav-h:      56px;
+    }
+    html, body { background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+
+    /* ── Nav ── */
+    .top-nav {
+      position: sticky; top: 0; z-index: 100; height: var(--nav-h);
+      background: rgba(13,13,13,.92); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; padding: 0 16px; gap: 12px;
+    }
+    .nav-back {
+      background: none; border: none; cursor: pointer; color: var(--text-muted);
+      padding: 8px; margin-left: -8px; display: flex; align-items: center; gap: 6px;
+      font-size: 14px; font-weight: 600; border-radius: 8px;
+      transition: color .15s, background .15s; text-decoration: none; flex-shrink: 0;
+    }
+    .nav-back:hover { color: var(--text); background: var(--surface2); }
+    .nav-back svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+    .nav-product-name { font-size: 15px; font-weight: 800; color: var(--accent); }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(160deg, #0f0f1a 0%, #1a1a2e 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 28px 16px 24px; position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; top: -60px; right: -60px;
+      width: 220px; height: 220px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(129,140,248,.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-inner { max-width: 640px; margin: 0 auto; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--accent-dim); border: 1px solid var(--accent-mid);
+      border-radius: 20px; padding: 4px 12px; margin-bottom: 14px;
+      font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+    .hero-title { font-size: 28px; font-weight: 900; color: var(--accent); letter-spacing: -.5px; line-height: 1.1; margin-bottom: 6px; }
+    .hero-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 18px; line-height: 1.6; }
+    .hero-links { display: flex; gap: 10px; flex-wrap: wrap; }
+    .hero-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 9px 16px; border-radius: var(--radius-sm);
+      font-size: 12px; font-weight: 700; text-decoration: none; transition: opacity .15s;
+    }
+    .hero-btn:hover { opacity: .8; }
+    .hero-btn.primary { background: var(--accent); color: #fff; }
+    .hero-btn.outline { background: none; border: 1px solid var(--accent-mid); color: var(--accent); }
+    .hero-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+
+    /* ── Quick stats strip ── */
+    .quick-stats {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      border-bottom: 1px solid var(--border);
+    }
+    @media (max-width: 480px) { .quick-stats { grid-template-columns: repeat(2, 1fr); } }
+    .qs-cell {
+      padding: 14px 12px; border-right: 1px solid var(--border); text-align: center;
+    }
+    .qs-cell:last-child { border-right: none; }
+    @media (max-width: 480px) {
+      .qs-cell:nth-child(2) { border-right: none; }
+      .qs-cell:nth-child(3), .qs-cell:nth-child(4) { border-top: 1px solid var(--border); }
+    }
+    .qs-val { font-size: 18px; font-weight: 800; color: var(--accent); }
+    .qs-lbl { font-size: 10px; color: var(--text-sub); margin-top: 3px; text-transform: uppercase; letter-spacing: .05em; }
+
+    /* ── Main layout ── */
+    .page-main { max-width: 640px; margin: 0 auto; padding: 20px 16px 80px; display: flex; flex-direction: column; gap: 16px; }
+
+    /* ── Section card ── */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden;
+    }
+    .card-header {
+      padding: 14px 16px 12px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .card-header-icon {
+      width: 28px; height: 28px; border-radius: 8px; background: var(--accent-dim);
+      display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0;
+    }
+    .card-header-title { font-size: 14px; font-weight: 700; color: var(--text); }
+    .card-body { padding: 16px; }
+
+    /* ── Quote ── */
+    .quote-block {
+      border-left: 3px solid var(--accent); padding: 12px 16px;
+      background: var(--accent-dim); border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      font-size: 14px; font-weight: 600; color: var(--text); font-style: italic; line-height: 1.6;
+      margin-bottom: 12px;
+    }
+
+    /* ── Tag list ── */
+    .tag-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 6px; padding: 5px 10px; font-size: 12px; font-weight: 600; color: var(--text-muted);
+    }
+    .tag.accent { background: var(--accent-dim); border-color: var(--accent-mid); color: var(--accent); }
+
+    /* ── Feature grid ── */
+    .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width: 380px) { .feature-grid { grid-template-columns: 1fr; } }
+    .feature-item {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 12px 14px;
+    }
+    .feature-name { font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 4px; }
+    .feature-desc { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+
+    /* ── Info table ── */
+    .info-table { width: 100%; border-collapse: collapse; }
+    .info-table tr { border-bottom: 1px solid var(--border); }
+    .info-table tr:last-child { border-bottom: none; }
+    .info-table td { padding: 10px 0; font-size: 13px; vertical-align: top; }
+    .info-table td:first-child { color: var(--text-muted); width: 45%; }
+    .info-table td:last-child { color: var(--text); font-weight: 600; text-align: right; }
+
+    /* ── Drawdown stats ── */
+    .dd-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .dd-cell { text-align: center; background: var(--surface2); border-radius: var(--radius-sm); padding: 12px 8px; }
+    .dd-val { font-size: 18px; font-weight: 800; }
+    .dd-val.green  { color: var(--green); }
+    .dd-val.amber  { color: var(--amber); }
+    .dd-val.red    { color: var(--red-text); }
+    .dd-lbl { font-size: 10px; color: var(--text-sub); margin-top: 4px; text-transform: uppercase; letter-spacing: .04em; }
+
+    /* ── Growth table ── */
+    .growth-table { width: 100%; border-collapse: collapse; }
+    .growth-table th { font-size: 11px; color: var(--text-sub); text-transform: uppercase; letter-spacing: .05em; font-weight: 600; padding: 0 0 10px; text-align: left; }
+    .growth-table th:not(:first-child) { text-align: right; }
+    .growth-table td { font-size: 13px; padding: 9px 0; border-top: 1px solid var(--border); }
+    .growth-table td:not(:first-child) { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .growth-table .yr-label { color: var(--text-muted); }
+    .growth-table .total-val { color: var(--accent); }
+    .growth-table .profit-val { color: var(--green); }
+    .growth-table-note { font-size: 11px; color: var(--text-sub); margin-top: 10px; font-style: italic; }
+
+    /* ── Fee block ── */
+    .fee-highlight {
+      background: var(--accent-dim); border: 1px solid var(--accent-mid);
+      border-radius: var(--radius-sm); padding: 14px 16px; text-align: center; margin-bottom: 12px;
+    }
+    .fee-num { font-size: 36px; font-weight: 900; color: var(--accent); line-height: 1; }
+    .fee-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+    /* ── Bullet list ── */
+    .bullet-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .bullet-list li { font-size: 13px; color: var(--text-muted); display: flex; align-items: flex-start; gap: 8px; line-height: 1.5; }
+    .bullet-list li::before { content: '•'; color: var(--accent); flex-shrink: 0; margin-top: 1px; }
+    .bullet-list.check li::before { content: '✓'; color: var(--green); }
+    .bullet-list.cross li::before { content: '✗'; color: var(--red-text); }
+
+    /* ── Investor section ── */
+    .investor-list { display: flex; flex-direction: column; gap: 10px; }
+    .investor-card {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 12px 14px;
+      display: flex; align-items: center; gap: 12px;
+      text-decoration: none; color: inherit;
+      transition: border-color .15s; -webkit-tap-highlight-color: transparent;
+    }
+    .investor-card:hover { border-color: var(--accent-mid); }
+    .investor-avatar {
+      width: 38px; height: 38px; border-radius: 50%; background: var(--accent-dim);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 800; color: var(--accent); flex-shrink: 0;
+    }
+    .investor-name { font-size: 14px; font-weight: 700; }
+    .investor-phone { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .investor-amount { font-size: 15px; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; margin-left: auto; }
+    .empty-investors { text-align: center; padding: 32px 16px; color: var(--text-muted); font-size: 13px; }
+
+    /* ── Crisis table ── */
+    .crisis-table { width: 100%; border-collapse: collapse; }
+    .crisis-table th { font-size: 11px; color: var(--text-sub); text-transform: uppercase; font-weight: 600; padding: 0 0 8px; text-align: left; }
+    .crisis-table td { font-size: 12px; padding: 8px 0; border-top: 1px solid var(--border); color: var(--text-muted); vertical-align: top; }
+    .crisis-table td:first-child { color: var(--text); font-weight: 600; width: 45%; }
+
+    /* ── VIP block ── */
+    .vip-block {
+      background: linear-gradient(135deg, rgba(212,175,55,.08), rgba(129,140,248,.08));
+      border: 1px solid rgba(212,175,55,.25); border-radius: var(--radius-sm);
+      padding: 14px 16px;
+    }
+    .vip-title { font-size: 13px; font-weight: 800; color: #d4af37; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  </style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav class="top-nav">
+  <a class="nav-back" href="/products.html">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    Products
+  </a>
+  <span class="nav-product-name">PPVP</span>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge">💼 Private Fund · PAMM Model</div>
+    <div class="hero-title">PPVP Private Fund</div>
+    <div class="hero-sub">Institutional-Inspired Long-Term Wealth System · Hybrid Macro Investment Management</div>
+    <div class="hero-links">
+      <a class="hero-btn primary" href="https://my.strikeprofx.com/en/pamm-new/1/leaderboard/2121968661" target="_blank">
+        <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        PAMM Leaderboard
+      </a>
+      <a class="hero-btn outline" href="https://www.myfxbook.com/members/jeansongrok/ppvp-fund-100mb-phase-i/11773720" target="_blank">
+        <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Myfxbook
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Quick stats -->
+<div class="quick-stats">
+  <div class="qs-cell">
+    <div class="qs-val">$10K</div>
+    <div class="qs-lbl">เงินลงทุนขั้นต่ำ</div>
+  </div>
+  <div class="qs-cell">
+    <div class="qs-val">2–3%</div>
+    <div class="qs-lbl">ผลตอบแทน/เดือน</div>
+  </div>
+  <div class="qs-cell">
+    <div class="qs-val">ต่ำ</div>
+    <div class="qs-lbl">ระดับความเสี่ยง</div>
+  </div>
+  <div class="qs-cell">
+    <div class="qs-val">5+ ปี</div>
+    <div class="qs-lbl">ประสบการณ์</div>
+  </div>
+</div>
+
+<main class="page-main">
+
+  <!-- Fund Info -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">📋</div>
+      <div class="card-header-title">Fund Information</div>
+    </div>
+    <div class="card-body">
+      <table class="info-table">
+        <tr><td>ชื่อกองทุน</td><td>PPVP Private Fund</td></tr>
+        <tr><td>ประเภท</td><td>Hybrid Macro Private Fund</td></tr>
+        <tr><td>รูปแบบ</td><td>PAMM Model</td></tr>
+        <tr><td>ตลาดหลัก</td><td>Forex</td></tr>
+        <tr><td>ประสบการณ์</td><td>มากกว่า 5 ปี</td></tr>
+        <tr><td>ระดับความเสี่ยง</td><td>ต่ำ</td></tr>
+        <tr><td>เงินลงทุนขั้นต่ำ</td><td>10,000 USD</td></tr>
+        <tr><td>เงินทุนรวมปัจจุบัน</td><td>>2.2 Million USD</td></tr>
+        <tr><td>ค่าบริหาร</td><td>50% Profit Sharing</td></tr>
+        <tr><td>PAMM Master</td><td>2121968661</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Philosophy -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">💡</div>
+      <div class="card-header-title">Investment Philosophy</div>
+    </div>
+    <div class="card-body">
+      <div class="quote-block">"การลงทุนที่ดี ควรทำให้นักลงทุนสามารถนอนหลับได้"</div>
+      <div class="tag-list">
+        <span class="tag accent">Consistency over Excitement</span>
+        <span class="tag accent">Survival over Speculation</span>
+        <span class="tag accent">Long-Term over Short-Term Emotion</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- System Architecture -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">⚙️</div>
+      <div class="card-header-title">Hybrid Investment Architecture</div>
+    </div>
+    <div class="card-body">
+      <div class="feature-grid">
+        <div class="feature-item">
+          <div class="feature-name">Automated Execution</div>
+          <div class="feature-desc">บริหารการเปิด/จัดการ Position แบบอัตโนมัติ</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-name">Fundamental Analysis</div>
+          <div class="feature-desc">วิเคราะห์ปัจจัยเศรษฐกิจและเหตุการณ์ระดับโลก</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-name">Pair Correlation Model</div>
+          <div class="feature-desc">ควบคุม Exposure ระหว่างคู่สกุลเงิน</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-name">Human Evaluation</div>
+          <div class="feature-desc">ทีมบริหารประเมินภาพรวมตลาดร่วมกับระบบ</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-name">Sniper Logic</div>
+          <div class="feature-desc">เลือกจังหวะเข้าตลาดเฉพาะเมื่อเข้าเงื่อนไขที่เหมาะสม</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-name">News Active Protection</div>
+          <div class="feature-desc">ปิดออเดอร์ใหม่ก่อนข่าวแรง 10 ชม. · เปิดระบบหลังข่าว 2 ชม.</div>
+        </div>
+      </div>
+      <div style="margin-top:14px;">
+        <div style="font-size:12px;color:var(--text-sub);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em;font-weight:600;">สกุลเงินที่เทรด</div>
+        <div class="tag-list">
+          <span class="tag">AUD</span><span class="tag">CAD</span><span class="tag">CHF</span>
+          <span class="tag">EUR</span><span class="tag">GBP</span><span class="tag">NZD</span><span class="tag">USD</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Risk Management -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">🛡️</div>
+      <div class="card-header-title">Risk Management & Drawdown</div>
+    </div>
+    <div class="card-body">
+      <div class="dd-grid" style="margin-bottom:16px;">
+        <div class="dd-cell">
+          <div class="dd-val green">1–5%</div>
+          <div class="dd-lbl">Drawdown ปกติ</div>
+        </div>
+        <div class="dd-cell">
+          <div class="dd-val amber">10–15%</div>
+          <div class="dd-lbl">ช่วงวิกฤต</div>
+        </div>
+        <div class="dd-cell">
+          <div class="dd-val red">~12%</div>
+          <div class="dd-lbl">Max Historical</div>
+        </div>
+      </div>
+      <div class="quote-block" style="margin-bottom:0;">"Drawdown ที่ต่ำ มีความสำคัญมากกว่าผลตอบแทนระยะสั้นที่ผันผวน"</div>
+    </div>
+  </div>
+
+  <!-- Compound Growth -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">📈</div>
+      <div class="card-header-title">Compound Growth Simulation</div>
+    </div>
+    <div class="card-body">
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">คำนวณที่ 2.5%/เดือน เริ่มต้น $100,000 USD</div>
+      <table class="growth-table">
+        <thead>
+          <tr>
+            <th>ระยะเวลา</th>
+            <th>มูลค่ารวม</th>
+            <th>กำไร</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="yr-label">Year 1</td>
+            <td class="total-val">$134,488</td>
+            <td class="profit-val">+$34,488</td>
+          </tr>
+          <tr>
+            <td class="yr-label">Year 3</td>
+            <td class="total-val">$242,726</td>
+            <td class="profit-val">+$142,726</td>
+          </tr>
+          <tr>
+            <td class="yr-label">Year 5</td>
+            <td class="total-val">$438,391</td>
+            <td class="profit-val">+$338,391</td>
+          </tr>
+          <tr>
+            <td class="yr-label">Year 10</td>
+            <td class="total-val">$1,921,863</td>
+            <td class="profit-val">+$1,821,863</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="growth-table-note">* ตัวเลขเป็นเพียงตัวอย่างการคำนวณ ไม่ใช่การรับประกันผลตอบแทน</div>
+    </div>
+  </div>
+
+  <!-- Fee Structure -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">💰</div>
+      <div class="card-header-title">Performance-Based Fee Structure</div>
+    </div>
+    <div class="card-body">
+      <div class="fee-highlight">
+        <div class="fee-num">50%</div>
+        <div class="fee-sub">ของกำไรสุทธิ (Profit Sharing Only)</div>
+      </div>
+      <ul class="bullet-list">
+        <li>คิดค่าบริหารเฉพาะในส่วนที่มีกำไรเท่านั้น</li>
+        <li>หากพอร์ตอยู่ในช่วงขาดทุน ระบบจะไม่คิดค่าบริหาร</li>
+        <li>กำไรช่วงแรกจะใช้ Recover พอร์ตกลับสู่ระดับทุนเดิมก่อน</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Crisis Timeline -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">🌐</div>
+      <div class="card-header-title">Crisis Survival Timeline</div>
+    </div>
+    <div class="card-body">
+      <table class="crisis-table">
+        <thead>
+          <tr>
+            <th>เหตุการณ์</th>
+            <th>แนวทางบริหาร</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Russia–Ukraine War</td><td>ลด Exposure และควบคุม Correlation</td></tr>
+          <tr><td>US–Iran Conflict</td><td>ปรับ Dynamic Risk</td></tr>
+          <tr><td>Oil Supply Crisis</td><td>ควบคุม Currency Exposure</td></tr>
+          <tr><td>Black Monday</td><td>จำกัด Position และบริหารสภาพคล่อง</td></tr>
+        </tbody>
+      </table>
+      <div class="quote-block" style="margin-top:14px;margin-bottom:0;">"อยู่รอดก่อน แล้วกำไรจะตามมาในระยะยาว"</div>
+    </div>
+  </div>
+
+  <!-- Suitable For -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">🎯</div>
+      <div class="card-header-title">Suitable For</div>
+    </div>
+    <div class="card-body" style="display:flex;flex-direction:column;gap:14px;">
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em;">✓ เหมาะสำหรับ</div>
+        <ul class="bullet-list check">
+          <li>นักลงทุนระยะยาว (แนะนำ 1–5 ปีขึ้นไป)</li>
+          <li>ผู้ที่ต้องการความเสี่ยงต่ำ</li>
+          <li>ผู้ที่ต้องการผลตอบแทนคุ้มค่าต่อความเสี่ยง</li>
+          <li>ผู้ที่ไม่มีเวลาเทรดเอง</li>
+          <li>นักลงทุนที่เชื่อในพลัง Compound Growth</li>
+        </ul>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--red-text);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em;">✗ ไม่เหมาะสำหรับ</div>
+        <ul class="bullet-list cross">
+          <li>เงินร้อน / ต้องการใช้ในระยะสั้น</li>
+          <li>นักลงทุนที่ต้องการผลตอบแทนสูงระยะสั้น</li>
+          <li>ผู้ที่รับความผันผวนไม่ได้</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIP -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">👑</div>
+      <div class="card-header-title">VIP Investor Experience</div>
+    </div>
+    <div class="card-body">
+      <div class="vip-block">
+        <div class="vip-title">👑 VIP Level — เงินลงทุน > 1,000,000 THB</div>
+        <ul class="bullet-list" style="color:var(--text-muted);">
+          <li>Private Line Group</li>
+          <li>Bi-Weekly Performance Summary</li>
+          <li>Monthly Performance Report</li>
+          <li>Portfolio Update</li>
+          <li>Private Consultation (ตามคำร้องขอ)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAMM Safety -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">🔒</div>
+      <div class="card-header-title">Safety Structure (PAMM)</div>
+    </div>
+    <div class="card-body">
+      <ul class="bullet-list check">
+        <li>ไม่ต้องโอนเงินให้บุคคล — เงินอยู่ในพอร์ตของตนเอง</li>
+        <li>ตรวจสอบผลดำเนินงานได้ตลอดเวลา</li>
+        <li>ฝากและถอนผ่านระบบ</li>
+        <li>ได้รับผลตอบแทนตามสัดส่วนเงินจริง</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Risk Disclosure -->
+  <div class="card" style="border-color:rgba(248,113,113,.2);">
+    <div class="card-header" style="border-color:rgba(248,113,113,.2);">
+      <div class="card-header-icon" style="background:var(--red-bg);">⚠️</div>
+      <div class="card-header-title">Risk Disclosure</div>
+    </div>
+    <div class="card-body">
+      <ul class="bullet-list">
+        <li>การลงทุนมีความเสี่ยง ตลาดการเงินมีความผันผวน</li>
+        <li>ผลตอบแทนในอดีตไม่สามารถรับประกันอนาคตได้</li>
+        <li>อาจเกิด Drawdown ได้ในบางช่วงเวลา</li>
+        <li>ควรใช้เงินเย็นในการลงทุน</li>
+        <li>ควรศึกษาความเสี่ยงก่อนตัดสินใจลงทุนทุกครั้ง</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Investor List -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">👥</div>
+      <div class="card-header-title">รายชื่อผู้ลงทุน</div>
+    </div>
+    <div class="card-body" style="padding-bottom:8px;">
+      <div class="investor-list" id="investorList">
+        <div class="empty-investors">กำลังโหลด…</div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  const TOKEN_KEY = 'sp_token';
+
+  (async () => {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) { window.location.href = '/'; return; }
+    try {
+      const r = await fetch('/api/auth/me', { headers: { Authorization: 'Bearer ' + token } });
+      if (!r.ok) { window.location.href = '/'; return; }
+    } catch { window.location.href = '/'; }
+  })();
+
+  function initials(name) {
+    return name.trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase() || '?';
+  }
+  function fmtUSD(n) {
+    if (n >= 1000000) return '$' + (n / 1000000).toFixed(2).replace(/\.?0+$/, '') + 'M';
+    if (n >= 1000)    return '$' + (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+    return '$' + n.toLocaleString();
+  }
+
+  async function loadInvestors() {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) return;
+    const list = document.getElementById('investorList');
+    try {
+      const r = await fetch('/api/products/ppvp', { headers: { Authorization: 'Bearer ' + token } });
+      const { investors } = await r.json();
+      if (!investors.length) {
+        list.innerHTML = '<div class="empty-investors">ยังไม่มีผู้ลงทุนใน PPVP</div>';
+        return;
+      }
+      list.innerHTML = investors.map(inv => `
+        <a class="investor-card" href="/clients.html">
+          <div class="investor-avatar">${initials(inv.name)}</div>
+          <div style="flex:1;min-width:0;">
+            <div class="investor-name">${inv.name}</div>
+            <div class="investor-phone">${inv.phone || '—'}</div>
+          </div>
+          <div class="investor-amount">${fmtUSD(inv.amount)}</div>
+        </a>
+      `).join('');
+    } catch (err) {
+      list.innerHTML = '<div class="empty-investors">โหลดข้อมูลไม่ได้</div>';
+    }
+  }
+
+  loadInvestors();
+</script>
+</body>
+</html>
