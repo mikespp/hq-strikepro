@@ -82,8 +82,7 @@ async function init() {
       office_visit        INT UNSIGNED NOT NULL DEFAULT 0,
       sbc                 INT UNSIGNED NOT NULL DEFAULT 0,
       invested            INT UNSIGNED NOT NULL DEFAULT 0,
-      updated_at          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      updated_at          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
@@ -297,26 +296,10 @@ async function refreshUserStats(userId) {
 }
 
 /**
- * Read the pre-computed stats for a user.
- * Always recalculates and persists on first visit (no row yet).
+ * Recalculate stats fresh from the clients table, persist to user_stats, and return.
+ * Always reads from source so the dashboard is never stale.
  */
 async function getDashboardStats(userId) {
-  const [rows] = await pool.execute(
-    'SELECT * FROM user_stats WHERE user_id = ? LIMIT 1',
-    [userId]
-  );
-  if (rows[0]) {
-    return {
-      total_clients:      Number(rows[0].total_clients),
-      product_talk:       Number(rows[0].product_talk),
-      unlock_your_wealth: Number(rows[0].unlock_your_wealth),
-      introduction_to_hq: Number(rows[0].introduction_to_hq),
-      office_visit:       Number(rows[0].office_visit),
-      sbc:                Number(rows[0].sbc),
-      invested:           Number(rows[0].invested),
-    };
-  }
-  // No row yet — compute, persist, and return
   return refreshUserStats(userId);
 }
 

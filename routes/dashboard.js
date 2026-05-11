@@ -11,8 +11,8 @@ router.get('/', async (req, res) => {
     const stats = await db.getDashboardStats(req.userId);
     res.json({ stats });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Something went wrong. Please try again.' });
+    console.error('[dashboard]', err);
+    res.status(500).json({ error: err.message || 'Something went wrong. Please try again.' });
   }
 });
 
