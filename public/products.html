@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Products – HQ Strikepro</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#0f172a" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary:    #E63946;
+      --primary-bg: rgba(230,57,70,.12);
+      --bg:         #0d0d0d;
+      --surface:    #1a1a1a;
+      --surface2:   #222;
+      --surface3:   #2a2a2a;
+      --border:     #2e2e2e;
+      --text:       #f1f1f1;
+      --text-muted: #777;
+      --text-sub:   #555;
+      --radius:     14px;
+      --radius-sm:  8px;
+      --nav-h:      56px;
+
+      /* Product palette */
+      --ppvp:    #818cf8;
+      --ppvp-bg: rgba(129,140,248,.12);
+      --hq:      #d4af37;
+      --hq-bg:   rgba(212,175,55,.12);
+      --gb:      #4ade80;
+      --gb-bg:   rgba(74,222,128,.12);
+    }
+    html, body { height: 100%; background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      -webkit-font-smoothing: antialiased; }
+
+    /* ── Nav ── */
+    .top-nav {
+      position: sticky; top: 0; z-index: 100;
+      height: var(--nav-h);
+      background: rgba(13,13,13,.92); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; padding: 0 16px; gap: 12px;
+    }
+    .nav-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; }
+    .nav-logo-mark { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; }
+    .nav-logo-mark img { width: 44px; height: 44px; object-fit: contain; }
+    .nav-logo-name { font-size: 16px; font-weight: 800; color: var(--text); letter-spacing: -.3px; }
+    .nav-logo-name span { color: var(--primary); }
+    .hamburger {
+      background: none; border: none; cursor: pointer; color: var(--text);
+      padding: 8px; margin-left: -8px; display: flex; flex-direction: column;
+      gap: 5px; align-items: center; border-radius: 8px; transition: background .15s; flex-shrink: 0;
+    }
+    .hamburger:hover { background: var(--surface2); }
+    .hamburger span { display: block; width: 22px; height: 2px; background: var(--text); border-radius: 2px; }
+
+    /* ── Drawer ── */
+    .drawer-overlay {
+      position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,.55);
+      opacity: 0; pointer-events: none; transition: opacity .25s;
+    }
+    .drawer-overlay.open { opacity: 1; pointer-events: all; }
+    .drawer {
+      position: fixed; top: 0; left: 0; bottom: 0; z-index: 201; width: 270px;
+      background: var(--surface); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      transform: translateX(-100%); transition: transform .28s cubic-bezier(.4,0,.2,1);
+    }
+    .drawer.open { transform: translateX(0); }
+    .drawer-header { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--border); }
+    .drawer-logo-name { font-size: 16px; font-weight: 800; color: var(--text); letter-spacing: -.3px; }
+    .drawer-logo-name span { color: var(--primary); }
+    .drawer-nav { flex: 1; padding: 10px 0; overflow-y: auto; }
+    .drawer-link {
+      display: flex; align-items: center; gap: 12px; padding: 13px 20px;
+      font-size: 15px; font-weight: 600; color: var(--text-muted); text-decoration: none;
+      transition: color .15s, background .15s; border-left: 3px solid transparent;
+    }
+    .drawer-link:hover { color: var(--text); background: var(--surface2); }
+    .drawer-link.active { color: var(--primary); background: var(--primary-bg); border-left-color: var(--primary); }
+    .drawer-link-icon { font-size: 18px; }
+    .drawer-footer { padding: 16px 18px; border-top: 1px solid var(--border); }
+    .drawer-user { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .drawer-signout {
+      width: 100%; background: none; border: 1px solid var(--border); color: var(--text-muted);
+      border-radius: 8px; padding: 10px; font-size: 13px; font-weight: 600; cursor: pointer;
+      transition: border-color .15s, color .15s;
+    }
+    .drawer-signout:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* ── Layout ── */
+    .page-main { max-width: 600px; margin: 0 auto; padding: 24px 16px 80px; }
+    .page-heading { margin-bottom: 24px; }
+    .page-heading h1 { font-size: 22px; font-weight: 800; }
+    .page-heading p  { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+    /* ── Product card ── */
+    .product-list { display: flex; flex-direction: column; gap: 14px; }
+
+    .product-card {
+      display: flex; align-items: center; gap: 16px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 18px 16px;
+      text-decoration: none; color: inherit;
+      transition: border-color .18s, background .18s, transform .12s;
+      position: relative; overflow: hidden;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .product-card::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+    }
+    .product-card:hover  { background: #1e1e1e; transform: translateY(-1px); }
+    .product-card:active { transform: scale(.98); }
+
+    .product-card.ppvp   { border-color: rgba(129,140,248,.25); }
+    .product-card.ppvp::before   { background: var(--ppvp); }
+    .product-card.ppvp:hover     { border-color: rgba(129,140,248,.5); }
+
+    .product-card.hq     { border-color: rgba(212,175,55,.25); }
+    .product-card.hq::before     { background: var(--hq); }
+    .product-card.hq:hover       { border-color: rgba(212,175,55,.5); }
+
+    .product-card.gb     { border-color: rgba(74,222,128,.25); }
+    .product-card.gb::before     { background: var(--gb); }
+    .product-card.gb:hover       { border-color: rgba(74,222,128,.5); }
+
+    .product-icon {
+      width: 52px; height: 52px; border-radius: 14px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 26px;
+    }
+    .ppvp .product-icon { background: var(--ppvp-bg); }
+    .hq   .product-icon { background: var(--hq-bg); }
+    .gb   .product-icon { background: var(--gb-bg); }
+
+    .product-body { flex: 1; min-width: 0; }
+    .product-name { font-size: 17px; font-weight: 800; margin-bottom: 3px; }
+    .ppvp .product-name { color: var(--ppvp); }
+    .hq   .product-name { color: var(--hq); }
+    .gb   .product-name { color: var(--gb); }
+
+    .product-desc { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
+
+    .product-stats { display: flex; gap: 16px; }
+    .pstat { display: flex; flex-direction: column; gap: 2px; }
+    .pstat-val { font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .ppvp .pstat-val { color: var(--ppvp); }
+    .hq   .pstat-val { color: var(--hq); }
+    .gb   .pstat-val { color: var(--gb); }
+    .pstat-lbl { font-size: 10px; color: var(--text-sub); text-transform: uppercase; letter-spacing: .04em; }
+
+    .product-arrow {
+      flex-shrink: 0; color: var(--text-sub); font-size: 20px; line-height: 1;
+    }
+
+    /* Skeleton */
+    .skeleton {
+      background: linear-gradient(90deg, var(--surface2) 25%, var(--surface3) 50%, var(--surface2) 75%);
+      background-size: 200% 100%; animation: shimmer 1.4s infinite;
+      border-radius: 4px; display: inline-block;
+    }
+    @keyframes shimmer { to { background-position: -200% 0; } }
+    .sk-num { width: 32px; height: 18px; }
+  </style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <button class="hamburger" onclick="toggleDrawer()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+  <a class="nav-logo" href="/dashboard.html">
+    <div class="nav-logo-mark"><img src="/logo.png.png" alt="HQ" /></div>
+    <span class="nav-logo-name">HQ <span>STRIKEPRO</span></span>
+  </a>
+</nav>
+
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <img src="/logo.png.png" alt="HQ" style="width:34px;height:34px;object-fit:contain;" />
+    <span class="drawer-logo-name">HQ <span>STRIKEPRO</span></span>
+  </div>
+  <nav class="drawer-nav">
+    <a class="drawer-link" href="/dashboard.html"><span class="drawer-link-icon">📊</span> Dashboard</a>
+    <a class="drawer-link" href="/clients.html"><span class="drawer-link-icon">👥</span> My Clients</a>
+    <a class="drawer-link active" href="/products.html"><span class="drawer-link-icon">📦</span> Products</a>
+    <a class="drawer-link" href="/planner.html"><span class="drawer-link-icon">📈</span> Investment Planner</a>
+  </nav>
+  <div class="drawer-footer">
+    <div class="drawer-user" id="drawerUser"></div>
+    <button class="drawer-signout" onclick="signOut()">ออกจากระบบ</button>
+  </div>
+</div>
+
+<main class="page-main">
+  <div class="page-heading">
+    <h1>Products</h1>
+    <p>รายการผลิตภัณฑ์การลงทุน</p>
+  </div>
+
+  <div class="product-list">
+
+    <a class="product-card ppvp" href="/product-detail.html?p=ppvp">
+      <div class="product-icon">💼</div>
+      <div class="product-body">
+        <div class="product-name">PPVP</div>
+        <div class="product-desc">Private Portfolio Value Program</div>
+        <div class="product-stats">
+          <div class="pstat">
+            <span class="pstat-val" id="ppvp-count"><span class="skeleton sk-num"></span></span>
+            <span class="pstat-lbl">ผู้ลงทุน</span>
+          </div>
+          <div class="pstat">
+            <span class="pstat-val" id="ppvp-total"><span class="skeleton sk-num"></span></span>
+            <span class="pstat-lbl">USD รวม</span>
+          </div>
+        </div>
+      </div>
+      <div class="product-arrow">›</div>
+    </a>
+
+    <a class="product-card hq" href="/product-detail.html?p=hq_ultimate">
+      <div class="product-icon">👑</div>
+      <div class="product-body">
+        <div class="product-name">HQ Ultimate</div>
+        <div class="product-desc">Premium Investment Package</div>
+        <div class="product-stats">
+          <div class="pstat">
+            <span class="pstat-val" id="hq-count"><span class="skeleton sk-num"></span></span>
+            <span class="pstat-lbl">ผู้ลงทุน</span>
+          </div>
+          <div class="pstat">
+            <span class="pstat-val" id="hq-total"><span class="skeleton sk-num"></span></span>
+            <span class="pstat-lbl">USD รวม</span>
+          </div>
+        </div>
+      </div>
+      <div class="product-arrow">›</div>
+    </a>
+
+    <a class="product-card gb" href="/product-detail.html?p=golden_boy">
+      <div class="product-icon">🏆</div>
+      <div class="product-body">
+        <div class="product-name">Golden Boy</div>
+        <div class="product-desc">High-Growth Strategy</div>
+        <div class="product-stats">
+          <div class="pstat">
+            <span class="pstat-val" id="gb-count"><span class="skeleton sk-num"></span></span>
+            <span class="pstat-lbl">ผู้ลงทุน</span>
+          </div>
+          <div class="pstat">
+            <span class="pstat-val" id="gb-total"><span class="skeleton sk-num"></span></span>
+            <span class="pstat-lbl">USD รวม</span>
+          </div>
+        </div>
+      </div>
+      <div class="product-arrow">›</div>
+    </a>
+
+  </div>
+</main>
+
+<script>
+  const TOKEN_KEY = 'sp_token';
+
+  // ── Auth guard ──
+  (async () => {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) { window.location.href = '/'; return; }
+    try {
+      const r = await fetch('/api/auth/me', { headers: { Authorization: 'Bearer ' + token } });
+      if (!r.ok) { window.location.href = '/'; return; }
+      const { user } = await r.json();
+      document.getElementById('drawerUser').textContent = user.email;
+    } catch { window.location.href = '/'; }
+  })();
+
+  function toggleDrawer() {
+    document.getElementById('drawer').classList.toggle('open');
+    document.getElementById('drawerOverlay').classList.toggle('open');
+  }
+  function closeDrawer() {
+    document.getElementById('drawer').classList.remove('open');
+    document.getElementById('drawerOverlay').classList.remove('open');
+  }
+  function signOut() {
+    const token = localStorage.getItem(TOKEN_KEY);
+    fetch('/api/auth/logout', { method: 'POST', headers: { Authorization: 'Bearer ' + token } }).catch(() => {});
+    localStorage.removeItem(TOKEN_KEY);
+    window.location.href = '/';
+  }
+
+  function fmt(n) {
+    if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+    if (n >= 1000)    return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+    return n.toLocaleString();
+  }
+
+  function setVal(id, val) {
+    document.getElementById(id).textContent = val;
+  }
+
+  async function loadStats() {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) return;
+    try {
+      const r = await fetch('/api/products', { headers: { Authorization: 'Bearer ' + token } });
+      const { stats } = await r.json();
+      setVal('ppvp-count', stats.ppvp.count);
+      setVal('ppvp-total', '$' + fmt(stats.ppvp.total));
+      setVal('hq-count',   stats.hq_ultimate.count);
+      setVal('hq-total',   '$' + fmt(stats.hq_ultimate.total));
+      setVal('gb-count',   stats.golden_boy.count);
+      setVal('gb-total',   '$' + fmt(stats.golden_boy.total));
+    } catch (err) {
+      console.error('[products]', err);
+    }
+  }
+
+  loadStats();
+</script>
+</body>
+</html>

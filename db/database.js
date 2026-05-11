@@ -305,10 +305,54 @@ async function getDashboardStats(userId) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
+// ── Product stats ─────────────────────────────────────────────────────────────
+
+async function getProductStats(userId) {
+  const [rows] = await pool.execute(
+    `SELECT
+       COUNT(CASE WHEN ppvp_usd       > 0 THEN 1 END) AS ppvp_count,
+       COALESCE(SUM(CASE WHEN ppvp_usd       > 0 THEN ppvp_usd       END), 0) AS ppvp_total,
+       COUNT(CASE WHEN hq_ultimate_usd > 0 THEN 1 END) AS hq_count,
+       COALESCE(SUM(CASE WHEN hq_ultimate_usd > 0 THEN hq_ultimate_usd END), 0) AS hq_total,
+       COUNT(CASE WHEN golden_boy_usd  > 0 THEN 1 END) AS gb_count,
+       COALESCE(SUM(CASE WHEN golden_boy_usd  > 0 THEN golden_boy_usd  END), 0) AS gb_total
+     FROM clients WHERE user_id = ?`,
+    [userId]
+  );
+  const r = rows[0];
+  return {
+    ppvp:        { count: Number(r.ppvp_count), total: Number(r.ppvp_total) },
+    hq_ultimate: { count: Number(r.hq_count),   total: Number(r.hq_total)  },
+    golden_boy:  { count: Number(r.gb_count),   total: Number(r.gb_total)  },
+  };
+}
+
+const PRODUCT_COL = {
+  ppvp:        'ppvp_usd',
+  hq_ultimate: 'hq_ultimate_usd',
+  golden_boy:  'golden_boy_usd',
+};
+
+async function getProductInvestors(userId, productKey) {
+  const col = PRODUCT_COL[productKey];
+  if (!col) return null;
+  const [rows] = await pool.execute(
+    `SELECT id, name, phone, \`${col}\` AS amount
+     FROM clients
+     WHERE user_id = ? AND \`${col}\` > 0
+     ORDER BY \`${col}\` DESC`,
+    [userId]
+  );
+  return rows.map(r => ({ id: Number(r.id), name: r.name, phone: r.phone || '', amount: Number(r.amount) }));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 module.exports = {
   init,
   findUserByEmail, findUserById, createUser,
   createSession, findSession, deleteSession,
   getAllClients, getClientById, createClient, updateClient, deleteClient,
   getDashboardStats, refreshUserStats,
+  getProductStats, getProductInvestors,
 };

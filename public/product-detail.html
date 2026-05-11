@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Product Detail – HQ Strikepro</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#0f172a" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary:    #E63946;
+      --primary-bg: rgba(230,57,70,.12);
+      --bg:         #0d0d0d;
+      --surface:    #1a1a1a;
+      --surface2:   #222;
+      --surface3:   #2a2a2a;
+      --border:     #2e2e2e;
+      --text:       #f1f1f1;
+      --text-muted: #777;
+      --text-sub:   #555;
+      --green:      #4ade80;
+      --radius:     14px;
+      --radius-sm:  8px;
+      --nav-h:      56px;
+      /* set by JS */
+      --accent:     #818cf8;
+      --accent-bg:  rgba(129,140,248,.12);
+    }
+    html, body { height: 100%; background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      -webkit-font-smoothing: antialiased; }
+
+    /* ── Nav ── */
+    .top-nav {
+      position: sticky; top: 0; z-index: 100;
+      height: var(--nav-h);
+      background: rgba(13,13,13,.92); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; padding: 0 16px; gap: 12px;
+    }
+    .nav-back {
+      background: none; border: none; cursor: pointer; color: var(--text);
+      padding: 8px; margin-left: -8px;
+      display: flex; align-items: center; gap: 6px;
+      font-size: 14px; font-weight: 600; border-radius: 8px;
+      transition: background .15s; flex-shrink: 0; text-decoration: none;
+    }
+    .nav-back:hover { background: var(--surface2); }
+    .nav-back svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+    .nav-title { font-size: 16px; font-weight: 800; color: var(--accent); }
+
+    /* ── Hero banner ── */
+    .hero {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 24px 16px 20px;
+    }
+    .hero-inner { max-width: 600px; margin: 0 auto; display: flex; align-items: center; gap: 16px; }
+    .hero-icon {
+      width: 64px; height: 64px; border-radius: 18px; flex-shrink: 0;
+      background: var(--accent-bg); display: flex; align-items: center;
+      justify-content: center; font-size: 32px;
+      border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+    }
+    .hero-info { flex: 1; min-width: 0; }
+    .hero-name { font-size: 24px; font-weight: 900; color: var(--accent); letter-spacing: -.5px; }
+    .hero-desc { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+    /* ── Stat strip ── */
+    .stat-strip {
+      max-width: 600px; margin: 0 auto;
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 1px; background: var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .stat-cell {
+      background: var(--surface); padding: 16px 20px;
+    }
+    .stat-cell-val {
+      font-size: 28px; font-weight: 800; color: var(--accent);
+      font-variant-numeric: tabular-nums; line-height: 1;
+    }
+    .stat-cell-lbl {
+      font-size: 11px; color: var(--text-muted); margin-top: 4px;
+      text-transform: uppercase; letter-spacing: .05em; font-weight: 600;
+    }
+
+    /* ── Layout ── */
+    .page-main { max-width: 600px; margin: 0 auto; padding: 20px 16px 80px; }
+
+    .section-title {
+      font-size: 13px; font-weight: 700; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: .06em;
+      margin-bottom: 12px; padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ── Investor list ── */
+    .investor-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .investor-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px 16px;
+      display: flex; align-items: center; gap: 14px;
+      text-decoration: none; color: inherit;
+      transition: border-color .15s, background .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .investor-card:hover { border-color: #444; background: #1e1e1e; }
+
+    .investor-avatar {
+      width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+      background: var(--accent-bg); display: flex; align-items: center;
+      justify-content: center; font-size: 16px; font-weight: 800; color: var(--accent);
+    }
+    .investor-info { flex: 1; min-width: 0; }
+    .investor-name { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .investor-phone { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .investor-amount {
+      font-size: 16px; font-weight: 800; color: var(--accent);
+      font-variant-numeric: tabular-nums; white-space: nowrap;
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center; padding: 48px 20px;
+      color: var(--text-muted); font-size: 14px;
+    }
+    .empty-icon { font-size: 40px; margin-bottom: 12px; }
+
+    /* Skeleton */
+    .skeleton {
+      background: linear-gradient(90deg, var(--surface2) 25%, var(--surface3) 50%, var(--surface2) 75%);
+      background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 6px;
+    }
+    @keyframes shimmer { to { background-position: -200% 0; } }
+  </style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a class="nav-back" href="/products.html">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    Products
+  </a>
+  <span class="nav-title" id="navTitle">…</span>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-icon" id="heroIcon">…</div>
+    <div class="hero-info">
+      <div class="hero-name" id="heroName">…</div>
+      <div class="hero-desc" id="heroDesc">…</div>
+    </div>
+  </div>
+</div>
+
+<!-- Stat strip -->
+<div class="stat-strip">
+  <div class="stat-cell">
+    <div class="stat-cell-val skeleton" id="statCount" style="width:60px;height:32px;"></div>
+    <div class="stat-cell-lbl">ผู้ลงทุน</div>
+  </div>
+  <div class="stat-cell">
+    <div class="stat-cell-val skeleton" id="statTotal" style="width:90px;height:32px;"></div>
+    <div class="stat-cell-lbl">USD รวมทั้งหมด</div>
+  </div>
+</div>
+
+<main class="page-main">
+  <div class="section-title">รายชื่อผู้ลงทุน</div>
+  <div class="investor-list" id="investorList">
+    <!-- filled by JS -->
+    <div class="investor-card">
+      <div class="investor-avatar skeleton" style="width:40px;height:40px;border-radius:50%;"></div>
+      <div class="investor-info">
+        <div class="skeleton" style="width:120px;height:16px;margin-bottom:6px;"></div>
+        <div class="skeleton" style="width:80px;height:12px;"></div>
+      </div>
+      <div class="skeleton" style="width:60px;height:18px;"></div>
+    </div>
+  </div>
+</main>
+
+<script>
+  const TOKEN_KEY = 'sp_token';
+
+  const PRODUCTS = {
+    ppvp: {
+      name: 'PPVP', desc: 'Private Portfolio Value Program',
+      icon: '💼', color: '#818cf8', colorBg: 'rgba(129,140,248,.12)',
+      apiKey: 'ppvp',
+    },
+    hq_ultimate: {
+      name: 'HQ Ultimate', desc: 'Premium Investment Package',
+      icon: '👑', color: '#d4af37', colorBg: 'rgba(212,175,55,.12)',
+      apiKey: 'hq_ultimate',
+    },
+    golden_boy: {
+      name: 'Golden Boy', desc: 'High-Growth Strategy',
+      icon: '🏆', color: '#4ade80', colorBg: 'rgba(74,222,128,.12)',
+      apiKey: 'golden_boy',
+    },
+  };
+
+  const param = new URLSearchParams(location.search).get('p') || '';
+  const product = PRODUCTS[param];
+
+  if (!product) {
+    // Unknown product — go back
+    location.href = '/products.html';
+  }
+
+  // Apply product theme
+  document.documentElement.style.setProperty('--accent',    product.color);
+  document.documentElement.style.setProperty('--accent-bg', product.colorBg);
+  document.title = product.name + ' – HQ Strikepro';
+  document.getElementById('navTitle').textContent  = product.name;
+  document.getElementById('heroIcon').textContent  = product.icon;
+  document.getElementById('heroName').textContent  = product.name;
+  document.getElementById('heroDesc').textContent  = product.desc;
+
+  // ── Auth guard ──
+  (async () => {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) { window.location.href = '/'; return; }
+    try {
+      const r = await fetch('/api/auth/me', { headers: { Authorization: 'Bearer ' + token } });
+      if (!r.ok) { window.location.href = '/'; return; }
+    } catch { window.location.href = '/'; }
+  })();
+
+  function fmt(n) {
+    if (n >= 1000000) return '$' + (n / 1000000).toFixed(2).replace(/\.?0+$/, '') + 'M';
+    if (n >= 1000)    return '$' + (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+    return '$' + n.toLocaleString();
+  }
+
+  function initials(name) {
+    return name.trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase() || '?';
+  }
+
+  function signOut() {
+    const token = localStorage.getItem(TOKEN_KEY);
+    fetch('/api/auth/logout', { method: 'POST', headers: { Authorization: 'Bearer ' + token } }).catch(() => {});
+    localStorage.removeItem(TOKEN_KEY);
+    window.location.href = '/';
+  }
+
+  async function loadDetail() {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) return;
+    try {
+      const r = await fetch('/api/products/' + product.apiKey, {
+        headers: { Authorization: 'Bearer ' + token }
+      });
+      const { investors } = await r.json();
+
+      // Update stats
+      const count = investors.length;
+      const total = investors.reduce((s, i) => s + i.amount, 0);
+
+      const countEl = document.getElementById('statCount');
+      countEl.classList.remove('skeleton');
+      countEl.style.width = countEl.style.height = '';
+      countEl.textContent = count;
+
+      const totalEl = document.getElementById('statTotal');
+      totalEl.classList.remove('skeleton');
+      totalEl.style.width = totalEl.style.height = '';
+      totalEl.textContent = fmt(total);
+
+      // Render investor list
+      const list = document.getElementById('investorList');
+      if (investors.length === 0) {
+        list.innerHTML = `<div class="empty-state">
+          <div class="empty-icon">💤</div>
+          ยังไม่มีผู้ลงทุนใน ${product.name}
+        </div>`;
+        return;
+      }
+
+      list.innerHTML = investors.map(inv => `
+        <a class="investor-card" href="/clients.html#client-${inv.id}">
+          <div class="investor-avatar">${initials(inv.name)}</div>
+          <div class="investor-info">
+            <div class="investor-name">${inv.name}</div>
+            <div class="investor-phone">${inv.phone || '—'}</div>
+          </div>
+          <div class="investor-amount">${fmt(inv.amount)}</div>
+        </a>
+      `).join('');
+
+    } catch (err) {
+      console.error('[product-detail]', err);
+      document.getElementById('investorList').innerHTML =
+        '<div class="empty-state"><div class="empty-icon">⚠️</div>โหลดข้อมูลไม่ได้</div>';
+    }
+  }
+
+  loadDetail();
+</script>
+</body>
+</html>
