@@ -53,15 +53,74 @@
     .nav-logo-mark svg { width: 44px; height: 44px; }
     .nav-logo-name { font-size: 16px; font-weight: 800; color: var(--text); letter-spacing: -.3px; }
     .nav-logo-name span { color: var(--primary); }
-    .nav-spacer { flex: 1; }
-    .nav-user { font-size: 12px; color: var(--text-muted); max-width: 140px;
-      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .nav-signout {
-      background: none; border: 1px solid var(--border); color: var(--text-muted);
-      border-radius: 6px; padding: 5px 10px; font-size: 12px; cursor: pointer;
-      transition: border-color .15s, color .15s; white-space: nowrap;
+    /* ── Hamburger button ── */
+    .hamburger {
+      background: none; border: none; cursor: pointer;
+      color: var(--text); padding: 8px; margin-left: -8px;
+      display: flex; flex-direction: column; gap: 5px;
+      align-items: center; justify-content: center;
+      border-radius: 8px; transition: background .15s; flex-shrink: 0;
     }
-    .nav-signout:hover { border-color: var(--primary); color: var(--primary); }
+    .hamburger:hover { background: var(--surface2); }
+    .hamburger span {
+      display: block; width: 22px; height: 2px;
+      background: var(--text); border-radius: 2px;
+    }
+
+    /* ── Drawer overlay ── */
+    .drawer-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,.55);
+      opacity: 0; pointer-events: none;
+      transition: opacity .25s;
+    }
+    .drawer-overlay.open { opacity: 1; pointer-events: all; }
+
+    /* ── Drawer ── */
+    .drawer {
+      position: fixed; top: 0; left: 0; bottom: 0; z-index: 201;
+      width: 270px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      transform: translateX(-100%);
+      transition: transform .28s cubic-bezier(.4,0,.2,1);
+    }
+    .drawer.open { transform: translateX(0); }
+    .drawer-header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 14px 18px; border-bottom: 1px solid var(--border);
+    }
+    .drawer-logo-name { font-size: 16px; font-weight: 800; color: var(--text); letter-spacing: -.3px; }
+    .drawer-logo-name span { color: var(--primary); }
+    .drawer-nav { flex: 1; padding: 10px 0; overflow-y: auto; }
+    .drawer-link {
+      display: flex; align-items: center; gap: 12px;
+      padding: 13px 20px; font-size: 15px; font-weight: 600;
+      color: var(--text-muted); text-decoration: none;
+      transition: color .15s, background .15s;
+      border-left: 3px solid transparent;
+    }
+    .drawer-link:hover { color: var(--text); background: var(--surface2); }
+    .drawer-link.active {
+      color: var(--primary); background: rgba(230,57,70,.08);
+      border-left-color: var(--primary);
+    }
+    .drawer-link-icon { font-size: 18px; }
+    .drawer-footer {
+      padding: 16px 18px; border-top: 1px solid var(--border);
+    }
+    .drawer-user {
+      font-size: 12px; color: var(--text-muted); margin-bottom: 10px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .drawer-signout {
+      width: 100%; background: none; border: 1px solid var(--border);
+      color: var(--text-muted); border-radius: 8px; padding: 10px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      transition: border-color .15s, color .15s;
+    }
+    .drawer-signout:hover { border-color: var(--primary); color: var(--primary); }
 
     /* ── Page header ───────────────────────────────────────── */
     .page-header {
@@ -344,16 +403,39 @@
 
 <!-- ── Top Nav ── -->
 <nav class="top-nav">
+  <button class="hamburger" onclick="toggleDrawer()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
   <a class="nav-logo" href="/clients.html">
     <div class="nav-logo-mark">
       <img src="/logo.png.png" alt="HQ Strikepro" style="width:44px;height:44px;object-fit:contain;" />
     </div>
     <span class="nav-logo-name">HQ <span>STRIKEPRO</span></span>
   </a>
-  <div class="nav-spacer"></div>
-  <span class="nav-user" id="navUser"></span>
-  <button class="nav-signout" onclick="signOut()">ออกจากระบบ</button>
 </nav>
+
+<!-- ── Drawer overlay ── -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+
+<!-- ── Drawer ── -->
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <img src="/logo.png.png" alt="HQ" style="width:34px;height:34px;object-fit:contain;" />
+    <span class="drawer-logo-name">HQ <span>STRIKEPRO</span></span>
+  </div>
+  <nav class="drawer-nav">
+    <a class="drawer-link active" href="/clients.html">
+      <span class="drawer-link-icon">👥</span> My Clients
+    </a>
+    <a class="drawer-link" href="/planner.html">
+      <span class="drawer-link-icon">📈</span> Investment Planner
+    </a>
+  </nav>
+  <div class="drawer-footer">
+    <div class="drawer-user" id="drawerUser"></div>
+    <button class="drawer-signout" onclick="signOut()">ออกจากระบบ</button>
+  </div>
+</div>
 
 <!-- ── Main Page ── -->
 <div class="page-header">
@@ -569,12 +651,21 @@
     if (!token) { window.location.href = '/'; return; }
     try {
       const { user } = await api('/api/auth/me');
-      document.getElementById('navUser').textContent = user.email;
+      document.getElementById('drawerUser').textContent = user.email;
       loadClients();
     } catch {
       localStorage.removeItem(TOKEN_KEY);
       window.location.href = '/';
     }
+  }
+
+  function toggleDrawer() {
+    document.getElementById('drawer').classList.toggle('open');
+    document.getElementById('drawerOverlay').classList.toggle('open');
+  }
+  function closeDrawer() {
+    document.getElementById('drawer').classList.remove('open');
+    document.getElementById('drawerOverlay').classList.remove('open');
   }
 
   async function signOut() {
