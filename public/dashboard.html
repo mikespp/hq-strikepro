@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Dashboard – HQ Strikepro</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="HQ STRIKEPRO" />
+  <meta name="theme-color" content="#0f172a" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary:      #E63946;
+      --primary-dark: #c1121f;
+      --primary-bg:   rgba(230,57,70,.12);
+      --bg:           #0d0d0d;
+      --surface:      #1a1a1a;
+      --surface2:     #222;
+      --surface3:     #2a2a2a;
+      --border:       #2e2e2e;
+      --text:         #f1f1f1;
+      --text-muted:   #777;
+      --text-sub:     #555;
+      --green:        #4ade80;
+      --green-bg:     rgba(74,222,128,.10);
+      --blue:         #60a5fa;
+      --blue-bg:      rgba(96,165,250,.10);
+      --amber:        #fbbf24;
+      --amber-bg:     rgba(251,191,36,.10);
+      --purple:       #a78bfa;
+      --purple-bg:    rgba(167,139,250,.10);
+      --teal:         #2dd4bf;
+      --teal-bg:      rgba(45,212,191,.10);
+      --radius:       14px;
+      --radius-sm:    8px;
+      --nav-h:        56px;
+    }
+
+    html, body {
+      height: 100%; background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      -webkit-font-smoothing: antialiased; overflow-x: hidden;
+    }
+
+    /* ── Top Nav ── */
+    .top-nav {
+      position: sticky; top: 0; z-index: 100;
+      height: var(--nav-h);
+      background: rgba(13,13,13,.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center;
+      padding: 0 16px; gap: 12px;
+    }
+    .nav-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; }
+    .nav-logo-mark {
+      width: 44px; height: 44px; background: transparent;
+      border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    }
+    .nav-logo-mark img { width: 44px; height: 44px; object-fit: contain; }
+    .nav-logo-name { font-size: 16px; font-weight: 800; color: var(--text); letter-spacing: -.3px; }
+    .nav-logo-name span { color: var(--primary); }
+
+    /* ── Hamburger ── */
+    .hamburger {
+      background: none; border: none; cursor: pointer;
+      color: var(--text); padding: 8px; margin-left: -8px;
+      display: flex; flex-direction: column; gap: 5px;
+      align-items: center; justify-content: center;
+      border-radius: 8px; transition: background .15s; flex-shrink: 0;
+    }
+    .hamburger:hover { background: var(--surface2); }
+    .hamburger span {
+      display: block; width: 22px; height: 2px;
+      background: var(--text); border-radius: 2px;
+    }
+
+    /* ── Drawer overlay ── */
+    .drawer-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,.55);
+      opacity: 0; pointer-events: none;
+      transition: opacity .25s;
+    }
+    .drawer-overlay.open { opacity: 1; pointer-events: all; }
+
+    /* ── Drawer ── */
+    .drawer {
+      position: fixed; top: 0; left: 0; bottom: 0; z-index: 201;
+      width: 270px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      transform: translateX(-100%);
+      transition: transform .28s cubic-bezier(.4,0,.2,1);
+    }
+    .drawer.open { transform: translateX(0); }
+    .drawer-header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 14px 18px; border-bottom: 1px solid var(--border);
+    }
+    .drawer-logo-name { font-size: 16px; font-weight: 800; color: var(--text); letter-spacing: -.3px; }
+    .drawer-logo-name span { color: var(--primary); }
+    .drawer-nav { flex: 1; padding: 10px 0; overflow-y: auto; }
+    .drawer-link {
+      display: flex; align-items: center; gap: 12px;
+      padding: 13px 20px; font-size: 15px; font-weight: 600;
+      color: var(--text-muted); text-decoration: none;
+      transition: color .15s, background .15s;
+      border-left: 3px solid transparent;
+    }
+    .drawer-link:hover { color: var(--text); background: var(--surface2); }
+    .drawer-link.active {
+      color: var(--primary); background: var(--primary-bg);
+      border-left-color: var(--primary);
+    }
+    .drawer-link-icon { font-size: 18px; }
+    .drawer-footer {
+      padding: 16px 18px; border-top: 1px solid var(--border);
+    }
+    .drawer-user {
+      font-size: 12px; color: var(--text-muted); margin-bottom: 10px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .drawer-signout {
+      width: 100%; background: none; border: 1px solid var(--border);
+      color: var(--text-muted); border-radius: 8px; padding: 10px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      transition: border-color .15s, color .15s;
+    }
+    .drawer-signout:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* ── Page layout ── */
+    .page-main {
+      max-width: 800px; margin: 0 auto;
+      padding: 24px 16px 80px;
+    }
+    .page-heading {
+      margin-bottom: 24px;
+    }
+    .page-heading h1 {
+      font-size: 22px; font-weight: 800; letter-spacing: -.3px;
+    }
+    .page-heading p {
+      font-size: 13px; color: var(--text-muted); margin-top: 4px;
+    }
+
+    /* ── Stat grid rows ── */
+    .stat-row {
+      display: grid; gap: 14px; margin-bottom: 14px;
+    }
+    .stat-row-2 { grid-template-columns: repeat(2, 1fr); }
+    .stat-row-3 { grid-template-columns: repeat(3, 1fr); }
+
+    @media (max-width: 520px) {
+      .stat-row-3 { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 360px) {
+      .stat-row-2, .stat-row-3 { grid-template-columns: 1fr; }
+    }
+
+    /* ── Stat card ── */
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 18px 18px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color .2s, transform .15s;
+      cursor: default;
+    }
+    .stat-card:hover { border-color: #444; transform: translateY(-1px); }
+
+    /* Coloured top accent bar */
+    .stat-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      border-radius: var(--radius) var(--radius) 0 0;
+    }
+
+    /* Card colour variants */
+    .stat-card.c-red::before   { background: var(--primary); }
+    .stat-card.c-green::before { background: var(--green); }
+    .stat-card.c-blue::before  { background: var(--blue); }
+    .stat-card.c-amber::before { background: var(--amber); }
+    .stat-card.c-purple::before{ background: var(--purple); }
+    .stat-card.c-teal::before  { background: var(--teal); }
+
+    .stat-card-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; margin-bottom: 14px;
+    }
+    .c-red   .stat-card-icon { background: var(--primary-bg); }
+    .c-green .stat-card-icon { background: var(--green-bg); }
+    .c-blue  .stat-card-icon { background: var(--blue-bg); }
+    .c-amber .stat-card-icon { background: var(--amber-bg); }
+    .c-purple.stat-card-icon,
+    .c-purple .stat-card-icon { background: var(--purple-bg); }
+    .c-teal  .stat-card-icon { background: var(--teal-bg); }
+
+    .stat-card-value {
+      font-size: 36px; font-weight: 800;
+      letter-spacing: -1px; line-height: 1;
+      margin-bottom: 6px;
+      font-variant-numeric: tabular-nums;
+    }
+    .c-red   .stat-card-value { color: var(--primary); }
+    .c-green .stat-card-value { color: var(--green); }
+    .c-blue  .stat-card-value { color: var(--blue); }
+    .c-amber .stat-card-value { color: var(--amber); }
+    .c-purple .stat-card-value { color: var(--purple); }
+    .c-teal  .stat-card-value { color: var(--teal); }
+
+    .stat-card-label {
+      font-size: 13px; font-weight: 600; color: var(--text-muted);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    /* Featured cards (Row 1) – slightly taller value */
+    .stat-card.featured .stat-card-value { font-size: 48px; }
+
+    /* Skeleton loader */
+    .skeleton {
+      background: linear-gradient(90deg, var(--surface2) 25%, var(--surface3) 50%, var(--surface2) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 6px;
+    }
+    @keyframes shimmer { to { background-position: -200% 0; } }
+    .stat-card-value.skeleton { height: 44px; width: 80px; }
+    .featured .stat-card-value.skeleton { height: 56px; width: 100px; }
+
+    /* Error state */
+    .error-banner {
+      background: rgba(230,57,70,.1); border: 1px solid rgba(230,57,70,.3);
+      border-radius: var(--radius-sm); padding: 14px 16px;
+      color: var(--primary); font-size: 14px; font-weight: 600;
+      margin-bottom: 20px; display: none;
+    }
+    .error-banner.show { display: block; }
+  </style>
+</head>
+<body>
+
+<!-- ── Top Nav ── -->
+<nav class="top-nav">
+  <button class="hamburger" onclick="toggleDrawer()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+  <a class="nav-logo" href="/dashboard.html">
+    <div class="nav-logo-mark">
+      <img src="/logo.png.png" alt="HQ Strikepro" />
+    </div>
+    <span class="nav-logo-name">HQ <span>STRIKEPRO</span></span>
+  </a>
+</nav>
+
+<!-- ── Drawer overlay ── -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+
+<!-- ── Drawer ── -->
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <img src="/logo.png.png" alt="HQ" style="width:34px;height:34px;object-fit:contain;" />
+    <span class="drawer-logo-name">HQ <span>STRIKEPRO</span></span>
+  </div>
+  <nav class="drawer-nav">
+    <a class="drawer-link active" href="/dashboard.html">
+      <span class="drawer-link-icon">📊</span> Dashboard
+    </a>
+    <a class="drawer-link" href="/clients.html">
+      <span class="drawer-link-icon">👥</span> My Clients
+    </a>
+    <a class="drawer-link" href="/planner.html">
+      <span class="drawer-link-icon">📈</span> Investment Planner
+    </a>
+  </nav>
+  <div class="drawer-footer">
+    <div class="drawer-user" id="drawerUser"></div>
+    <button class="drawer-signout" onclick="signOut()">ออกจากระบบ</button>
+  </div>
+</div>
+
+<!-- ── Main ── -->
+<main class="page-main">
+
+  <div class="page-heading">
+    <h1>Dashboard</h1>
+    <p>ภาพรวมลูกค้าและกิจกรรม</p>
+  </div>
+
+  <div id="errorBanner" class="error-banner"></div>
+
+  <!-- Row 1: Total + Invested (featured) -->
+  <div class="stat-row stat-row-2">
+    <div class="stat-card featured c-blue">
+      <div class="stat-card-icon">👥</div>
+      <div class="stat-card-value skeleton" id="val-total"></div>
+      <div class="stat-card-label">จำนวนลูกค้าทั้งหมด</div>
+    </div>
+    <div class="stat-card featured c-green">
+      <div class="stat-card-icon">💰</div>
+      <div class="stat-card-value skeleton" id="val-invested"></div>
+      <div class="stat-card-label">ลงทุนแล้ว</div>
+    </div>
+  </div>
+
+  <!-- Row 2: Activity trio -->
+  <div class="stat-row stat-row-3">
+    <div class="stat-card c-amber">
+      <div class="stat-card-icon">🎤</div>
+      <div class="stat-card-value skeleton" id="val-product-talk"></div>
+      <div class="stat-card-label">Product Talk</div>
+    </div>
+    <div class="stat-card c-purple">
+      <div class="stat-card-icon">🔓</div>
+      <div class="stat-card-value skeleton" id="val-unlock"></div>
+      <div class="stat-card-label">Unlock Your Wealth</div>
+    </div>
+    <div class="stat-card c-teal">
+      <div class="stat-card-icon">🏢</div>
+      <div class="stat-card-value skeleton" id="val-intro"></div>
+      <div class="stat-card-label">Introduction to HQ</div>
+    </div>
+  </div>
+
+  <!-- Row 3: Remaining activities -->
+  <div class="stat-row stat-row-2">
+    <div class="stat-card c-red">
+      <div class="stat-card-icon">🏛️</div>
+      <div class="stat-card-value skeleton" id="val-office"></div>
+      <div class="stat-card-label">Office Visit</div>
+    </div>
+    <div class="stat-card c-amber">
+      <div class="stat-card-icon">⭐</div>
+      <div class="stat-card-value skeleton" id="val-sbc"></div>
+      <div class="stat-card-label">SBC</div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  const TOKEN_KEY = 'token';
+
+  // ── Auth guard ──────────────────────────────────────────────────────────────
+  (async () => {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) { window.location.href = '/'; return; }
+    try {
+      const r = await fetch('/api/auth/me', { headers: { Authorization: 'Bearer ' + token } });
+      if (!r.ok) { window.location.href = '/'; return; }
+      const { user } = await r.json();
+      document.getElementById('drawerUser').textContent = user.email;
+    } catch { window.location.href = '/'; }
+  })();
+
+  // ── Drawer ──────────────────────────────────────────────────────────────────
+  function toggleDrawer() {
+    document.getElementById('drawer').classList.toggle('open');
+    document.getElementById('drawerOverlay').classList.toggle('open');
+  }
+  function closeDrawer() {
+    document.getElementById('drawer').classList.remove('open');
+    document.getElementById('drawerOverlay').classList.remove('open');
+  }
+
+  // ── Sign out ────────────────────────────────────────────────────────────────
+  function signOut() {
+    const token = localStorage.getItem(TOKEN_KEY);
+    fetch('/api/auth/logout', { method: 'POST', headers: { Authorization: 'Bearer ' + token } }).catch(() => {});
+    localStorage.removeItem(TOKEN_KEY);
+    window.location.href = '/';
+  }
+
+  // ── Load stats ──────────────────────────────────────────────────────────────
+  function setVal(id, num) {
+    const el = document.getElementById(id);
+    el.classList.remove('skeleton');
+    el.textContent = num.toLocaleString();
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('errorBanner');
+    el.textContent = msg;
+    el.classList.add('show');
+    // Clear skeletons
+    ['val-total','val-invested','val-product-talk','val-unlock','val-intro','val-office','val-sbc']
+      .forEach(id => {
+        const el = document.getElementById(id);
+        el.classList.remove('skeleton');
+        el.textContent = '—';
+      });
+  }
+
+  async function loadStats() {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) return;
+    try {
+      const r = await fetch('/api/dashboard', { headers: { Authorization: 'Bearer ' + token } });
+      if (!r.ok) throw new Error('API error ' + r.status);
+      const { stats } = await r.json();
+      setVal('val-total',        stats.total_clients);
+      setVal('val-invested',     stats.invested);
+      setVal('val-product-talk', stats.product_talk);
+      setVal('val-unlock',       stats.unlock_your_wealth);
+      setVal('val-intro',        stats.introduction_to_hq);
+      setVal('val-office',       stats.office_visit);
+      setVal('val-sbc',          stats.sbc);
+    } catch (err) {
+      console.error(err);
+      showError('ไม่สามารถโหลดข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
+    }
+  }
+
+  loadStats();
+</script>
+</body>
+</html>

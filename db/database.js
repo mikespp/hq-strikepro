@@ -220,6 +220,35 @@ async function deleteClient(id, userId) {
   return result.affectedRows > 0;
 }
 
+// ── Dashboard stats ───────────────────────────────────────────────────────────
+
+async function getDashboardStats(userId) {
+  const [rows] = await pool.execute(
+    `SELECT
+       COUNT(*) AS total_clients,
+       SUM(CASE WHEN JSON_CONTAINS(activities, '"Product Talk"')       THEN 1 ELSE 0 END) AS product_talk,
+       SUM(CASE WHEN JSON_CONTAINS(activities, '"Unlock Your Wealth"') THEN 1 ELSE 0 END) AS unlock_your_wealth,
+       SUM(CASE WHEN JSON_CONTAINS(activities, '"Introduction to HQ"') THEN 1 ELSE 0 END) AS introduction_to_hq,
+       SUM(CASE WHEN JSON_CONTAINS(activities, '"Office Visit"')       THEN 1 ELSE 0 END) AS office_visit,
+       SUM(CASE WHEN JSON_CONTAINS(activities, '"SBC"')                THEN 1 ELSE 0 END) AS sbc,
+       SUM(CASE WHEN (ppvp_usd > 0 OR hq_ultimate_usd > 0 OR golden_boy_usd > 0 OR self_trade_usd > 0)
+                THEN 1 ELSE 0 END)                                                        AS invested
+     FROM clients
+     WHERE user_id = ?`,
+    [userId]
+  );
+  const r = rows[0];
+  return {
+    total_clients:      Number(r.total_clients)      || 0,
+    product_talk:       Number(r.product_talk)       || 0,
+    unlock_your_wealth: Number(r.unlock_your_wealth) || 0,
+    introduction_to_hq: Number(r.introduction_to_hq) || 0,
+    office_visit:       Number(r.office_visit)       || 0,
+    sbc:                Number(r.sbc)                || 0,
+    invested:           Number(r.invested)           || 0,
+  };
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 module.exports = {
@@ -227,4 +256,5 @@ module.exports = {
   findUserByEmail, findUserById, createUser,
   createSession, findSession, deleteSession,
   getAllClients, getClientById, createClient, updateClient, deleteClient,
+  getDashboardStats,
 };

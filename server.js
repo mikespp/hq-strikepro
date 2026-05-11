@@ -7,6 +7,7 @@ const path    = require('path');
 const db                  = require('./db/database');
 const { router: authRouter } = require('./routes/auth');
 const clientsRouter          = require('./routes/clients');
+const dashboardRouter        = require('./routes/dashboard');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -19,8 +20,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // API routes
-app.use('/api/auth',    authRouter);
-app.use('/api/clients', clientsRouter);
+app.use('/api/auth',      authRouter);
+app.use('/api/clients',   clientsRouter);
+app.use('/api/dashboard', dashboardRouter);
 
 // Health check
 app.get('/api/health', (_, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
