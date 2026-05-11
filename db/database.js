@@ -239,33 +239,44 @@ async function deleteClient(id, userId) {
 
 /**
  * Recalculate all stats from the clients table and persist them to user_stats.
+ * Processing done in Node.js to avoid MySQL JSON function compatibility issues.
  * Call this after any client create / update / delete.
  */
 async function refreshUserStats(userId) {
   const [rows] = await pool.execute(
-    `SELECT
-       COUNT(*) AS total_clients,
-       SUM(CASE WHEN JSON_CONTAINS(activities, '"Product Talk"')       THEN 1 ELSE 0 END) AS product_talk,
-       SUM(CASE WHEN JSON_CONTAINS(activities, '"Unlock Your Wealth"') THEN 1 ELSE 0 END) AS unlock_your_wealth,
-       SUM(CASE WHEN JSON_CONTAINS(activities, '"Introduction to HQ"') THEN 1 ELSE 0 END) AS introduction_to_hq,
-       SUM(CASE WHEN JSON_CONTAINS(activities, '"Office Visit"')       THEN 1 ELSE 0 END) AS office_visit,
-       SUM(CASE WHEN JSON_CONTAINS(activities, '"SBC"')                THEN 1 ELSE 0 END) AS sbc,
-       SUM(CASE WHEN (ppvp_usd > 0 OR hq_ultimate_usd > 0 OR golden_boy_usd > 0 OR self_trade_usd > 0)
-                THEN 1 ELSE 0 END)                                                        AS invested
-     FROM clients
-     WHERE user_id = ?`,
+    `SELECT activities, ppvp_usd, hq_ultimate_usd, golden_boy_usd, self_trade_usd
+     FROM clients WHERE user_id = ?`,
     [userId]
   );
-  const r = rows[0];
+
   const s = {
-    total_clients:      Number(r.total_clients)       || 0,
-    product_talk:       Number(r.product_talk)        || 0,
-    unlock_your_wealth: Number(r.unlock_your_wealth)  || 0,
-    introduction_to_hq: Number(r.introduction_to_hq) || 0,
-    office_visit:       Number(r.office_visit)        || 0,
-    sbc:                Number(r.sbc)                 || 0,
-    invested:           Number(r.invested)            || 0,
+    total_clients:      rows.length,
+    product_talk:       0,
+    unlock_your_wealth: 0,
+    introduction_to_hq: 0,
+    office_visit:       0,
+    sbc:                0,
+    invested:           0,
   };
+
+  for (const row of rows) {
+    let acts = [];
+    try { acts = JSON.parse(row.activities || '[]'); } catch {}
+    if (!Array.isArray(acts)) acts = [];
+
+    if (acts.includes('Product Talk'))       s.product_talk++;
+    if (acts.includes('Unlock Your Wealth')) s.unlock_your_wealth++;
+    if (acts.includes('Introduction to HQ')) s.introduction_to_hq++;
+    if (acts.includes('Office Visit'))       s.office_visit++;
+    if (acts.includes('SBC'))                s.sbc++;
+    if ((row.ppvp_usd       > 0) ||
+        (row.hq_ultimate_usd > 0) ||
+        (row.golden_boy_usd  > 0) ||
+        (row.self_trade_usd  > 0)) {
+      s.invested++;
+    }
+  }
+
   await pool.execute(
     `INSERT INTO user_stats
        (user_id, total_clients, product_talk, unlock_your_wealth,
@@ -287,7 +298,7 @@ async function refreshUserStats(userId) {
 
 /**
  * Read the pre-computed stats for a user.
- * Falls back to a live calculation if no row exists yet.
+ * Always recalculates and persists on first visit (no row yet).
  */
 async function getDashboardStats(userId) {
   const [rows] = await pool.execute(
@@ -295,18 +306,17 @@ async function getDashboardStats(userId) {
     [userId]
   );
   if (rows[0]) {
-    const r = rows[0];
     return {
-      total_clients:      Number(r.total_clients),
-      product_talk:       Number(r.product_talk),
-      unlock_your_wealth: Number(r.unlock_your_wealth),
-      introduction_to_hq: Number(r.introduction_to_hq),
-      office_visit:       Number(r.office_visit),
-      sbc:                Number(r.sbc),
-      invested:           Number(r.invested),
+      total_clients:      Number(rows[0].total_clients),
+      product_talk:       Number(rows[0].product_talk),
+      unlock_your_wealth: Number(rows[0].unlock_your_wealth),
+      introduction_to_hq: Number(rows[0].introduction_to_hq),
+      office_visit:       Number(rows[0].office_visit),
+      sbc:                Number(rows[0].sbc),
+      invested:           Number(rows[0].invested),
     };
   }
-  // First visit — compute and store
+  // No row yet — compute, persist, and return
   return refreshUserStats(userId);
 }
 
