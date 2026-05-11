@@ -555,19 +555,6 @@
     </div>
   </div>
 
-  <!-- Investor List -->
-  <div class="card">
-    <div class="card-header">
-      <div class="card-header-icon">👥</div>
-      <div class="card-header-title">รายชื่อผู้ลงทุน</div>
-    </div>
-    <div class="card-body" style="padding-bottom:8px;">
-      <div class="investor-list" id="investorList">
-        <div class="empty-investors">กำลังโหลด…</div>
-      </div>
-    </div>
-  </div>
-
 </main>
 
 <script>
@@ -581,43 +568,6 @@
       if (!r.ok) { window.location.href = '/'; return; }
     } catch { window.location.href = '/'; }
   })();
-
-  function initials(name) {
-    return name.trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase() || '?';
-  }
-  function fmtUSD(n) {
-    if (n >= 1000000) return '$' + (n / 1000000).toFixed(2).replace(/\.?0+$/, '') + 'M';
-    if (n >= 1000)    return '$' + (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
-    return '$' + n.toLocaleString();
-  }
-
-  async function loadInvestors() {
-    const token = localStorage.getItem(TOKEN_KEY);
-    if (!token) return;
-    const list = document.getElementById('investorList');
-    try {
-      const r = await fetch('/api/products/ppvp', { headers: { Authorization: 'Bearer ' + token } });
-      const { investors } = await r.json();
-      if (!investors.length) {
-        list.innerHTML = '<div class="empty-investors">ยังไม่มีผู้ลงทุนใน PPVP</div>';
-        return;
-      }
-      list.innerHTML = investors.map(inv => `
-        <a class="investor-card" href="/clients.html">
-          <div class="investor-avatar">${initials(inv.name)}</div>
-          <div style="flex:1;min-width:0;">
-            <div class="investor-name">${inv.name}</div>
-            <div class="investor-phone">${inv.phone || '—'}</div>
-          </div>
-          <div class="investor-amount">${fmtUSD(inv.amount)}</div>
-        </a>
-      `).join('');
-    } catch (err) {
-      list.innerHTML = '<div class="empty-investors">โหลดข้อมูลไม่ได้</div>';
-    }
-  }
-
-  loadInvestors();
 </script>
 </body>
 </html>
