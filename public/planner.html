@@ -125,6 +125,27 @@
     .drawer-link-line { background: #22c55e; color: #fff; border-radius: 8px; margin: 6px 12px; padding: 11px 14px; justify-content: center; font-size: 14px; border-left: none; }
     .drawer-link-line:hover { background: #16a34a; color: #fff; }
     .drawer-link-line svg { width: 18px; height: 18px; fill: #fff; flex-shrink: 0; }
+    /* Accordion */
+    .drawer-accordion { border-left: 3px solid transparent; }
+    .drawer-accordion-btn {
+      display: flex; align-items: center; gap: 12px; width: 100%;
+      padding: 13px 20px; font-size: 15px; font-weight: 600;
+      color: var(--text-muted); background: none; border: none; cursor: pointer;
+      transition: color .15s, background .15s; text-align: left;
+    }
+    .drawer-accordion-btn:hover { color: var(--text); background: var(--surface2); }
+    .drawer-accordion-btn .acc-arrow { margin-left: auto; font-size: 12px; transition: transform .22s; }
+    .drawer-accordion.open .acc-arrow { transform: rotate(180deg); }
+    .drawer-accordion-body { display: none; }
+    .drawer-accordion.open .drawer-accordion-body { display: block; }
+    .drawer-sub-link {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 20px 10px 52px; font-size: 14px; font-weight: 500;
+      color: var(--text-muted); text-decoration: none;
+      transition: color .15s, background .15s; border-left: 3px solid transparent;
+    }
+    .drawer-sub-link:hover { color: var(--text); background: var(--surface2); }
+    .drawer-sub-icon { font-size: 15px; }
 
     /* ── Layout ── */
     .main { max-width: 780px; margin: 0 auto; padding: 20px 16px 80px; display: flex; flex-direction: column; gap: 16px; width: 100%; box-sizing: border-box; }
@@ -462,12 +483,45 @@
     </a>
     <hr class="drawer-divider" />
     <div class="drawer-section-label">ข้อมูลเพิ่มเติม</div>
-    <a class="drawer-link" href="/events/unlock-your-wealth">
-      <span class="drawer-link-icon">🎟️</span> Upcoming Events
-    </a>
-    <a class="drawer-link" href="/">
-      <span class="drawer-link-icon">🌐</span> Community
-    </a>
+
+    <!-- Upcoming Events accordion -->
+    <div class="drawer-accordion" id="acc-events">
+      <button class="drawer-accordion-btn" onclick="toggleAcc('acc-events')">
+        <span class="drawer-link-icon">🎟️</span> Upcoming Events
+        <span class="acc-arrow">▾</span>
+      </button>
+      <div class="drawer-accordion-body">
+        <a class="drawer-sub-link" href="/events/unlock-your-wealth">
+          <span class="drawer-sub-icon">👑</span> Unlock Your Wealth
+        </a>
+        <a class="drawer-sub-link" href="/events/sbc">
+          <span class="drawer-sub-icon">🔥</span> SBC
+        </a>
+      </div>
+    </div>
+
+    <!-- Community accordion -->
+    <div class="drawer-accordion" id="acc-community">
+      <button class="drawer-accordion-btn" onclick="toggleAcc('acc-community')">
+        <span class="drawer-link-icon">🌐</span> Community
+        <span class="acc-arrow">▾</span>
+      </button>
+      <div class="drawer-accordion-body">
+        <a class="drawer-sub-link" href="/ecosystem/stp-coin.html">
+          <span class="drawer-sub-icon">🪙</span> STP Coin
+        </a>
+        <a class="drawer-sub-link" href="/ecosystem/free-education.html">
+          <span class="drawer-sub-icon">📚</span> Free Education
+        </a>
+        <a class="drawer-sub-link" href="/ecosystem/trade-challenge.html">
+          <span class="drawer-sub-icon">🏁</span> Trade Challenge
+        </a>
+        <a class="drawer-sub-link" href="/ecosystem/charity-project.html">
+          <span class="drawer-sub-icon">❤️</span> Charity Project
+        </a>
+      </div>
+    </div>
+
     <a class="drawer-link drawer-link-line" href="https://lin.ee/8WkoRmL" target="_blank">
       <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.07 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
       สอบถาม / ติดต่อ Admin
