@@ -12,12 +12,15 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
+      --primary:    #E63946;
+      --primary-bg: rgba(230,57,70,.12);
       --accent:     #d4af37;
       --accent-dim: rgba(212,175,55,.12);
       --accent-mid: rgba(212,175,55,.28);
       --bg:         #0d0d0d;
       --surface:    #1a1a1a;
       --surface2:   #222;
+      --surface3:   #2a2a2a;
       --border:     #2e2e2e;
       --text:       #f1f1f1;
       --text-muted: #777;
@@ -25,6 +28,7 @@
       --green:      #4ade80;
       --green-bg:   rgba(74,222,128,.12);
       --amber:      #fbbf24;
+      --amber-bg:   rgba(251,191,36,.12);
       --red-bg:     rgba(248,113,113,.12);
       --red-text:   #f87171;
       --radius:     14px;
@@ -69,7 +73,8 @@
       display: inline-flex; align-items: center; gap: 6px;
       background: var(--accent-dim); border: 1px solid var(--accent-mid);
       border-radius: 20px; padding: 4px 12px; margin-bottom: 14px;
-      font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: .05em; text-transform: uppercase;
+      font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: .05em;
+      text-transform: uppercase;
     }
     .hero-title { font-size: 28px; font-weight: 900; color: var(--accent); letter-spacing: -.5px; line-height: 1.1; margin-bottom: 6px; }
     .hero-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 18px; line-height: 1.6; }
@@ -81,6 +86,7 @@
     }
     .hero-btn:hover { opacity: .8; }
     .hero-btn.primary { background: var(--accent); color: #000; }
+    .hero-btn.outline { background: none; border: 1px solid var(--accent-mid); color: var(--accent); }
     .hero-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
 
     /* ── Quick stats ── */
@@ -102,24 +108,30 @@
     .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
     .card-header { padding: 14px 16px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
     .card-header-icon { width: 28px; height: 28px; border-radius: 8px; background: var(--accent-dim); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
-    .card-header-title { font-size: 14px; font-weight: 700; }
+    .card-header-title { font-size: 14px; font-weight: 700; color: var(--text); }
     .card-body { padding: 16px; }
 
+    /* ── Quote ── */
     .quote-block {
       border-left: 3px solid var(--accent); padding: 12px 16px;
       background: var(--accent-dim); border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-      font-size: 14px; font-weight: 600; color: var(--text); font-style: italic; line-height: 1.6; margin-bottom: 12px;
+      font-size: 14px; font-weight: 600; color: var(--text); font-style: italic; line-height: 1.6;
+      margin-bottom: 12px;
     }
+
+    /* ── Tag list ── */
     .tag-list { display: flex; flex-wrap: wrap; gap: 8px; }
     .tag { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px; font-size: 12px; font-weight: 600; color: var(--text-muted); }
     .tag.accent { background: var(--accent-dim); border-color: var(--accent-mid); color: var(--accent); }
 
+    /* ── Feature grid ── */
     .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     @media (max-width: 380px) { .feature-grid { grid-template-columns: 1fr; } }
     .feature-item { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; }
     .feature-name { font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 4px; }
     .feature-desc { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
 
+    /* ── Info table ── */
     .info-table { width: 100%; border-collapse: collapse; }
     .info-table tr { border-bottom: 1px solid var(--border); }
     .info-table tr:last-child { border-bottom: none; }
@@ -127,6 +139,7 @@
     .info-table td:first-child { color: var(--text-muted); width: 45%; }
     .info-table td:last-child { color: var(--text); font-weight: 600; text-align: right; }
 
+    /* ── Drawdown stats ── */
     .dd-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
     .dd-cell { text-align: center; background: var(--surface2); border-radius: var(--radius-sm); padding: 12px 8px; }
     .dd-val { font-size: 18px; font-weight: 800; }
@@ -135,6 +148,7 @@
     .dd-val.red   { color: var(--red-text); }
     .dd-lbl { font-size: 10px; color: var(--text-sub); margin-top: 4px; text-transform: uppercase; letter-spacing: .04em; }
 
+    /* ── Growth table ── */
     .growth-table { width: 100%; border-collapse: collapse; }
     .growth-table th { font-size: 11px; color: var(--text-sub); text-transform: uppercase; letter-spacing: .05em; font-weight: 600; padding: 0 0 10px; text-align: left; }
     .growth-table th:not(:first-child) { text-align: right; }
@@ -145,6 +159,7 @@
     .growth-table .profit-val { color: var(--green); }
     .growth-table-note { font-size: 11px; color: var(--text-sub); margin-top: 10px; font-style: italic; }
 
+    /* ── Fee highlight ── */
     .fee-highlight {
       background: var(--accent-dim); border: 1px solid var(--accent-mid);
       border-radius: var(--radius-sm); padding: 14px 16px; text-align: center; margin-bottom: 12px;
@@ -152,11 +167,14 @@
     .fee-num { font-size: 36px; font-weight: 900; color: var(--accent); line-height: 1; }
     .fee-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
 
+    /* ── Bullet list ── */
     .bullet-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
     .bullet-list li { font-size: 13px; color: var(--text-muted); display: flex; align-items: flex-start; gap: 8px; line-height: 1.5; }
     .bullet-list li::before { content: '•'; color: var(--accent); flex-shrink: 0; margin-top: 1px; }
     .bullet-list.check li::before { content: '✓'; color: var(--green); }
+    .bullet-list.cross li::before { content: '✗'; color: var(--red-text); }
 
+    /* ── Positioning pillars ── */
     .pillar-list { display: flex; flex-direction: column; gap: 8px; }
     .pillar-item {
       display: flex; align-items: center; gap: 10px;
@@ -169,14 +187,16 @@
 </head>
 <body>
 
+<!-- Nav -->
 <nav class="top-nav">
-  <a class="nav-back" href="/">
+  <a class="nav-back" href="/products.html">
     <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-    Home
+    Products
   </a>
   <span class="nav-product-name">HQ Ultimate</span>
 </nav>
 
+<!-- Hero -->
 <div class="hero">
   <div class="hero-inner">
     <div class="hero-badge">👑 PAMM Fund #6 · บริหารโดยอาจารย์บัส</div>
@@ -191,21 +211,39 @@
   </div>
 </div>
 
+<!-- Quick stats -->
 <div class="quick-stats">
-  <div class="qs-cell"><div class="qs-val">$100</div><div class="qs-lbl">เงินลงทุนขั้นต่ำ</div></div>
-  <div class="qs-cell"><div class="qs-val">10–20%</div><div class="qs-lbl">เป้าหมาย/เดือน</div></div>
-  <div class="qs-cell"><div class="qs-val">กลาง–สูง</div><div class="qs-lbl">ระดับความเสี่ยง</div></div>
-  <div class="qs-cell"><div class="qs-val">Fund #6</div><div class="qs-lbl">ลำดับโปรเจกต์</div></div>
+  <div class="qs-cell">
+    <div class="qs-val">$100</div>
+    <div class="qs-lbl">เงินลงทุนขั้นต่ำ</div>
+  </div>
+  <div class="qs-cell">
+    <div class="qs-val">10–20%</div>
+    <div class="qs-lbl">เป้าหมาย/เดือน</div>
+  </div>
+  <div class="qs-cell">
+    <div class="qs-val">กลาง–สูง</div>
+    <div class="qs-lbl">ระดับความเสี่ยง</div>
+  </div>
+  <div class="qs-cell">
+    <div class="qs-val">Fund #6</div>
+    <div class="qs-lbl">ลำดับโปรเจกต์</div>
+  </div>
 </div>
 
 <main class="page-main">
 
+  <!-- Fund Information -->
   <div class="card">
-    <div class="card-header"><div class="card-header-icon">📋</div><div class="card-header-title">Fund Information</div></div>
+    <div class="card-header">
+      <div class="card-header-icon">📋</div>
+      <div class="card-header-title">Fund Information</div>
+    </div>
     <div class="card-body">
       <table class="info-table">
         <tr><td>ชื่อกองทุน</td><td>HQ Ultimate</td></tr>
         <tr><td>ประเภท</td><td>PAMM Fund</td></tr>
+        <tr><td>รูปแบบ</td><td>PAMM Model</td></tr>
         <tr><td>สไตล์</td><td>เติบโตระยะกลาง–ยาว</td></tr>
         <tr><td>ผู้บริหาร</td><td>อาจารย์บัส</td></tr>
         <tr><td>ระดับความเสี่ยง</td><td>กลาง–สูง</td></tr>
@@ -217,8 +255,12 @@
     </div>
   </div>
 
+  <!-- Background -->
   <div class="card">
-    <div class="card-header"><div class="card-header-icon">💡</div><div class="card-header-title">Project Background</div></div>
+    <div class="card-header">
+      <div class="card-header-icon">💡</div>
+      <div class="card-header-title">Project Background</div>
+    </div>
     <div class="card-body">
       <div class="quote-block">"เทรดครั้งเดียว นักลงทุนทุกคนได้รับผลลัพธ์พร้อมกัน"</div>
       <ul class="bullet-list">
@@ -229,8 +271,12 @@
     </div>
   </div>
 
+  <!-- Investment Strategy -->
   <div class="card">
-    <div class="card-header"><div class="card-header-icon">⚙️</div><div class="card-header-title">Investment Strategy</div></div>
+    <div class="card-header">
+      <div class="card-header-icon">⚙️</div>
+      <div class="card-header-title">Investment Strategy</div>
+    </div>
     <div class="card-body">
       <div class="feature-grid">
         <div class="feature-item">
@@ -260,42 +306,86 @@
     </div>
   </div>
 
+  <!-- Performance & Risk -->
   <div class="card">
-    <div class="card-header"><div class="card-header-icon">📊</div><div class="card-header-title">Performance & Risk</div></div>
+    <div class="card-header">
+      <div class="card-header-icon">📊</div>
+      <div class="card-header-title">Performance & Risk</div>
+    </div>
     <div class="card-body">
       <div style="font-size:12px;color:var(--text-sub);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em;font-weight:600;">เป้าหมายผลตอบแทน</div>
       <div class="dd-grid" style="margin-bottom:16px;">
-        <div class="dd-cell"><div class="dd-val green">0.5–1%</div><div class="dd-lbl">ต่อวัน</div></div>
-        <div class="dd-cell"><div class="dd-val amber">10–20%</div><div class="dd-lbl">ต่อเดือน</div></div>
-        <div class="dd-cell"><div class="dd-val red">10–30%</div><div class="dd-lbl">Drawdown</div></div>
+        <div class="dd-cell">
+          <div class="dd-val green">0.5–1%</div>
+          <div class="dd-lbl">ต่อวัน</div>
+        </div>
+        <div class="dd-cell">
+          <div class="dd-val amber">10–20%</div>
+          <div class="dd-lbl">ต่อเดือน</div>
+        </div>
+        <div class="dd-cell">
+          <div class="dd-val red">10–30%</div>
+          <div class="dd-lbl">Drawdown</div>
+        </div>
       </div>
       <ul class="bullet-list">
         <li>ผลตอบแทนขึ้นอยู่กับสภาวะตลาด ไม่สามารถการันตีได้</li>
         <li>Drawdown โดยประมาณ 10–30%</li>
-        <li>ผู้ลงทุนควรเข้าใจความเสี่ยงก่อนลงทุน</li>
+        <li>ไม่มีระบบการันตีเงินทุน</li>
+        <li>ผู้ลงทุนควรเข้าใจความเสี่ยงของตลาด Forex และ PAMM System ก่อนลงทุน</li>
       </ul>
     </div>
   </div>
 
+  <!-- Compound Growth -->
   <div class="card">
-    <div class="card-header"><div class="card-header-icon">📈</div><div class="card-header-title">Compound Growth Simulation</div></div>
+    <div class="card-header">
+      <div class="card-header-icon">📈</div>
+      <div class="card-header-title">Compound Growth Simulation</div>
+    </div>
     <div class="card-body">
       <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">คำนวณที่ 10%/เดือน (Net หลัง Profit Sharing) เริ่มต้น $1,000 USD</div>
       <table class="growth-table">
-        <thead><tr><th>ระยะเวลา</th><th>มูลค่ารวม</th><th>กำไร</th></tr></thead>
+        <thead>
+          <tr>
+            <th>ระยะเวลา</th>
+            <th>มูลค่ารวม</th>
+            <th>กำไร</th>
+          </tr>
+        </thead>
         <tbody>
-          <tr><td class="yr-label">Year 1</td><td class="total-val">$3,138</td><td class="profit-val">+$2,138</td></tr>
-          <tr><td class="yr-label">Year 2</td><td class="total-val">$9,850</td><td class="profit-val">+$8,850</td></tr>
-          <tr><td class="yr-label">Year 3</td><td class="total-val">$30,913</td><td class="profit-val">+$29,913</td></tr>
-          <tr><td class="yr-label">Year 5</td><td class="total-val">$304,482</td><td class="profit-val">+$303,482</td></tr>
+          <tr>
+            <td class="yr-label">Year 1</td>
+            <td class="total-val">$3,138</td>
+            <td class="profit-val">+$2,138</td>
+          </tr>
+          <tr>
+            <td class="yr-label">Year 2</td>
+            <td class="total-val">$9,850</td>
+            <td class="profit-val">+$8,850</td>
+          </tr>
+          <tr>
+            <td class="yr-label">Year 3</td>
+            <td class="total-val">$30,913</td>
+            <td class="profit-val">+$29,913</td>
+          </tr>
+          <tr>
+            <td class="yr-label">Year 5</td>
+            <td class="total-val">$304,482</td>
+            <td class="profit-val">+$303,482</td>
+          </tr>
         </tbody>
       </table>
       <div class="growth-table-note">* ตัวเลขเป็นเพียงตัวอย่างการคำนวณ ไม่ใช่การรับประกันผลตอบแทน</div>
     </div>
   </div>
 
+  <!-- Profit Sharing -->
   <div class="card">
-    <div class="card-header"><div class="card-header-icon">💰</div><div class="card-header-title">Profit Sharing Model</div></div>
+    <div class="card-header">
+      <div class="card-header-icon">💰</div>
+      <div class="card-header-title">Profit Sharing Model</div>
+    </div>
     <div class="card-body">
       <div class="fee-highlight">
         <div class="fee-num">50%</div>
@@ -303,27 +393,79 @@
       </div>
       <ul class="bullet-list">
         <li>ตัวอย่าง: ทำกำไร 100 USD → ระบบแบ่ง 50% → นักลงทุนรับสุทธิ 50 USD</li>
-        <li>ระบบคำนวณอัตโนมัติผ่าน PAMM System</li>
+        <li>ระบบจะคำนวณอัตโนมัติผ่าน PAMM System</li>
         <li>คิดค่าบริหารเฉพาะเมื่อมีกำไรเท่านั้น</li>
       </ul>
     </div>
   </div>
 
+  <!-- Investor Conditions -->
   <div class="card">
-    <div class="card-header"><div class="card-header-icon">🔒</div><div class="card-header-title">Safety & Transparency</div></div>
+    <div class="card-header">
+      <div class="card-header-icon">🎯</div>
+      <div class="card-header-title">Investor Conditions</div>
+    </div>
+    <div class="card-body" style="display:flex;flex-direction:column;gap:14px;">
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em;">ฝาก–ถอน</div>
+        <ul class="bullet-list check">
+          <li>ฝาก / ถอน ได้ตลอดเวลา ไม่มีการล็อคเงิน</li>
+          <li>ระบบอนุมัติอัตโนมัติทุก 1 ชั่วโมง</li>
+          <li>เงินอยู่ในพอร์ตของตัวเองตลอดเวลา</li>
+          <li>ไม่ต้องโอนเงินให้บุคคลอื่น</li>
+        </ul>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em;">✓ เหมาะสำหรับ</div>
+        <ul class="bullet-list check">
+          <li>นักลงทุนที่ไม่มีเวลาเทรดเอง</li>
+          <li>นักลงทุนที่ต้องการระบบบริหารมืออาชีพ</li>
+          <li>นักลงทุนที่ยอมรับความเสี่ยงได้</li>
+          <li>นักลงทุนที่มองการเติบโตระยะกลาง–ยาว</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Transparency -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">🔍</div>
+      <div class="card-header-title">Transparency System</div>
+    </div>
     <div class="card-body">
       <ul class="bullet-list check">
-        <li>ไม่ต้องโอนเงินให้บุคคลอื่น — เงินอยู่ในพอร์ตของตนเอง</li>
-        <li>ฝาก / ถอน ได้ตลอดเวลา ไม่มีการล็อคเงิน</li>
-        <li>ระบบอนุมัติอัตโนมัติทุก 1 ชั่วโมง</li>
-        <li>ตรวจสอบผลการเทรดและผลตอบแทนย้อนหลังได้ผ่านระบบ PAMM และ Myfxbook</li>
+        <li>ตรวจสอบผลการเทรดได้ตลอดเวลา</li>
+        <li>ตรวจสอบผลตอบแทนย้อนหลังได้</li>
         <li>ติดตามการเติบโตของพอร์ตแบบเรียลไทม์</li>
+        <li>ผ่านระบบ PAMM และ Myfxbook</li>
       </ul>
     </div>
   </div>
 
+  <!-- PAMM Safety -->
   <div class="card">
-    <div class="card-header"><div class="card-header-icon">⭐</div><div class="card-header-title">Key Advantages</div></div>
+    <div class="card-header">
+      <div class="card-header-icon">🔒</div>
+      <div class="card-header-title">Safety Structure (PAMM)</div>
+    </div>
+    <div class="card-body">
+      <ul class="bullet-list check">
+        <li>ไม่ต้องโอนเงินให้บุคคล — เงินอยู่ในพอร์ตของตนเอง</li>
+        <li>ตรวจสอบผลดำเนินงานได้ตลอดเวลา</li>
+        <li>ฝากและถอนผ่านระบบ StrikePro FX</li>
+        <li>ได้รับผลตอบแทนตามสัดส่วนเงินจริง</li>
+        <li>กำไรและขาดทุนคำนวณอัตโนมัติตามสัดส่วนเงินลงทุน</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Key Advantages -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">⭐</div>
+      <div class="card-header-title">Key Advantages</div>
+    </div>
     <div class="card-body">
       <div class="pillar-list">
         <div class="pillar-item"><span class="pillar-icon">👨‍💼</span><span class="pillar-text">บริหารโดย Master Trader (อาจารย์บัส)</span></div>
@@ -336,6 +478,24 @@
     </div>
   </div>
 
+  <!-- Project Positioning -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">🏛️</div>
+      <div class="card-header-title">Project Positioning</div>
+    </div>
+    <div class="card-body">
+      <div class="quote-block">"ระบบบริหารพอร์ตโดย Master Trader พร้อมแนวคิดการเติบโตระยะยาว"</div>
+      <div class="tag-list">
+        <span class="tag accent">PAMM Fund</span>
+        <span class="tag accent">Trading Community</span>
+        <span class="tag accent">Professional Portfolio Management</span>
+        <span class="tag accent">Premium Investor Access</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Risk Disclosure -->
   <div class="card" style="border-color:rgba(248,113,113,.2);">
     <div class="card-header" style="border-color:rgba(248,113,113,.2);">
       <div class="card-header-icon" style="background:var(--red-bg);">⚠️</div>
@@ -347,11 +507,25 @@
         <li>ผลตอบแทนไม่สามารถการันตีได้</li>
         <li>อาจเกิด Drawdown ได้ในบางช่วงเวลา</li>
         <li>HQ Ultimate ไม่มีการการันตีเงินทุน</li>
+        <li>ผลตอบแทนในอดีตไม่สามารถยืนยันผลตอบแทนในอนาคต</li>
         <li>ควรใช้เงินที่สามารถยอมรับความเสี่ยงได้เท่านั้น</li>
       </ul>
     </div>
   </div>
 
 </main>
+
+<script>
+  const TOKEN_KEY = 'sp_token';
+
+  (async () => {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) { window.location.href = '/login'; return; }
+    try {
+      const r = await fetch('/api/auth/me', { headers: { Authorization: 'Bearer ' + token } });
+      if (!r.ok) { window.location.href = '/login'; return; }
+    } catch { window.location.href = '/login'; }
+  })();
+</script>
 </body>
 </html>
