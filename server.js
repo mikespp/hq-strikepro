@@ -44,6 +44,11 @@ app.get('/login', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
+// /events/unlock-your-wealth → serve event page
+app.get('/events/unlock-your-wealth', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'events', 'unlock-your-wealth.html'));
+});
+
 // Serve index.html for all non-API routes (SPA fallback)
 app.get('*', (req, res) => {
   if (!req.path.startsWith('/api')) {

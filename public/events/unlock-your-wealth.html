@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Unlock Your Wealth — StrikePro Event</title>
+  <meta name="description" content="Discover a new way to grow your income with StrikePro. เปิดประสบการณ์ใหม่ในการสร้างรายได้และการลงทุน" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold: #d4af37;
+      --gold-light: #f0d060;
+      --gold-dim: rgba(212,175,55,.15);
+      --gold-border: rgba(212,175,55,.25);
+      --bg: #080808;
+      --bg-card: #111111;
+      --bg-card2: #161616;
+      --text: #f5f5f5;
+      --text-muted: #8a8a8a;
+      --border: rgba(255,255,255,.07);
+      --radius: 16px;
+      --radius-sm: 10px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Ambient glow ── */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -20%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 900px;
+      height: 600px;
+      background: radial-gradient(ellipse at center, rgba(212,175,55,.10) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      background: rgba(8,8,8,.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-brand {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: .5px;
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-decoration: none;
+    }
+
+    .nav-tag {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--gold);
+      border: 1px solid var(--gold-border);
+      padding: 4px 10px;
+      border-radius: 50px;
+      background: var(--gold-dim);
+    }
+
+    /* ── Wrapper ── */
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 20px 120px;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      text-align: center;
+      padding: 72px 0 56px;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--gold);
+      border: 1px solid var(--gold-border);
+      background: var(--gold-dim);
+      padding: 6px 16px;
+      border-radius: 50px;
+      margin-bottom: 32px;
+    }
+
+    .hero-badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 8px var(--gold);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: .5; transform: scale(.8); }
+    }
+
+    .hero-title {
+      font-size: clamp(38px, 8vw, 72px);
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -1.5px;
+      background: linear-gradient(160deg, #fff 30%, var(--gold-light) 70%, var(--gold) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 20px;
+    }
+
+    .hero-sub {
+      font-size: clamp(15px, 3vw, 20px);
+      font-weight: 400;
+      color: var(--text-muted);
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+
+    .hero-desc {
+      font-size: 15px;
+      line-height: 1.8;
+      color: rgba(245,245,245,.75);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* ── Divider ── */
+    .gold-line {
+      width: 60px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      margin: 40px auto;
+      border-radius: 2px;
+    }
+
+    /* ── Section label ── */
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--gold-border);
+    }
+
+    /* ── Inside event cards ── */
+    .inside-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin-bottom: 48px;
+    }
+
+    @media (max-width: 540px) {
+      .inside-grid { grid-template-columns: 1fr; }
+    }
+
+    .inside-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px 22px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      transition: border-color .2s, transform .2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .inside-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--gold-dim) 0%, transparent 60%);
+      opacity: 0;
+      transition: opacity .25s;
+      pointer-events: none;
+    }
+
+    .inside-card:hover {
+      border-color: var(--gold-border);
+      transform: translateY(-2px);
+    }
+
+    .inside-card:hover::before { opacity: 1; }
+
+    .card-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: var(--gold-dim);
+      border: 1px solid var(--gold-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 18px;
+    }
+
+    .card-body { flex: 1; }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    /* ── Suitable for ── */
+    .suitable-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 56px;
+    }
+
+    @media (max-width: 640px) {
+      .suitable-grid { grid-template-columns: 1fr; }
+    }
+
+    .suitable-card {
+      background: var(--bg-card2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 20px;
+      text-align: center;
+      transition: border-color .2s, transform .2s;
+    }
+
+    .suitable-card:hover {
+      border-color: var(--gold-border);
+      transform: translateY(-3px);
+    }
+
+    .suitable-icon {
+      font-size: 30px;
+      margin-bottom: 14px;
+      display: block;
+    }
+
+    .suitable-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    /* ── CTA block ── */
+    .cta-block {
+      position: relative;
+      background: var(--bg-card);
+      border: 1px solid var(--gold-border);
+      border-radius: 24px;
+      padding: 52px 32px 48px;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .cta-block::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 300px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+
+    .cta-block::after {
+      content: '';
+      position: absolute;
+      top: -80px; left: 50%;
+      transform: translateX(-50%);
+      width: 500px;
+      height: 300px;
+      background: radial-gradient(ellipse at center, rgba(212,175,55,.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .cta-crown {
+      font-size: 40px;
+      margin-bottom: 16px;
+      display: block;
+      filter: drop-shadow(0 0 12px rgba(212,175,55,.5));
+    }
+
+    .cta-title {
+      font-size: clamp(22px, 4vw, 32px);
+      font-weight: 800;
+      letter-spacing: -.5px;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    .cta-sub {
+      font-size: 15px;
+      color: var(--text-muted);
+      margin-bottom: 36px;
+      line-height: 1.6;
+    }
+
+    .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%);
+      background-size: 200% 200%;
+      color: #0a0a0a;
+      text-decoration: none;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: .3px;
+      padding: 18px 40px;
+      border-radius: 50px;
+      box-shadow: 0 8px 32px rgba(212,175,55,.35), 0 2px 8px rgba(212,175,55,.2);
+      transition: background-position .4s, transform .15s, box-shadow .15s;
+      -webkit-tap-highlight-color: transparent;
+      position: relative;
+      z-index: 1;
+    }
+
+    .cta-btn:hover {
+      background-position: 100% 100%;
+      box-shadow: 0 12px 40px rgba(212,175,55,.5), 0 4px 12px rgba(212,175,55,.3);
+      transform: translateY(-2px);
+    }
+
+    .cta-btn:active { transform: scale(.97); }
+
+    .cta-btn svg {
+      width: 18px;
+      height: 18px;
+      fill: #0a0a0a;
+      flex-shrink: 0;
+    }
+
+    .cta-note {
+      margin-top: 18px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* ── Footer mark ── */
+    .footer-mark {
+      text-align: center;
+      margin-top: 56px;
+      font-size: 12px;
+      color: rgba(138,138,138,.5);
+      letter-spacing: .5px;
+    }
+
+    .footer-mark span {
+      color: var(--gold);
+      opacity: .8;
+    }
+
+    /* ── Fade-in animation ── */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity .6s ease, transform .6s ease;
+    }
+    .fade-up.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav>
+    <a class="nav-brand" href="/">StrikePro</a>
+    <span class="nav-tag">EVENT</span>
+  </nav>
+
+  <div class="page">
+
+    <!-- Hero -->
+    <section class="hero fade-up">
+      <div class="hero-badge">Exclusive Event</div>
+      <h1 class="hero-title">Unlock Your Wealth</h1>
+      <p class="hero-sub">Discover a new way to grow your income with StrikePro</p>
+      <p class="hero-desc">
+        เปิดประสบการณ์ใหม่ในการสร้างรายได้และการลงทุนไปกับ StrikePro<br />
+        เรียนรู้แนวคิด วิธีการ และ Product ต่างๆ ที่ช่วยให้นักลงทุน<br />
+        สามารถต่อยอดรายได้ได้ในระยะยาว
+      </p>
+    </section>
+
+    <div class="gold-line"></div>
+
+    <!-- Inside the event -->
+    <div class="fade-up">
+      <p class="section-label">ภายในงานพบกับ</p>
+      <div class="inside-grid">
+        <div class="inside-card">
+          <div class="card-icon">🏆</div>
+          <div class="card-body">
+            <p class="card-title">แนะนำ Product ต่างๆ ของ StrikePro</p>
+          </div>
+        </div>
+        <div class="inside-card">
+          <div class="card-icon">💰</div>
+          <div class="card-body">
+            <p class="card-title">แนวทางการสร้างรายได้จากระบบ Profit Sharing</p>
+          </div>
+        </div>
+        <div class="inside-card">
+          <div class="card-icon">🚀</div>
+          <div class="card-body">
+            <p class="card-title">วิธีเริ่มต้นสำหรับมือใหม่</p>
+          </div>
+        </div>
+        <div class="inside-card">
+          <div class="card-icon">🤝</div>
+          <div class="card-body">
+            <p class="card-title">พูดคุยและสอบถามกับทีมงานโดยตรง</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Suitable for -->
+    <div class="fade-up">
+      <p class="section-label">เหมาะสำหรับ</p>
+      <div class="suitable-grid">
+        <div class="suitable-card">
+          <span class="suitable-icon">🌱</span>
+          <p class="suitable-title">ผู้ที่สนใจเริ่มต้นลงทุน</p>
+        </div>
+        <div class="suitable-card">
+          <span class="suitable-icon">📈</span>
+          <p class="suitable-title">นักลงทุนที่ต้องการสร้างรายได้เพิ่ม</p>
+        </div>
+        <div class="suitable-card">
+          <span class="suitable-icon">⚡</span>
+          <p class="suitable-title">ผู้ที่มองหาระบบ Passive Income</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-block fade-up">
+      <span class="cta-crown">👑</span>
+      <h2 class="cta-title">พร้อมเข้าร่วมงานแล้วหรือยัง?</h2>
+      <p class="cta-sub">ลงทะเบียนฟรี — จำนวนที่นั่งมีจำกัด</p>
+      <a class="cta-btn" href="https://forms.gle/mybY9WXKSjQXJXqf6" target="_blank">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 14.93V15h-2v1.93A8 8 0 0 1 4.07 11H6V9H4.07A8 8 0 0 1 11 4.07V6h2V4.07A8 8 0 0 1 19.93 11H18v2h1.93A8 8 0 0 1 13 16.93zM12 10a2 2 0 1 0 2 2 2 2 0 0 0-2-2z"/>
+        </svg>
+        ลงทะเบียนเข้าร่วมงาน
+      </a>
+      <p class="cta-note">ไม่มีค่าใช้จ่าย · กรอกแบบฟอร์มได้เลย</p>
+    </div>
+
+    <p class="footer-mark">© 2025 <span>StrikePro</span> · Unlock Your Wealth Event</p>
+
+  </div>
+
+  <script>
+    // Intersection observer fade-in
+    const els = document.querySelectorAll('.fade-up');
+    const io = new IntersectionObserver(entries => {
+      entries.forEach((e, i) => {
+        if (e.isIntersecting) {
+          setTimeout(() => e.target.classList.add('visible'), i * 80);
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.08 });
+    els.forEach(el => io.observe(el));
+  </script>
+
+</body>
+</html>
