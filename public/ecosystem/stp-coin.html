@@ -283,7 +283,11 @@
 <body>
 
 <nav class="top-nav">
-  <button class="hamburger" onclick="toggleDrawer()" aria-label="Menu">
+  <a class="nav-back" href="/" id="navBackBtn">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    Back
+  </a>
+  <button class="hamburger" id="navHamburgerBtn" onclick="toggleDrawer()" aria-label="Menu" style="display:none">
     <span></span><span></span><span></span>
   </button>
   <span class="nav-title">STP Coin</span>
@@ -613,13 +617,21 @@
     localStorage.removeItem('sp_token');
     window.location.href = '/login';
   }
-  // Show user email if logged in
+  // Show hamburger for internal users, back button for public
   (function() {
     const token = localStorage.getItem('sp_token');
     if (!token) return;
     fetch('/api/auth/me', { headers: { Authorization: 'Bearer ' + token } })
       .then(r => r.ok ? r.json() : null)
-      .then(u => { if (u && u.email) { const el = document.getElementById('drawerUser'); if (el) el.textContent = u.email; } })
+      .then(user => {
+        if (!user) return;
+        const back = document.getElementById('navBackBtn');
+        const ham  = document.getElementById('navHamburgerBtn');
+        if (back) back.style.display = 'none';
+        if (ham)  ham.style.display  = 'flex';
+        const el = document.getElementById('drawerUser');
+        if (el && user.email) el.textContent = user.email;
+      })
       .catch(() => {});
   })();
 </script>
