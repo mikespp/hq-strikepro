@@ -7,61 +7,203 @@
   <link rel="manifest" href="/manifest.json" />
   <link rel="apple-touch-icon" href="/icon.png" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="theme-color" content="#0f172a" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --accent: #f59e0b; --accent-dim: rgba(245,158,11,.12); --accent-mid: rgba(245,158,11,.28);
-      --bg: #0d0d0d; --surface: #1a1a1a; --surface2: #222;
-      --border: #2e2e2e; --text: #f1f1f1; --text-muted: #777; --text-sub: #555;
-      --green: #4ade80; --radius: 14px; --radius-sm: 8px; --nav-h: 56px;
+      --accent:     #f59e0b;
+      --accent-dim: rgba(245,158,11,.12);
+      --accent-mid: rgba(245,158,11,.28);
+      --bg:         #0d0d0d;
+      --surface:    #1a1a1a;
+      --surface2:   #222;
+      --border:     #2e2e2e;
+      --text:       #f1f1f1;
+      --text-muted: #777;
+      --text-sub:   #555;
+      --green:      #4ade80;
+      --green-bg:   rgba(74,222,128,.12);
+      --radius:     14px;
+      --radius-sm:  8px;
+      --nav-h:      56px;
     }
     html, body { background: var(--bg); color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       -webkit-font-smoothing: antialiased; overflow-x: hidden; }
-    .top-nav { position: sticky; top: 0; z-index: 100; height: var(--nav-h);
+
+    /* ── Nav ── */
+    .top-nav {
+      position: sticky; top: 0; z-index: 100; height: var(--nav-h);
       background: rgba(13,13,13,.92); backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: space-between; padding: 0 16px; }
-    .nav-back { background: none; border: none; cursor: pointer; color: var(--text-muted);
+      display: flex; align-items: center; padding: 0 16px; gap: 12px;
+    }
+    .nav-back {
+      background: none; border: none; cursor: pointer; color: var(--text-muted);
       padding: 8px; margin-left: -8px; display: flex; align-items: center; gap: 6px;
-      font-size: 14px; font-weight: 600; border-radius: 8px; transition: color .15s, background .15s; text-decoration: none; }
+      font-size: 14px; font-weight: 600; border-radius: 8px;
+      transition: color .15s, background .15s; text-decoration: none; flex-shrink: 0;
+    }
     .nav-back:hover { color: var(--text); background: var(--surface2); }
     .nav-back svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
     .nav-title { font-size: 15px; font-weight: 800; color: var(--accent); }
-    .hero { background: linear-gradient(160deg, #0f0d05 0%, #1a1505 100%);
-      border-bottom: 1px solid var(--border); padding: 32px 16px 28px; position: relative; overflow: hidden; }
-    .hero::before { content: ''; position: absolute; top: -60px; right: -60px; width: 220px; height: 220px; border-radius: 50%;
-      background: radial-gradient(circle, rgba(245,158,11,.1) 0%, transparent 70%); pointer-events: none; }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(160deg, #0f0d05 0%, #1a1505 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 28px 16px 24px; position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; top: -60px; right: -60px;
+      width: 240px; height: 240px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(245,158,11,.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
     .hero-inner { max-width: 640px; margin: 0 auto; }
-    .hero-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--accent-dim); border: 1px solid var(--accent-mid);
-      border-radius: 20px; padding: 4px 12px; margin-bottom: 14px; font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: .05em; text-transform: uppercase; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--accent-dim); border: 1px solid var(--accent-mid);
+      border-radius: 20px; padding: 4px 12px; margin-bottom: 14px;
+      font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: .05em; text-transform: uppercase;
+    }
     .hero-title { font-size: 28px; font-weight: 900; color: var(--accent); letter-spacing: -.5px; line-height: 1.1; margin-bottom: 6px; }
+    .hero-tagline { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
     .hero-sub { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+
+    /* ── Quick stats ── */
+    .quick-stats { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid var(--border); }
+    @media (max-width: 480px) { .quick-stats { grid-template-columns: repeat(2, 1fr); } }
+    .qs-cell { padding: 14px 12px; border-right: 1px solid var(--border); text-align: center; }
+    .qs-cell:last-child { border-right: none; }
+    @media (max-width: 480px) {
+      .qs-cell:nth-child(2) { border-right: none; }
+      .qs-cell:nth-child(3), .qs-cell:nth-child(4) { border-top: 1px solid var(--border); }
+    }
+    .qs-val { font-size: 16px; font-weight: 800; color: var(--accent); }
+    .qs-lbl { font-size: 10px; color: var(--text-sub); margin-top: 3px; text-transform: uppercase; letter-spacing: .05em; }
+
+    /* ── Main ── */
     .page-main { max-width: 640px; margin: 0 auto; padding: 20px 16px 80px; display: flex; flex-direction: column; gap: 16px; }
+
+    /* ── Card ── */
     .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
     .card-header { padding: 14px 16px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
-    .card-header-icon { width: 28px; height: 28px; border-radius: 8px; background: var(--accent-dim); display: flex; align-items: center; justify-content: center; font-size: 14px; }
+    .card-header-icon { width: 28px; height: 28px; border-radius: 8px; background: var(--accent-dim); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
     .card-header-title { font-size: 14px; font-weight: 700; }
     .card-body { padding: 16px; }
+
+    /* ── Quote ── */
+    .quote-block {
+      border-left: 3px solid var(--accent); padding: 12px 16px;
+      background: var(--accent-dim); border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      font-size: 14px; font-weight: 600; color: var(--text); font-style: italic; line-height: 1.6;
+      margin-bottom: 12px;
+    }
+
+    /* ── Feature grid ── */
     .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    @media (max-width:380px) { .feature-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 380px) { .feature-grid { grid-template-columns: 1fr; } }
     .feature-item { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; }
     .feature-icon { font-size: 22px; margin-bottom: 8px; }
     .feature-name { font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 4px; }
     .feature-desc { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+
+    /* ── Bullet list ── */
     .bullet-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
     .bullet-list li { font-size: 13px; color: var(--text-muted); display: flex; align-items: flex-start; gap: 8px; line-height: 1.5; }
-    .bullet-list li::before { content: '•'; color: var(--accent); flex-shrink: 0; }
+    .bullet-list li::before { content: '•'; color: var(--accent); flex-shrink: 0; margin-top: 1px; }
     .bullet-list.check li::before { content: '✓'; color: var(--green); }
-    .cta-banner { background: var(--accent-dim); border: 1px solid var(--accent-mid); border-radius: var(--radius-sm); padding: 18px 16px; text-align: center; }
-    .cta-banner p { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; }
-    .cta-btn { display: inline-flex; background: var(--accent); color: #000; text-decoration: none; padding: 12px 24px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 700; transition: opacity .15s; }
-    .cta-btn:hover { opacity: .85; }
-    .highlight-box { background: var(--accent-dim); border: 1px solid var(--accent-mid); border-radius: var(--radius-sm); padding: 16px; text-align: center; }
-    .highlight-num { font-size: 32px; font-weight: 900; color: var(--accent); line-height: 1; }
-    .highlight-lbl { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
-    .stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+
+    /* ── Flow bar ── */
+    .flow-bar {
+      display: flex; align-items: center; gap: 0; overflow-x: auto;
+      padding: 4px 0; -webkit-overflow-scrolling: touch;
+    }
+    .flow-step {
+      flex-shrink: 0; background: var(--accent-dim); border: 1px solid var(--accent-mid);
+      border-radius: var(--radius-sm); padding: 8px 12px;
+      font-size: 12px; font-weight: 700; color: var(--accent); white-space: nowrap;
+    }
+    .flow-arrow { flex-shrink: 0; color: var(--text-sub); font-size: 18px; padding: 0 6px; }
+
+    /* ── Value highlight ── */
+    .value-box {
+      background: var(--accent-dim); border: 1px solid var(--accent-mid);
+      border-radius: var(--radius-sm); padding: 16px; text-align: center; margin-bottom: 14px;
+    }
+    .value-num { font-size: 32px; font-weight: 900; color: var(--accent); line-height: 1; }
+    .value-sub { font-size: 13px; color: var(--text-muted); margin-top: 5px; }
+
+    /* ── Benefits row ── */
+    .benefit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .benefit-item {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 12px 14px;
+      display: flex; align-items: flex-start; gap: 10px;
+    }
+    .benefit-emoji { font-size: 20px; flex-shrink: 0; }
+    .benefit-text { font-size: 12px; font-weight: 600; color: var(--text); line-height: 1.4; }
+
+    /* ── App feature tabs ── */
+    .app-feature { border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; margin-bottom: 10px; }
+    .app-feature:last-child { margin-bottom: 0; }
+    .app-feature-head {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 14px; background: var(--surface2);
+    }
+    .app-feature-num {
+      width: 24px; height: 24px; border-radius: 6px; background: var(--accent-dim);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 800; color: var(--accent); flex-shrink: 0;
+    }
+    .app-feature-name { font-size: 13px; font-weight: 700; color: var(--text); }
+    .app-feature-body { padding: 12px 14px; font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+
+    /* ── Roadmap ── */
+    .roadmap-list { display: flex; flex-direction: column; gap: 10px; }
+    .roadmap-item {
+      display: flex; gap: 14px; align-items: flex-start;
+    }
+    .roadmap-dot {
+      width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+      background: var(--accent-dim); border: 2px solid var(--accent-mid);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 800; color: var(--accent);
+    }
+    .roadmap-dot.done { background: var(--accent); color: #000; border-color: var(--accent); }
+    .roadmap-content { padding-top: 5px; }
+    .roadmap-phase { font-size: 12px; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: .05em; }
+    .roadmap-title { font-size: 14px; font-weight: 700; color: var(--text); margin: 2px 0; }
+    .roadmap-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+    /* ── Champions box ── */
+    .champions-box {
+      background: linear-gradient(135deg, rgba(245,158,11,.1), rgba(251,191,36,.06));
+      border: 1px solid var(--accent-mid); border-radius: var(--radius-sm);
+      padding: 16px; text-align: center;
+    }
+    .champions-num { font-size: 48px; font-weight: 900; color: var(--accent); line-height: 1; }
+    .champions-label { font-size: 14px; font-weight: 700; color: var(--text); margin: 6px 0 4px; }
+    .champions-sub { font-size: 12px; color: var(--text-muted); }
+
+    /* ── Steps ── */
+    .step-list { display: flex; flex-direction: column; gap: 12px; }
+    .step-item { display: flex; gap: 12px; align-items: flex-start; }
+    .step-num {
+      width: 28px; height: 28px; border-radius: 50%; background: var(--accent);
+      color: #000; font-size: 12px; font-weight: 800; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .step-content { padding-top: 4px; }
+    .step-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+    .step-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+    .step-code {
+      display: inline-block; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 6px; padding: 3px 10px; font-size: 12px; font-weight: 700;
+      color: var(--accent); font-family: monospace; margin-top: 4px;
+    }
   </style>
 </head>
 <body>
@@ -76,70 +218,232 @@
 
 <div class="hero">
   <div class="hero-inner">
-    <div class="hero-badge">🪙 Community Token</div>
+    <div class="hero-badge">🪙 Community Token · Telegram Mini App</div>
     <div class="hero-title">STP Coin</div>
-    <div class="hero-sub">Community utility token ภายในระบบนิเวศ Strikepro — ใช้สำหรับรางวัล การเข้าถึงสิทธิพิเศษ และการมีส่วนร่วมในชุมชน</div>
+    <div class="hero-tagline">🔥 มากกว่าแค่เหรียญ แต่มันคือ "ความได้เปรียบ"</div>
+    <div class="hero-sub">เหรียญภายในระบบ StrikePro ที่คุณจะได้รับจาก "การมีส่วนร่วม" — ไม่ใช่เหรียญซื้อขาย แต่คือสิทธิพิเศษและโอกาสก่อนใคร</div>
   </div>
+</div>
+
+<div class="quick-stats">
+  <div class="qs-cell"><div class="qs-val">10 STP</div><div class="qs-lbl">= 1 USD</div></div>
+  <div class="qs-cell"><div class="qs-val">@stpcoinbot</div><div class="qs-lbl">Telegram Bot</div></div>
+  <div class="qs-cell"><div class="qs-val">100</div><div class="qs-lbl">Champions</div></div>
+  <div class="qs-cell"><div class="qs-val">3 Phases</div><div class="qs-lbl">Roadmap</div></div>
 </div>
 
 <main class="page-main">
 
+  <!-- What is STP Coin -->
   <div class="card">
-    <div class="card-header"><div class="card-header-icon">🪙</div><div class="card-header-title">STP Coin คืออะไร?</div></div>
+    <div class="card-header"><div class="card-header-icon">💡</div><div class="card-header-title">STP Coin คืออะไร?</div></div>
     <div class="card-body">
-      <p style="font-size:13px;color:var(--text-muted);line-height:1.7;margin-bottom:14px;">
-        STP Coin เป็น community utility token ที่ออกแบบมาเพื่อสร้างแรงจูงใจและรางวัลให้กับสมาชิกที่มีส่วนร่วมในระบบนิเวศ Strikepro ทั้งในด้านการเทรด การศึกษา และกิจกรรมชุมชน
-      </p>
+      <div class="value-box">
+        <div class="value-num">10 STP = 1 USD</div>
+        <div class="value-sub">มูลค่าภายในระบบ StrikePro</div>
+      </div>
       <ul class="bullet-list">
-        <li>ใช้ภายในระบบนิเวศ Strikepro</li>
-        <li>รางวัลสำหรับสมาชิกที่มีส่วนร่วม</li>
-        <li>สิทธิ์เข้าถึงคอนเทนต์และกิจกรรมพิเศษ</li>
-        <li>สร้างชุมชนที่เข้มแข็งและยั่งยืน</li>
+        <li>STP Coin คือเหรียญภายในระบบของ StrikePro ที่ได้รับจาก "การมีส่วนร่วม"</li>
+        <li>ไม่ใช่เหรียญซื้อขายในตลาด — แต่คือสิ่งที่ทำให้คุณมั่นใจมากขึ้น</li>
+        <li>ได้สิทธิพิเศษและเข้าถึงโอกาสก่อนใคร</li>
       </ul>
     </div>
   </div>
 
+  <!-- How it works -->
   <div class="card">
-    <div class="card-header"><div class="card-header-icon">⚡</div><div class="card-header-title">การใช้งาน STP Coin</div></div>
+    <div class="card-header"><div class="card-header-icon">🎮</div><div class="card-header-title">ระบบนี้ทำงานยังไง</div></div>
     <div class="card-body">
-      <div class="feature-grid">
-        <div class="feature-item">
-          <div class="feature-icon">🎁</div>
-          <div class="feature-name">Rewards</div>
-          <div class="feature-desc">รับ STP Coin จากการทำกิจกรรมและมีส่วนร่วมในชุมชน</div>
+      <div class="quote-block">"เทรดแบบเดิม: ฝากเงิน → รอกำไร<br>STP แบบใหม่: ลงทุน → มีส่วนร่วม → ได้รางวัล → สนุก → อยากทำต่อ"</div>
+      <div class="flow-bar">
+        <div class="flow-step">ลงทุน</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">ทำกิจกรรม</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">ได้ STP</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">ได้สิทธิ</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">ได้เปรียบ</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- What you get -->
+  <div class="card">
+    <div class="card-header"><div class="card-header-icon">🎁</div><div class="card-header-title">สิ่งที่คุณจะได้รับ</div></div>
+    <div class="card-body">
+      <div class="benefit-grid">
+        <div class="benefit-item">
+          <div class="benefit-emoji">🔒</div>
+          <div class="benefit-text">ความมั่นใจในการลงทุน</div>
         </div>
-        <div class="feature-item">
-          <div class="feature-icon">🔓</div>
-          <div class="feature-name">Access</div>
-          <div class="feature-desc">ใช้ STP Coin เพื่อเข้าถึงคอนเทนต์และสิทธิ์พิเศษ</div>
+        <div class="benefit-item">
+          <div class="benefit-emoji">🎁</div>
+          <div class="benefit-text">สิทธิพิเศษในระบบ</div>
         </div>
-        <div class="feature-item">
-          <div class="feature-icon">🏆</div>
-          <div class="feature-name">Competition</div>
-          <div class="feature-desc">ใช้ใน Trade Challenge และกิจกรรมการแข่งขัน</div>
+        <div class="benefit-item">
+          <div class="benefit-emoji">🎟</div>
+          <div class="benefit-text">เข้าร่วมกิจกรรมพิเศษ</div>
         </div>
-        <div class="feature-item">
-          <div class="feature-icon">❤️</div>
-          <div class="feature-name">Charity</div>
-          <div class="feature-desc">ส่วนหนึ่งของ STP Coin ไปสนับสนุนโครงการ Charity</div>
+        <div class="benefit-item">
+          <div class="benefit-emoji">🏆</div>
+          <div class="benefit-text">อันดับบน Leaderboard</div>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- App Features -->
   <div class="card">
-    <div class="card-header"><div class="card-header-icon">📋</div><div class="card-header-title">วิธีได้รับ STP Coin</div></div>
+    <div class="card-header"><div class="card-header-icon">📱</div><div class="card-header-title">ฟีเจอร์ใน STP Coin App</div></div>
+    <div class="card-body">
+      <div class="app-feature">
+        <div class="app-feature-head">
+          <div class="app-feature-num">1</div>
+          <div class="app-feature-name">📅 Daily Login Rewards</div>
+        </div>
+        <div class="app-feature-body">เช็คอินสะสมรายวันเพื่อรับ STP Coin และปลดล็อครางวัลในลำดับถัดไป รับได้วันละ 1 ครั้ง ตัดรอบ 23:59 น. ทุกวัน ไม่รีเซ็ตถ้าขาด — นับต่อจากวันล่าสุด</div>
+      </div>
+      <div class="app-feature">
+        <div class="app-feature-head">
+          <div class="app-feature-num">2</div>
+          <div class="app-feature-name">✨ News & Promotions</div>
+        </div>
+        <div class="app-feature-body">อัพเดทข้อมูลสิทธิ์ประโยชน์และโปรโมชั่นก่อนใคร กดที่ Banner กิจกรรมที่สนใจเพื่อดูรายละเอียดและเงื่อนไขทั้งหมด</div>
+      </div>
+      <div class="app-feature">
+        <div class="app-feature-head">
+          <div class="app-feature-num">3</div>
+          <div class="app-feature-name">📋 Tasks (ภารกิจ)</div>
+        </div>
+        <div class="app-feature-body">ภารกิจ mission quest ต่างๆที่สามารถรับ STP Coin ได้ เช่น รับชมคอนเทนต์ช่อง BusSay (+10 Coin), เข้าร่วมอบรม GD (+500 Coin), เข้าร่วมการแข่งขัน Trade Valhalla Dungeon (+500 Coin)</div>
+      </div>
+      <div class="app-feature">
+        <div class="app-feature-head">
+          <div class="app-feature-num">4</div>
+          <div class="app-feature-name">🏆 Rank (Leaderboard)</div>
+        </div>
+        <div class="app-feature-body">ตารางจัดอันดับผู้ถือครอง STP Coin ในแต่ละ Season จะมีสิทธิ์พิเศษสำหรับผู้ที่ติดอันดับตามที่กิจกรรมกำหนด</div>
+      </div>
+      <div class="app-feature">
+        <div class="app-feature-head">
+          <div class="app-feature-num">5</div>
+          <div class="app-feature-name">👤 Profile</div>
+        </div>
+        <div class="app-feature-body">ปรับข้อมูลโปรไฟล์ ใช้รูปจาก Telegram หรือ Upload รูปเอง ตั้ง Display Name สำหรับอันดับ Leaderboard และใช้ยืนยันตัวตนเพื่อรับสิทธิ์พิเศษ</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Roadmap -->
+  <div class="card">
+    <div class="card-header"><div class="card-header-icon">🚀</div><div class="card-header-title">Roadmap</div></div>
+    <div class="card-body">
+      <div class="roadmap-list">
+        <div class="roadmap-item">
+          <div class="roadmap-dot done">1</div>
+          <div class="roadmap-content">
+            <div class="roadmap-phase">Phase 1 · Closed Beta</div>
+            <div class="roadmap-title">6–19 เมษายน 2569</div>
+            <div class="roadmap-desc">สิทธิ์พิเศษเฉพาะสมาชิก World Champions เท่านั้น</div>
+          </div>
+        </div>
+        <div class="roadmap-item">
+          <div class="roadmap-dot done">2</div>
+          <div class="roadmap-content">
+            <div class="roadmap-phase">Phase 2 · Open Beta</div>
+            <div class="roadmap-title">22 เมษายน 2569</div>
+            <div class="roadmap-desc">เปิดใช้งานในระดับทั่วไป · อัพเดท function ต่างๆเพิ่มเติม</div>
+          </div>
+        </div>
+        <div class="roadmap-item">
+          <div class="roadmap-dot">3</div>
+          <div class="roadmap-content">
+            <div class="roadmap-phase">Phase 3 · Coming Soon</div>
+            <div class="roadmap-title">Mobile Application</div>
+            <div class="roadmap-desc">แอพพลิเคชั่นมือถือเต็มรูปแบบ</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 100 Champions -->
+  <div class="card">
+    <div class="card-header"><div class="card-header-icon">🏆</div><div class="card-header-title">100 Champions</div></div>
+    <div class="card-body">
+      <div class="champions-box">
+        <div class="champions-num">100</div>
+        <div class="champions-label">คุณกำลังมีโอกาสเป็น 1 ใน 100 คนแรก</div>
+        <div class="champions-sub">ได้เข้าถึงก่อน · ได้เปรียบก่อน · ได้เป็นส่วนหนึ่งของระบบ</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Who should join -->
+  <div class="card">
+    <div class="card-header"><div class="card-header-icon">🎯</div><div class="card-header-title">ใครควรเข้าร่วม?</div></div>
     <div class="card-body">
       <ul class="bullet-list check">
-        <li>เข้าร่วมกิจกรรม Free Education ของ Strikepro</li>
-        <li>แนะนำสมาชิกใหม่เข้าสู่ชุมชน</li>
-        <li>เข้าร่วม Trade Challenge และบรรลุเป้าหมาย</li>
-        <li>มีส่วนร่วมในกิจกรรม Charity Project</li>
-        <li>ลงทุนใน Managed Strategies ของ Strikepro</li>
+        <li>คนที่อยากลงทุนมากกว่าเดิม</li>
+        <li>คนที่อยากได้ "ความได้เปรียบ" เหนือคนอื่น</li>
+        <li>คนที่ไม่อยากพลาดโอกาส</li>
       </ul>
     </div>
   </div>
 
+  <!-- How to get started -->
+  <div class="card">
+    <div class="card-header"><div class="card-header-icon">📘</div><div class="card-header-title">วิธีเริ่มใช้งาน</div></div>
+    <div class="card-body">
+      <div class="step-list">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-title">ดาวน์โหลด Telegram</div>
+            <div class="step-desc">ดาวน์โหลดและติดตั้งแอพ Telegram ได้ทั้ง iOS / Android จากนั้นลงทะเบียนเบอร์โทรศัพท์และยืนยัน OTP</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-title">ค้นหา STP Coin Bot</div>
+            <div class="step-desc">ไปที่เมนู Contacts → Search แล้วพิมพ์</div>
+            <div class="step-code">@stpcoinbot</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-title">กด Start และเปิด Mini App</div>
+            <div class="step-desc">กด Start → จะปรากฏเมนู "Open Airdrop App" และ "เปิด Mini App" เพื่อเข้าสู่ระบบ STP Coin</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <div class="step-title">เชื่อมบัญชี Strikepro</div>
+            <div class="step-desc">ในการเข้าสู่ระบบครั้งแรกจะต้องทำการ Login ด้วยบัญชี StrikePro FX ของคุณเพื่อเชื่อมบัญชี</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">5</div>
+          <div class="step-content">
+            <div class="step-title">เริ่มรับ STP Coin!</div>
+            <div class="step-desc">เช็คอินรายวัน ทำภารกิจ ติดตาม Leaderboard และรับสิทธิพิเศษ</div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:16px;padding:12px 14px;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border);">
+        <div style="font-size:11px;color:var(--text-sub);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:6px;">วิดีโอแนะนำการใช้งาน</div>
+        <a href="https://youtube.com/shorts/V8uea9KQhf8" target="_blank"
+           style="font-size:13px;font-weight:700;color:var(--accent);text-decoration:none;display:flex;align-items:center;gap:6px;">
+          ▶ youtube.com/shorts/V8uea9KQhf8
+        </a>
+      </div>
+    </div>
+  </div>
 
 </main>
 </body>
