@@ -871,7 +871,7 @@ function signOut() {
   const token = localStorage.getItem(TOKEN_KEY);
   fetch('/api/auth/logout', { method: 'POST', headers: { Authorization: 'Bearer ' + token } }).catch(() => {});
   localStorage.removeItem(TOKEN_KEY);
-  window.location.href = '/';
+  window.location.href = '/login.html';
 }
 
 // ── Rate mode ──────────────────────────────────────────────────────────────────

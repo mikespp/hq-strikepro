@@ -23,11 +23,6 @@
       -webkit-font-smoothing: antialiased; }
     .app { min-height: 100vh; display: flex; flex-direction: column;
       align-items: center; justify-content: center; padding: 24px 20px; }
-    .back-link { align-self: flex-start; display: flex; align-items: center; gap: 6px;
-      color: var(--text-muted); text-decoration: none; font-size: 13px; font-weight: 600;
-      margin-bottom: 20px; padding: 6px 10px; border-radius: 8px; transition: color .15s, background .15s; }
-    .back-link:hover { color: var(--text); background: var(--surface); }
-    .back-link svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
     .logo { display: flex; flex-direction: column; align-items: center; margin-bottom: 36px; }
     .logo-mark { width: 88px; height: 88px; background: transparent; border-radius: 18px;
       display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
@@ -80,11 +75,6 @@
 </head>
 <body>
 <div class="app">
-  <a class="back-link" href="/">
-    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-    Back to Home
-  </a>
-
   <div class="logo">
     <div class="logo-mark">
       <img src="/logo.png.png" alt="HQ Strikepro" style="width:88px;height:88px;object-fit:contain;" />

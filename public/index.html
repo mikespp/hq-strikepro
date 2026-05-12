@@ -51,15 +51,6 @@
     .nav-logo img { width: 36px; height: 36px; object-fit: contain; }
     .nav-logo-name { font-size: 15px; font-weight: 800; color: var(--text); letter-spacing: -.3px; }
     .nav-logo-name span { color: var(--primary); }
-    .nav-login {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 8px 16px; border-radius: var(--radius-sm);
-      background: var(--primary); color: #fff;
-      font-size: 13px; font-weight: 700; text-decoration: none;
-      transition: background .15s, transform .1s;
-    }
-    .nav-login:hover { background: var(--primary-dark); }
-    .nav-login:active { transform: scale(.97); }
 
     /* ── Hero ── */
     .hero {
@@ -92,15 +83,6 @@
     .hero-title span { color: var(--primary); }
     .hero-sub { font-size: 15px; color: var(--text-muted); font-weight: 500; margin-bottom: 16px; letter-spacing: .02em; }
     .hero-desc { font-size: 14px; color: var(--text-sub); line-height: 1.7; margin-bottom: 32px; max-width: 440px; margin-left: auto; margin-right: auto; }
-    .hero-cta {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: var(--primary); color: #fff; text-decoration: none;
-      padding: 15px 32px; border-radius: var(--radius-sm);
-      font-size: 15px; font-weight: 700; letter-spacing: .02em;
-      transition: background .15s, transform .1s; box-shadow: 0 4px 20px rgba(230,57,70,.3);
-    }
-    .hero-cta:hover { background: var(--primary-dark); transform: translateY(-1px); }
-    .hero-cta:active { transform: scale(.98); }
 
     /* ── Sections ── */
     .section { max-width: 600px; margin: 0 auto; padding: 36px 16px; }
@@ -206,7 +188,6 @@
     <img src="/logo.png.png" alt="HQ" />
     <span class="nav-logo-name">HQ <span>STRIKEPRO</span></span>
   </a>
-  <a class="nav-login" href="/login.html">Login</a>
 </nav>
 
 <!-- Hero -->
@@ -219,7 +200,6 @@
     <h1 class="hero-title">HQ <span>Strikepro</span></h1>
     <p class="hero-sub">FX Trading &nbsp;•&nbsp; Community &nbsp;•&nbsp; Ecosystem</p>
     <p class="hero-desc">Explore managed strategies, STP Coin, education, trade challenges, and community-driven opportunities inside the Strikepro ecosystem.</p>
-    <a class="hero-cta" href="/login.html">Login / Register</a>
   </div>
 </section>
 

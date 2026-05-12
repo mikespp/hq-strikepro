@@ -31,10 +31,6 @@
     .nav-back:hover { color: var(--text); background: var(--surface2); }
     .nav-back svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
     .nav-product-name { font-size: 15px; font-weight: 800; color: var(--accent); }
-    .nav-login { display: inline-flex; padding: 7px 14px; border-radius: var(--radius-sm);
-      background: none; border: 1px solid var(--accent-mid); color: var(--accent);
-      font-size: 12px; font-weight: 700; text-decoration: none; transition: background .15s; }
-    .nav-login:hover { background: var(--accent-dim); }
     .hero { background: linear-gradient(160deg, #12100a 0%, #1a1505 100%);
       border-bottom: 1px solid var(--border); padding: 28px 16px 24px; position: relative; overflow: hidden; }
     .hero::before { content: ''; position: absolute; top: -60px; right: -60px; width: 220px; height: 220px; border-radius: 50%;
@@ -70,10 +66,6 @@
     .notify-btn { width: 100%; padding: 13px; background: var(--accent); color: #000; border: none;
       border-radius: var(--radius-sm); font-size: 14px; font-weight: 700; cursor: pointer; transition: opacity .15s; }
     .notify-btn:hover { opacity: .85; }
-    .cta-login { display: inline-flex; align-items: center; gap: 6px; background: var(--accent-dim);
-      border: 1px solid var(--accent-mid); color: var(--accent); text-decoration: none;
-      padding: 12px 24px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 700; transition: background .15s; }
-    .cta-login:hover { background: rgba(212,175,55,.2); }
   </style>
 </head>
 <body>
@@ -84,7 +76,6 @@
     Home
   </a>
   <span class="nav-product-name">HQ Ultimate</span>
-  <a class="nav-login" href="/login.html">Login</a>
 </nav>
 
 <div class="hero">
@@ -129,7 +120,6 @@
     </div>
   </div>
 
-  <a class="cta-login" href="/login.html">ลงทะเบียนเพื่อรับข้อมูล →</a>
 
 </main>
 </body>
