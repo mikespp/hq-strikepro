@@ -170,6 +170,44 @@
     .charity .eco-name { color: var(--charity); }
     .eco-desc { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
 
+    /* ── Event banner ── */
+    .event-banner {
+      display: flex; align-items: center; gap: 14px;
+      background: linear-gradient(135deg, rgba(212,175,55,.10) 0%, rgba(212,175,55,.04) 100%);
+      border: 1px solid rgba(212,175,55,.28);
+      border-radius: var(--radius); padding: 18px 16px;
+      text-decoration: none; color: inherit;
+      transition: border-color .18s, background .18s, transform .12s;
+      -webkit-tap-highlight-color: transparent; position: relative; overflow: hidden;
+    }
+    .event-banner::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(212,175,55,.5), transparent);
+    }
+    .event-banner:hover { border-color: rgba(212,175,55,.5); background: rgba(212,175,55,.12); transform: translateY(-1px); }
+    .event-banner:active { transform: scale(.98); }
+    .event-banner-icon {
+      width: 48px; height: 48px; border-radius: 12px; flex-shrink: 0;
+      background: rgba(212,175,55,.15); border: 1px solid rgba(212,175,55,.25);
+      display: flex; align-items: center; justify-content: center; font-size: 24px;
+    }
+    .event-banner-body { flex: 1; min-width: 0; }
+    .event-banner-tag {
+      font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+      color: #d4af37; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;
+    }
+    .event-banner-tag::before {
+      content: ''; width: 5px; height: 5px; border-radius: 50%;
+      background: #d4af37; box-shadow: 0 0 6px #d4af37;
+      animation: pulse2 2s ease-in-out infinite;
+    }
+    @keyframes pulse2 {
+      0%, 100% { opacity: 1; } 50% { opacity: .4; }
+    }
+    .event-banner-title { font-size: 15px; font-weight: 800; color: #f0d060; margin-bottom: 2px; }
+    .event-banner-sub { font-size: 12px; color: var(--text-muted); }
+    .event-banner-arrow { flex-shrink: 0; color: #d4af37; font-size: 20px; }
+
     /* ── Footer ── */
     .footer {
       text-align: center; padding: 24px 16px 40px;
@@ -201,6 +239,21 @@
     <p class="hero-sub">FX Trading &nbsp;•&nbsp; Community &nbsp;•&nbsp; Ecosystem</p>
     <p class="hero-desc">Explore managed strategies, STP Coin, education, trade challenges, and community-driven opportunities inside the Strikepro ecosystem.</p>
   </div>
+</section>
+
+<!-- Event Banner -->
+<hr class="section-divider" />
+<section class="section" style="padding-bottom: 0;">
+  <div class="section-label">Upcoming Event</div>
+  <a class="event-banner" href="/events/unlock-your-wealth">
+    <div class="event-banner-icon">👑</div>
+    <div class="event-banner-body">
+      <div class="event-banner-tag">Live Event</div>
+      <div class="event-banner-title">Unlock Your Wealth</div>
+      <div class="event-banner-sub">Discover a new way to grow your income with StrikePro</div>
+    </div>
+    <div class="event-banner-arrow">›</div>
+  </a>
 </section>
 
 <!-- Managed Strategies -->
