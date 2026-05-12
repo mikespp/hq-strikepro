@@ -64,13 +64,154 @@
 .line-btn:hover { background: #16a34a; }
 .line-btn:active { transform: scale(.97); }
 .line-btn svg { width: 22px; height: 22px; fill: #fff; flex-shrink: 0; }
-</style>
+
+    /* ── Hamburger ── */
+    .hamburger {
+      background: none; border: none; cursor: pointer; color: var(--text, #f0f0f0);
+      padding: 8px; display: flex; flex-direction: column; gap: 5px;
+      align-items: center; justify-content: center;
+      border-radius: 8px; transition: background .15s; flex-shrink: 0;
+    }
+    .hamburger:hover { background: rgba(255,255,255,.08); }
+    .hamburger span { display: block; width: 22px; height: 2px; background: currentColor; border-radius: 2px; }
+    /* ── Drawer overlay ── */
+    .drawer-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,.6); opacity: 0; pointer-events: none; transition: opacity .25s;
+    }
+    .drawer-overlay.open { opacity: 1; pointer-events: all; }
+    /* ── Drawer ── */
+    .drawer {
+      position: fixed; top: 0; left: 0; bottom: 0; z-index: 201; width: 275px;
+      background: #1a1a1a; border-right: 1px solid #2e2e2e;
+      display: flex; flex-direction: column;
+      transform: translateX(-100%); transition: transform .28s cubic-bezier(.4,0,.2,1);
+    }
+    .drawer.open { transform: translateX(0); }
+    .drawer-header { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid #2e2e2e; }
+    .drawer-logo-name { font-size: 16px; font-weight: 800; color: #f1f1f1; letter-spacing: -.3px; }
+    .drawer-logo-name span { color: #E63946; }
+    .drawer-nav { flex: 1; padding: 10px 0; overflow-y: auto; }
+    .drawer-link {
+      display: flex; align-items: center; gap: 12px; padding: 13px 20px;
+      font-size: 15px; font-weight: 600; color: #777; text-decoration: none;
+      transition: color .15s, background .15s; border-left: 3px solid transparent;
+    }
+    .drawer-link:hover { color: #f1f1f1; background: #222; }
+    .drawer-link-icon { font-size: 18px; }
+    .drawer-footer { padding: 16px 18px; border-top: 1px solid #2e2e2e; }
+    .drawer-signout {
+      width: 100%; background: none; border: 1px solid #2e2e2e; color: #777;
+      border-radius: 8px; padding: 10px; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: border-color .15s, color .15s;
+      font-family: inherit;
+    }
+    .drawer-signout:hover { border-color: #E63946; color: #E63946; }
+    .drawer-section-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #555; padding: 14px 20px 6px; }
+    .drawer-divider { border: none; border-top: 1px solid #2e2e2e; margin: 6px 0; }
+    .drawer-link-line { background: #22c55e; color: #fff; border-radius: 8px; margin: 6px 12px; padding: 11px 14px; justify-content: center; font-size: 14px; border-left: none; }
+    .drawer-link-line:hover { background: #16a34a; color: #fff; }
+    .drawer-link-line svg { width: 18px; height: 18px; fill: #fff; flex-shrink: 0; }
+    /* ── Accordion ── */
+    .drawer-accordion { border-left: 3px solid transparent; }
+    .drawer-accordion-btn {
+      display: flex; align-items: center; gap: 12px; width: 100%;
+      padding: 13px 20px; font-size: 15px; font-weight: 600;
+      color: #777; background: none; border: none; cursor: pointer;
+      transition: color .15s, background .15s; text-align: left; font-family: inherit;
+    }
+    .drawer-accordion-btn:hover { color: #f1f1f1; background: #222; }
+    .drawer-accordion-btn .acc-arrow { margin-left: auto; font-size: 12px; transition: transform .22s; }
+    .drawer-accordion.open .acc-arrow { transform: rotate(180deg); }
+    .drawer-accordion-body { display: none; }
+    .drawer-accordion.open .drawer-accordion-body { display: block; }
+    .drawer-sub-link {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 20px 10px 52px; font-size: 14px; font-weight: 500;
+      color: #777; text-decoration: none;
+      transition: color .15s, background .15s; border-left: 3px solid transparent;
+    }
+    .drawer-sub-link:hover { color: #f1f1f1; background: #222; }
+    .drawer-sub-icon { font-size: 15px; }
+  </style>
 </head>
 <body>
 
 <nav class="top-nav">
+  <button class="hamburger" onclick="toggleDrawer()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
   <span class="nav-title">Charity Project</span>
 </nav>
+
+<!-- ── Drawer overlay ── -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+
+<!-- ── Drawer ── -->
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <img src="/logo.png.png" alt="HQ" style="width:34px;height:34px;object-fit:contain;" />
+    <span class="drawer-logo-name">HQ <span>STRIKEPRO</span></span>
+  </div>
+  <nav class="drawer-nav">
+    <a class="drawer-link" href="/dashboard.html">
+      <span class="drawer-link-icon">📊</span> Dashboard
+    </a>
+    <a class="drawer-link" href="/clients.html">
+      <span class="drawer-link-icon">👥</span> My Clients
+    </a>
+    <a class="drawer-link" href="/products.html">
+      <span class="drawer-link-icon">📦</span> Products
+    </a>
+    <a class="drawer-link" href="/planner.html">
+      <span class="drawer-link-icon">📈</span> Investment Planner
+    </a>
+    <hr class="drawer-divider" />
+    <div class="drawer-section-label">ข้อมูลเพิ่มเติม</div>
+    <div class="drawer-accordion" id="acc-events">
+      <button class="drawer-accordion-btn" onclick="toggleAcc('acc-events')">
+        <span class="drawer-link-icon">🎟️</span> Upcoming Events
+        <span class="acc-arrow">▾</span>
+      </button>
+      <div class="drawer-accordion-body">
+        <a class="drawer-sub-link" href="/events/unlock-your-wealth">
+          <span class="drawer-sub-icon">👑</span> Unlock Your Wealth
+        </a>
+        <a class="drawer-sub-link" href="/events/sbc">
+          <span class="drawer-sub-icon">🔥</span> SBC
+        </a>
+      </div>
+    </div>
+    <div class="drawer-accordion" id="acc-community">
+      <button class="drawer-accordion-btn" onclick="toggleAcc('acc-community')">
+        <span class="drawer-link-icon">🌐</span> Community
+        <span class="acc-arrow">▾</span>
+      </button>
+      <div class="drawer-accordion-body">
+        <a class="drawer-sub-link" href="/ecosystem/stp-coin.html">
+          <span class="drawer-sub-icon">🪙</span> STP Coin
+        </a>
+        <a class="drawer-sub-link" href="/ecosystem/free-education.html">
+          <span class="drawer-sub-icon">📚</span> Free Education
+        </a>
+        <a class="drawer-sub-link" href="/ecosystem/trade-challenge.html">
+          <span class="drawer-sub-icon">🏁</span> Trade Challenge
+        </a>
+        <a class="drawer-sub-link" href="/ecosystem/charity-project.html">
+          <span class="drawer-sub-icon">❤️</span> Charity Project
+        </a>
+      </div>
+    </div>
+    <a class="drawer-link drawer-link-line" href="https://lin.ee/8WkoRmL" target="_blank">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.07 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+      สอบถาม / ติดต่อ Admin
+    </a>
+  </nav>
+  <div class="drawer-footer">
+    <div class="drawer-user" id="drawerUser" style="font-size:12px;color:#777;margin-bottom:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+    <button class="drawer-signout" onclick="drawerSignOut()">ออกจากระบบ</button>
+  </div>
+</div>
 
 <div class="hero">
   <div class="hero-inner">
@@ -145,5 +286,32 @@
 
 </main>
 <div class="line-cta"><a class="line-btn" href="https://lin.ee/8WkoRmL" target="_blank"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.070 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>สอบถาม / ติดต่อ Admin</a></div>
+<script>
+  // ── Drawer ──
+  function toggleDrawer() {
+    document.getElementById('drawer').classList.toggle('open');
+    document.getElementById('drawerOverlay').classList.toggle('open');
+  }
+  function closeDrawer() {
+    document.getElementById('drawer').classList.remove('open');
+    document.getElementById('drawerOverlay').classList.remove('open');
+  }
+  function toggleAcc(id) {
+    document.getElementById(id).classList.toggle('open');
+  }
+  function drawerSignOut() {
+    localStorage.removeItem('sp_token');
+    window.location.href = '/login';
+  }
+  // Show user email if logged in
+  (function() {
+    const token = localStorage.getItem('sp_token');
+    if (!token) return;
+    fetch('/api/auth/me', { headers: { Authorization: 'Bearer ' + token } })
+      .then(r => r.ok ? r.json() : null)
+      .then(u => { if (u && u.email) { const el = document.getElementById('drawerUser'); if (el) el.textContent = u.email; } })
+      .catch(() => {});
+  })();
+</script>
 </body>
 </html>
