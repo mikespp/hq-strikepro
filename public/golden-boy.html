@@ -552,11 +552,11 @@
 
   (async () => {
     const token = localStorage.getItem(TOKEN_KEY);
-    if (!token) { window.location.href = '/'; return; }
+    if (!token) { window.location.href = '/login.html'; return; }
     try {
       const r = await fetch('/api/auth/me', { headers: { Authorization: 'Bearer ' + token } });
-      if (!r.ok) { window.location.href = '/'; return; }
-    } catch { window.location.href = '/'; }
+      if (!r.ok) { window.location.href = '/login.html'; return; }
+    } catch { window.location.href = '/login.html'; }
   })();
 </script>
 </body>

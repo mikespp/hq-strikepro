@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Golden Boy – HQ Strikepro</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#0f172a" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #E63946; --primary-bg: rgba(230,57,70,.12);
+      --accent: #4ade80; --accent-dim: rgba(74,222,128,.12); --accent-mid: rgba(74,222,128,.28);
+      --bg: #0d0d0d; --surface: #1a1a1a; --surface2: #222; --surface3: #2a2a2a;
+      --border: #2e2e2e; --text: #f1f1f1; --text-muted: #777; --text-sub: #555;
+      --green: #4ade80; --amber: #fbbf24; --red-bg: rgba(248,113,113,.12); --red-text: #f87171;
+      --radius: 14px; --radius-sm: 8px; --nav-h: 56px;
+    }
+    html, body { background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    .top-nav { position: sticky; top: 0; z-index: 100; height: var(--nav-h);
+      background: rgba(13,13,13,.92); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; padding: 0 16px; }
+    .nav-back { background: none; border: none; cursor: pointer; color: var(--text-muted);
+      padding: 8px; margin-left: -8px; display: flex; align-items: center; gap: 6px;
+      font-size: 14px; font-weight: 600; border-radius: 8px;
+      transition: color .15s, background .15s; text-decoration: none; }
+    .nav-back:hover { color: var(--text); background: var(--surface2); }
+    .nav-back svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+    .nav-product-name { font-size: 15px; font-weight: 800; color: var(--accent); }
+    .nav-login { display: inline-flex; align-items: center; padding: 7px 14px; border-radius: var(--radius-sm);
+      background: none; border: 1px solid var(--accent-mid); color: var(--accent);
+      font-size: 12px; font-weight: 700; text-decoration: none; transition: background .15s; }
+    .nav-login:hover { background: var(--accent-dim); }
+    .hero { background: linear-gradient(160deg, #0a0f0a 0%, #0f1a0f 100%);
+      border-bottom: 1px solid var(--border); padding: 28px 16px 24px; position: relative; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; top: -60px; right: -60px; width: 220px; height: 220px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(74,222,128,.12) 0%, transparent 70%); pointer-events: none; }
+    .hero-inner { max-width: 640px; margin: 0 auto; }
+    .hero-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--accent-dim); border: 1px solid var(--accent-mid);
+      border-radius: 20px; padding: 4px 12px; margin-bottom: 14px; font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: .05em; text-transform: uppercase; }
+    .hero-title { font-size: 28px; font-weight: 900; color: var(--accent); letter-spacing: -.5px; line-height: 1.1; margin-bottom: 6px; }
+    .hero-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 18px; line-height: 1.6; }
+    .hero-links { display: flex; gap: 10px; flex-wrap: wrap; }
+    .hero-btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: var(--radius-sm);
+      font-size: 12px; font-weight: 700; text-decoration: none; transition: opacity .15s; }
+    .hero-btn:hover { opacity: .8; }
+    .hero-btn.primary { background: var(--accent); color: #000; }
+    .hero-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+    .quick-stats { display: grid; grid-template-columns: repeat(4,1fr); border-bottom: 1px solid var(--border); }
+    @media (max-width:480px) { .quick-stats { grid-template-columns: repeat(2,1fr); } }
+    .qs-cell { padding: 14px 12px; border-right: 1px solid var(--border); text-align: center; }
+    .qs-cell:last-child { border-right: none; }
+    @media (max-width:480px) { .qs-cell:nth-child(2){border-right:none;} .qs-cell:nth-child(3),.qs-cell:nth-child(4){border-top:1px solid var(--border);} }
+    .qs-val { font-size: 18px; font-weight: 800; color: var(--accent); }
+    .qs-lbl { font-size: 10px; color: var(--text-sub); margin-top: 3px; text-transform: uppercase; letter-spacing: .05em; }
+    .page-main { max-width: 640px; margin: 0 auto; padding: 20px 16px 80px; display: flex; flex-direction: column; gap: 16px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .card-header { padding: 14px 16px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+    .card-header-icon { width: 28px; height: 28px; border-radius: 8px; background: var(--accent-dim); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+    .card-header-title { font-size: 14px; font-weight: 700; }
+    .card-body { padding: 16px; }
+    .quote-block { border-left: 3px solid var(--accent); padding: 12px 16px; background: var(--accent-dim); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; font-size: 14px; font-weight: 600; color: var(--text); font-style: italic; line-height: 1.6; margin-bottom: 12px; }
+    .tag-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px; font-size: 12px; font-weight: 600; color: var(--text-muted); }
+    .tag.accent { background: var(--accent-dim); border-color: var(--accent-mid); color: var(--accent); }
+    .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width:380px) { .feature-grid { grid-template-columns: 1fr; } }
+    .feature-item { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; }
+    .feature-name { font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 4px; }
+    .feature-desc { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+    .info-table { width: 100%; border-collapse: collapse; }
+    .info-table tr { border-bottom: 1px solid var(--border); }
+    .info-table tr:last-child { border-bottom: none; }
+    .info-table td { padding: 10px 0; font-size: 13px; vertical-align: top; }
+    .info-table td:first-child { color: var(--text-muted); width: 45%; }
+    .info-table td:last-child { color: var(--text); font-weight: 600; text-align: right; }
+    .dd-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+    .dd-cell { text-align: center; background: var(--surface2); border-radius: var(--radius-sm); padding: 12px 8px; }
+    .dd-val { font-size: 18px; font-weight: 800; }
+    .dd-val.green { color: var(--green); } .dd-val.amber { color: var(--amber); } .dd-val.red { color: var(--red-text); }
+    .dd-lbl { font-size: 10px; color: var(--text-sub); margin-top: 4px; text-transform: uppercase; letter-spacing: .04em; }
+    .growth-table { width: 100%; border-collapse: collapse; }
+    .growth-table th { font-size: 11px; color: var(--text-sub); text-transform: uppercase; letter-spacing: .05em; font-weight: 600; padding: 0 0 10px; text-align: left; }
+    .growth-table th:not(:first-child) { text-align: right; }
+    .growth-table td { font-size: 13px; padding: 9px 0; border-top: 1px solid var(--border); }
+    .growth-table td:not(:first-child) { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .growth-table .yr-label { color: var(--text-muted); }
+    .growth-table .total-val { color: var(--accent); }
+    .growth-table .profit-val { color: var(--green); }
+    .growth-table-note { font-size: 11px; color: var(--text-sub); margin-top: 10px; font-style: italic; }
+    .fee-highlight { background: var(--accent-dim); border: 1px solid var(--accent-mid); border-radius: var(--radius-sm); padding: 14px 16px; text-align: center; margin-bottom: 12px; }
+    .fee-num { font-size: 36px; font-weight: 900; color: var(--accent); line-height: 1; }
+    .fee-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+    .fee-example { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; margin-top: 12px; }
+    .fee-example-title { font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 10px; text-transform: uppercase; letter-spacing: .05em; }
+    .fee-example-row { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; border-bottom: 1px solid var(--border); }
+    .fee-example-row:last-child { border-bottom: none; }
+    .fee-example-row .label { color: var(--text-muted); }
+    .fee-example-row .value { font-weight: 700; }
+    .fee-example-row .value.green { color: var(--green); }
+    .fee-example-row .value.accent { color: var(--accent); }
+    .bullet-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .bullet-list li { font-size: 13px; color: var(--text-muted); display: flex; align-items: flex-start; gap: 8px; line-height: 1.5; }
+    .bullet-list li::before { content: '•'; color: var(--accent); flex-shrink: 0; margin-top: 1px; }
+    .bullet-list.check li::before { content: '✓'; color: var(--green); }
+    .cb-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(248,113,113,.1); border: 1px solid rgba(248,113,113,.25); border-radius: 8px; padding: 8px 12px; margin-top: 14px; width: 100%; font-size: 12px; font-weight: 700; color: var(--red-text); }
+    .positioning-block { background: linear-gradient(135deg, rgba(74,222,128,.07), rgba(251,191,36,.05)); border: 1px solid rgba(74,222,128,.2); border-radius: var(--radius-sm); padding: 16px; text-align: center; }
+    .positioning-text { font-size: 13px; font-weight: 700; color: var(--accent); line-height: 1.6; }
+    .positioning-sub { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+    .cta-banner { background: var(--accent-dim); border: 1px solid var(--accent-mid); border-radius: var(--radius-sm); padding: 18px 16px; text-align: center; }
+    .cta-banner p { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; }
+    .cta-btn { display: inline-flex; align-items: center; gap: 6px; background: var(--accent); color: #000; text-decoration: none; padding: 12px 24px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 700; transition: opacity .15s; }
+    .cta-btn:hover { opacity: .85; }
+  </style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a class="nav-back" href="/">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    Home
+  </a>
+  <span class="nav-product-name">Golden Boy</span>
+  <a class="nav-login" href="/login.html">Login</a>
+</nav>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge">🏆 Gold AI Fund · PAMM Model</div>
+    <div class="hero-title">Golden Boy</div>
+    <div class="hero-sub">Automated Gold Trading System · AI Logic + Trend Following + Risk Control</div>
+    <div class="hero-links">
+      <a class="hero-btn primary" href="https://my.strikeprofx.com/en/widget/1/pamm-new/leaderboard/2121984897" target="_blank">
+        <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        PAMM Leaderboard
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="quick-stats">
+  <div class="qs-cell"><div class="qs-val">$100</div><div class="qs-lbl">เงินลงทุนขั้นต่ำ</div></div>
+  <div class="qs-cell"><div class="qs-val">20–30%</div><div class="qs-lbl">คาดการณ์/เดือน</div></div>
+  <div class="qs-cell"><div class="qs-val">ปานกลาง</div><div class="qs-lbl">ระดับความเสี่ยง</div></div>
+  <div class="qs-cell"><div class="qs-val">6 ปี</div><div class="qs-lbl">Backtest</div></div>
+</div>
+
+<main class="page-main">
+
+  <div class="card">
+    <div class="card-header"><div class="card-header-icon">📋</div><div class="card-header-title">Fund Information</div></div>
+    <div class="card-body">
+      <table class="info-table">
+        <tr><td>ชื่อกองทุน</td><td>Golden Boy</td></tr>
+        <tr><td>ประเภท</td><td>Gold AI PAMM Fund</td></tr>
+        <tr><td>รูปแบบ</td><td>EA + PAMM Model</td></tr>
+        <tr><td>ตลาดหลัก</td><td>Gold (XAUUSD)</td></tr>
+        <tr><td>ระดับความเสี่ยง</td><td>ปานกลาง</td></tr>
+        <tr><td>เงินลงทุนขั้นต่ำ</td><td>100 USD</td></tr>
+        <tr><td>ผลตอบแทนคาดการณ์</td><td>~20–30%/เดือน*</td></tr>
+        <tr><td>ค่าบริหาร</td><td>50% Profit Sharing</td></tr>
+        <tr><td>เลขพอร์ต PAMM</td><td>2121984897</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-header-icon">⚙️</div><div class="card-header-title">Trading Strategy</div></div>
+    <div class="card-body">
+      <div class="quote-block">"ให้ระบบเทรดทำงานแทนมนุษย์ โดยใช้ AI Logic + Trend Following + Risk Control"</div>
+      <div class="feature-grid">
+        <div class="feature-item"><div class="feature-name">Trend Following</div><div class="feature-desc">เล่นตามแนวโน้มหลัก หลีกเลี่ยงการสวนตลาด</div></div>
+        <div class="feature-item"><div class="feature-name">Structure-Based Exit</div><div class="feature-desc">หากกราฟเสียโครงสร้าง จะตัดขาดทุนอย่างมีเหตุผล</div></div>
+        <div class="feature-item"><div class="feature-name">Dynamic Risk Mgmt</div><div class="feature-desc">ปรับการถือไม้ตามสภาพตลาดแบบ Real-time</div></div>
+        <div class="feature-item"><div class="feature-name">Continuous Optimization</div><div class="feature-desc">มีการอัปเดตและพัฒนาระบบต่อเนื่องตลอดเวลา</div></div>
+      </div>
+      <div style="margin-top:14px;">
+        <div class="tag-list"><span class="tag accent">Gold (XAUUSD)</span><span class="tag">AI-Powered EA</span><span class="tag">Auto-Execution</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-header-icon">🛡️</div><div class="card-header-title">Risk Management & Drawdown</div></div>
+    <div class="card-body">
+      <div class="dd-grid" style="margin-bottom:14px;">
+        <div class="dd-cell"><div class="dd-val amber">ปานกลาง</div><div class="dd-lbl">ระดับความเสี่ยง</div></div>
+        <div class="dd-cell"><div class="dd-val amber">20–35%</div><div class="dd-lbl">Drawdown โดยประมาณ</div></div>
+        <div class="dd-cell"><div class="dd-val red">35%</div><div class="dd-lbl">Circuit Breaker</div></div>
+      </div>
+      <div class="cb-badge">⚡ Circuit Breaker: หากระบบถึงระดับ 35% จะหยุดป้องกันความเสียหายอัตโนมัติ</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-header-icon">📈</div><div class="card-header-title">Compound Growth Simulation</div></div>
+    <div class="card-body">
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">คำนวณที่ 20%/เดือน gross → นักลงทุนได้สุทธิ 10%/เดือน (หลัง Profit Sharing 50%) เริ่มต้น $1,000 USD</div>
+      <table class="growth-table">
+        <thead><tr><th>ระยะเวลา</th><th>มูลค่ารวม</th><th>กำไรสุทธิ</th></tr></thead>
+        <tbody>
+          <tr><td class="yr-label">Year 1</td><td class="total-val">$3,138</td><td class="profit-val">+$2,138</td></tr>
+          <tr><td class="yr-label">Year 2</td><td class="total-val">$9,850</td><td class="profit-val">+$8,850</td></tr>
+          <tr><td class="yr-label">Year 3</td><td class="total-val">$30,913</td><td class="profit-val">+$29,913</td></tr>
+          <tr><td class="yr-label">Year 5</td><td class="total-val">$304,482</td><td class="profit-val">+$303,482</td></tr>
+        </tbody>
+      </table>
+      <div class="growth-table-note">* ตัวเลขเป็นเพียงตัวอย่างการคำนวณแบบทบต้น ไม่ใช่การรับประกันผลตอบแทน</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-header-icon">💰</div><div class="card-header-title">Profit Sharing Model</div></div>
+    <div class="card-body">
+      <div class="fee-highlight"><div class="fee-num">50%</div><div class="fee-sub">ของกำไรสุทธิ (Profit Sharing Only)</div></div>
+      <div class="fee-example">
+        <div class="fee-example-title">ตัวอย่าง — ลงทุน $10,000 USD ระบบทำกำไร $2,000</div>
+        <div class="fee-example-row"><span class="label">นักลงทุนได้รับสุทธิ</span><span class="value green">$1,000</span></div>
+        <div class="fee-example-row"><span class="label">ผู้พัฒนาระบบได้รับ</span><span class="value accent">$1,000</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-header-icon">🔄</div><div class="card-header-title">Loss Recovery Advantage</div></div>
+    <div class="card-body">
+      <div class="quote-block">"นักลงทุน Recover ก่อน — ระบบคิดค่าตอบแทนเมื่อสร้างผลตอบแทนจริง"</div>
+      <ul class="bullet-list">
+        <li>พอร์ต $10,000 ติดลบ 20% → เหลือ $8,000</li>
+        <li>กำไร $2,000 แรกที่ได้คืนมา → คืนทุนเดิมก่อน ยังไม่หัก Profit Sharing</li>
+        <li>เมื่อกลับถึง $10,000 แล้ว — กำไรส่วนเกินจึงเริ่มคิด Profit Sharing ใหม่</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-header-icon">🔒</div><div class="card-header-title">Safety Model (PAMM) & Deposit/Withdrawal</div></div>
+    <div class="card-body">
+      <ul class="bullet-list check">
+        <li>ไม่ต้องโอนเงินให้บุคคลใด — เงินอยู่ในพอร์ตตัวเอง</li>
+        <li>Subscribe ผ่านระบบเท่านั้น</li>
+        <li>ตรวจสอบผลดำเนินงานได้ตลอดเวลา โปร่งใส</li>
+        <li>ฝาก/ถอนได้ตลอดเวลา ไม่มีล็อกเงิน</li>
+        <li>ระบบอนุมัติอัตโนมัติทุก 1 ชั่วโมง</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-header-icon">🚀</div><div class="card-header-title">Positioning</div></div>
+    <div class="card-body">
+      <div class="positioning-block">
+        <div class="positioning-text">Golden Boy = AI Trading System<br>+ High Growth Fund + Passive Income Engine</div>
+        <div class="positioning-sub">เหมาะกับผู้ที่ต้องการให้ระบบทำงานแทน<br>และเติบโตระยะยาวแบบทบต้น</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="border-color:rgba(248,113,113,.2);">
+    <div class="card-header" style="border-color:rgba(248,113,113,.2);">
+      <div class="card-header-icon" style="background:var(--red-bg);">⚠️</div>
+      <div class="card-header-title">Risk Disclosure</div>
+    </div>
+    <div class="card-body">
+      <ul class="bullet-list">
+        <li>การลงทุนมีความเสี่ยง</li>
+        <li>ผลตอบแทนในอดีตไม่รับประกันอนาคต</li>
+        <li>ตลาดทองคำมีความผันผวนสูง</li>
+        <li>อาจเกิด Drawdown ได้สูงถึง 20–35%</li>
+        <li>ควรใช้เงินเย็นในการลงทุน</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <div class="cta-banner">
+        <p>สนใจลงทุนใน Golden Boy? ลงทะเบียนเพื่อรับข้อมูลเพิ่มเติมจากทีมงาน</p>
+        <a class="cta-btn" href="/login.html">เริ่มต้นลงทุน →</a>
+      </div>
+    </div>
+  </div>
+
+</main>
+</body>
+</html>

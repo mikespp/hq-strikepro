@@ -3,641 +3,321 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>HQ Strikepro</title>
+  <title>HQ Strikepro – FX Trading · Community · Ecosystem</title>
   <link rel="manifest" href="/manifest.json" />
   <link rel="apple-touch-icon" href="/icon.png" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="HQ STRIKEPRO" />
   <meta name="theme-color" content="#0f172a" />
   <style>
-    *, *::before, *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --primary: #E63946;
+      --primary:    #E63946;
       --primary-dark: #c1121f;
-      --bg: #0d0d0d;
-      --surface: #1a1a1a;
-      --surface2: #242424;
-      --border: #2e2e2e;
-      --text: #f1f1f1;
-      --text-muted: #888;
-      --input-bg: #111;
-      --radius: 14px;
-      --radius-sm: 8px;
+      --primary-bg: rgba(230,57,70,.12);
+      --bg:         #0d0d0d;
+      --surface:    #1a1a1a;
+      --surface2:   #222;
+      --border:     #2e2e2e;
+      --text:       #f1f1f1;
+      --text-muted: #777;
+      --text-sub:   #555;
+      --radius:     14px;
+      --radius-sm:  8px;
+      --nav-h:      56px;
+      /* Product */
+      --ppvp: #818cf8; --ppvp-bg: rgba(129,140,248,.12); --ppvp-mid: rgba(129,140,248,.25);
+      --hq:   #d4af37; --hq-bg:   rgba(212,175,55,.12);  --hq-mid:   rgba(212,175,55,.25);
+      --gb:   #4ade80; --gb-bg:   rgba(74,222,128,.12);  --gb-mid:   rgba(74,222,128,.25);
+      /* Ecosystem */
+      --stp:     #f59e0b; --stp-bg:     rgba(245,158,11,.12);
+      --edu:     #38bdf8; --edu-bg:     rgba(56,189,248,.12);
+      --trade:   #fb923c; --trade-bg:   rgba(251,146,60,.12);
+      --charity: #f472b6; --charity-bg: rgba(244,114,182,.12);
     }
+    html, body { background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      -webkit-font-smoothing: antialiased; overflow-x: hidden; }
 
-    html, body {
-      height: 100%;
-      background: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      -webkit-font-smoothing: antialiased;
+    /* ── Nav ── */
+    .top-nav {
+      position: sticky; top: 0; z-index: 100; height: var(--nav-h);
+      background: rgba(13,13,13,.92); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 16px;
     }
-
-    .app {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 24px 20px;
+    .nav-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; }
+    .nav-logo img { width: 36px; height: 36px; object-fit: contain; }
+    .nav-logo-name { font-size: 15px; font-weight: 800; color: var(--text); letter-spacing: -.3px; }
+    .nav-logo-name span { color: var(--primary); }
+    .nav-login {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px; border-radius: var(--radius-sm);
+      background: var(--primary); color: #fff;
+      font-size: 13px; font-weight: 700; text-decoration: none;
+      transition: background .15s, transform .1s;
     }
+    .nav-login:hover { background: var(--primary-dark); }
+    .nav-login:active { transform: scale(.97); }
 
-    /* ── Logo ── */
-    .logo {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-bottom: 36px;
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(160deg, #0d0d0d 0%, #0f0f18 60%, #0d0d0d 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 56px 20px 48px; position: relative; overflow: hidden; text-align: center;
     }
-
-    .logo-mark {
-      width: 88px;
-      height: 88px;
-      background: transparent;
-      border-radius: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 12px;
+    .hero::before {
+      content: ''; position: absolute; top: -80px; left: 50%; transform: translateX(-50%);
+      width: 500px; height: 500px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(230,57,70,.08) 0%, transparent 65%);
+      pointer-events: none;
     }
-
-    .logo-mark svg {
-      width: 40px;
-      height: 40px;
+    .hero::after {
+      content: ''; position: absolute; bottom: -60px; right: -60px;
+      width: 280px; height: 280px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(129,140,248,.06) 0%, transparent 70%);
+      pointer-events: none;
     }
-
-    .logo-name {
-      font-size: 26px;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-      color: var(--text);
+    .hero-inner { max-width: 560px; margin: 0 auto; position: relative; z-index: 1; }
+    .hero-logo { margin-bottom: 20px; }
+    .hero-logo img { width: 80px; height: 80px; object-fit: contain; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--primary-bg); border: 1px solid rgba(230,57,70,.25);
+      border-radius: 20px; padding: 5px 14px; margin-bottom: 18px;
+      font-size: 11px; font-weight: 700; color: var(--primary); letter-spacing: .06em; text-transform: uppercase;
     }
-
-    .logo-name span {
-      color: var(--primary);
+    .hero-title { font-size: 38px; font-weight: 900; letter-spacing: -1px; line-height: 1.05; margin-bottom: 10px; }
+    .hero-title span { color: var(--primary); }
+    .hero-sub { font-size: 15px; color: var(--text-muted); font-weight: 500; margin-bottom: 16px; letter-spacing: .02em; }
+    .hero-desc { font-size: 14px; color: var(--text-sub); line-height: 1.7; margin-bottom: 32px; max-width: 440px; margin-left: auto; margin-right: auto; }
+    .hero-cta {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--primary); color: #fff; text-decoration: none;
+      padding: 15px 32px; border-radius: var(--radius-sm);
+      font-size: 15px; font-weight: 700; letter-spacing: .02em;
+      transition: background .15s, transform .1s; box-shadow: 0 4px 20px rgba(230,57,70,.3);
     }
+    .hero-cta:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    .hero-cta:active { transform: scale(.98); }
 
-    /* ── Card ── */
-    .card {
-      width: 100%;
-      max-width: 400px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 28px 24px;
+    /* ── Sections ── */
+    .section { max-width: 600px; margin: 0 auto; padding: 36px 16px; }
+    .section + .section { padding-top: 8px; }
+    .section-label {
+      font-size: 10px; font-weight: 700; color: var(--text-sub);
+      text-transform: uppercase; letter-spacing: .1em; margin-bottom: 6px;
     }
+    .section-title { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+    .section-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+    .section-divider { border: none; border-top: 1px solid var(--border); margin: 0; }
 
-    .card-title {
-      font-size: 20px;
-      font-weight: 700;
-      margin-bottom: 4px;
+    /* ── Product cards (strategy) ── */
+    .strategy-list { display: flex; flex-direction: column; gap: 12px; }
+    .strategy-card {
+      display: flex; align-items: center; gap: 14px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px 14px;
+      text-decoration: none; color: inherit;
+      transition: border-color .18s, background .18s, transform .12s;
+      position: relative; overflow: hidden;
+      -webkit-tap-highlight-color: transparent;
     }
+    .strategy-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+    .strategy-card:hover  { background: #1e1e1e; transform: translateY(-1px); }
+    .strategy-card:active { transform: scale(.98); }
 
-    .card-sub {
-      font-size: 13px;
-      color: var(--text-muted);
-      margin-bottom: 28px;
+    .strategy-card.ppvp   { border-color: rgba(129,140,248,.2); }
+    .strategy-card.ppvp::before { background: var(--ppvp); }
+    .strategy-card.ppvp:hover   { border-color: var(--ppvp-mid); }
+    .strategy-card.hq     { border-color: rgba(212,175,55,.2); }
+    .strategy-card.hq::before   { background: var(--hq); }
+    .strategy-card.hq:hover     { border-color: var(--hq-mid); }
+    .strategy-card.gb     { border-color: rgba(74,222,128,.2); }
+    .strategy-card.gb::before   { background: var(--gb); }
+    .strategy-card.gb:hover     { border-color: var(--gb-mid); }
+
+    .strategy-icon { width: 46px; height: 46px; border-radius: 12px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 22px; }
+    .ppvp .strategy-icon { background: var(--ppvp-bg); }
+    .hq   .strategy-icon { background: var(--hq-bg); }
+    .gb   .strategy-icon { background: var(--gb-bg); }
+
+    .strategy-body { flex: 1; min-width: 0; }
+    .strategy-name { font-size: 16px; font-weight: 800; margin-bottom: 3px; }
+    .ppvp .strategy-name { color: var(--ppvp); }
+    .hq   .strategy-name { color: var(--hq); }
+    .gb   .strategy-name { color: var(--gb); }
+    .strategy-desc { font-size: 12px; color: var(--text-muted); }
+    .strategy-arrow { flex-shrink: 0; color: var(--text-sub); font-size: 20px; line-height: 1; }
+
+    /* ── Ecosystem cards ── */
+    .eco-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width: 340px) { .eco-grid { grid-template-columns: 1fr; } }
+    .eco-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px 14px;
+      text-decoration: none; color: inherit;
+      transition: border-color .18s, background .18s, transform .12s;
+      -webkit-tap-highlight-color: transparent;
+      display: flex; flex-direction: column; gap: 10px;
     }
+    .eco-card:hover  { background: #1e1e1e; transform: translateY(-1px); }
+    .eco-card:active { transform: scale(.98); }
+    .eco-card.stp     { border-color: rgba(245,158,11,.2); }
+    .eco-card.stp:hover     { border-color: rgba(245,158,11,.4); }
+    .eco-card.edu     { border-color: rgba(56,189,248,.2); }
+    .eco-card.edu:hover     { border-color: rgba(56,189,248,.4); }
+    .eco-card.trade   { border-color: rgba(251,146,60,.2); }
+    .eco-card.trade:hover   { border-color: rgba(251,146,60,.4); }
+    .eco-card.charity { border-color: rgba(244,114,182,.2); }
+    .eco-card.charity:hover { border-color: rgba(244,114,182,.4); }
 
-    /* ── Tabs ── */
-    .tabs {
-      display: flex;
-      background: var(--surface2);
-      border-radius: var(--radius-sm);
-      padding: 4px;
-      margin-bottom: 28px;
-      gap: 4px;
+    .eco-icon { width: 40px; height: 40px; border-radius: 10px; font-size: 20px;
+      display: flex; align-items: center; justify-content: center; }
+    .stp     .eco-icon { background: var(--stp-bg); }
+    .edu     .eco-icon { background: var(--edu-bg); }
+    .trade   .eco-icon { background: var(--trade-bg); }
+    .charity .eco-icon { background: var(--charity-bg); }
+
+    .eco-name { font-size: 13px; font-weight: 800; }
+    .stp     .eco-name { color: var(--stp); }
+    .edu     .eco-name { color: var(--edu); }
+    .trade   .eco-name { color: var(--trade); }
+    .charity .eco-name { color: var(--charity); }
+    .eco-desc { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+
+    /* ── Footer ── */
+    .footer {
+      text-align: center; padding: 24px 16px 40px;
+      border-top: 1px solid var(--border);
+      font-size: 12px; color: var(--text-sub);
     }
-
-    .tab {
-      flex: 1;
-      padding: 9px;
-      border: none;
-      border-radius: calc(var(--radius-sm) - 2px);
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s, color 0.2s;
-      background: transparent;
-      color: var(--text-muted);
-    }
-
-    .tab.active {
-      background: var(--primary);
-      color: #fff;
-    }
-
-    /* ── Form ── */
-    .form-group {
-      margin-bottom: 18px;
-    }
-
-    label {
-      display: block;
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      margin-bottom: 8px;
-    }
-
-    input {
-      width: 100%;
-      padding: 13px 14px;
-      background: var(--input-bg);
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-sm);
-      color: var(--text);
-      font-size: 15px;
-      outline: none;
-      transition: border-color 0.2s;
-      -webkit-appearance: none;
-    }
-
-    input::placeholder {
-      color: #444;
-    }
-
-    input:focus {
-      border-color: var(--primary);
-    }
-
-    .password-wrap {
-      position: relative;
-    }
-
-    .password-wrap input {
-      padding-right: 44px;
-    }
-
-    .eye-btn {
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: var(--text-muted);
-      display: flex;
-      align-items: center;
-      padding: 4px;
-    }
-
-    .eye-btn:hover { color: var(--text); }
-
-    /* ── Primary button ── */
-    .btn-primary {
-      width: 100%;
-      padding: 14px;
-      background: var(--primary);
-      color: #fff;
-      border: none;
-      border-radius: var(--radius-sm);
-      font-size: 15px;
-      font-weight: 700;
-      cursor: pointer;
-      margin-top: 6px;
-      transition: background 0.2s, transform 0.1s;
-      letter-spacing: 0.2px;
-    }
-
-    .btn-primary:hover { background: var(--primary-dark); }
-    .btn-primary:active { transform: scale(0.98); }
-
-    /* ── Forgot link ── */
-    .forgot {
-      text-align: right;
-      margin-top: -10px;
-      margin-bottom: 18px;
-    }
-
-    .forgot a {
-      font-size: 12px;
-      color: var(--primary);
-      text-decoration: none;
-    }
-
-    /* ── Divider ── */
-    .divider {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin: 22px 0;
-      color: var(--text-muted);
-      font-size: 12px;
-    }
-
-    .divider::before, .divider::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border);
-    }
-
-    /* ── Alert ── */
-    .alert {
-      padding: 11px 14px;
-      border-radius: var(--radius-sm);
-      font-size: 13px;
-      margin-bottom: 16px;
-      display: none;
-    }
-
-    .alert.error {
-      background: rgba(230, 57, 70, 0.12);
-      border: 1px solid rgba(230, 57, 70, 0.3);
-      color: #ff6b76;
-    }
-
-    .alert.success {
-      background: rgba(34, 197, 94, 0.1);
-      border: 1px solid rgba(34, 197, 94, 0.3);
-      color: #4ade80;
-    }
-
-    .alert.show { display: block; }
-
-    /* ── Password strength ── */
-    .strength-bar {
-      display: flex;
-      gap: 4px;
-      margin-top: 8px;
-    }
-
-    .strength-bar span {
-      flex: 1;
-      height: 3px;
-      border-radius: 2px;
-      background: var(--border);
-      transition: background 0.3s;
-    }
-
-    .strength-label {
-      font-size: 11px;
-      margin-top: 5px;
-      color: var(--text-muted);
-    }
-
-    /* ── Dashboard ── */
-    #dashboardView {
-      display: none;
-      width: 100%;
-      max-width: 400px;
-    }
-
-    .dash-header {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px 22px;
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-
-    .avatar {
-      width: 48px;
-      height: 48px;
-      background: var(--primary);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      font-weight: 700;
-      color: #fff;
-      flex-shrink: 0;
-    }
-
-    .dash-info h2 {
-      font-size: 16px;
-      font-weight: 700;
-    }
-
-    .dash-info p {
-      font-size: 13px;
-      color: var(--text-muted);
-      margin-top: 2px;
-    }
-
-    .dash-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px 22px;
-      margin-bottom: 16px;
-    }
-
-    .dash-card h3 {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 8px;
-    }
-
-    .dash-card p {
-      font-size: 15px;
-      color: var(--text);
-    }
-
-    .btn-outline {
-      width: 100%;
-      padding: 13px;
-      background: transparent;
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-sm);
-      color: var(--text);
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: border-color 0.2s, color 0.2s;
-    }
-
-    .btn-outline:hover {
-      border-color: var(--primary);
-      color: var(--primary);
-    }
-
-    /* Shake animation for errors */
-    @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      20% { transform: translateX(-6px); }
-      40% { transform: translateX(6px); }
-      60% { transform: translateX(-4px); }
-      80% { transform: translateX(4px); }
-    }
-
-    .shake { animation: shake 0.4s ease; }
+    .footer a { color: var(--text-sub); text-decoration: none; }
+    .footer a:hover { color: var(--text-muted); }
   </style>
 </head>
 <body>
-<div class="app">
 
-  <!-- Logo -->
-  <div class="logo">
-    <div class="logo-mark">
-      <img src="/logo.png.png" alt="HQ Strikepro" style="width:88px;height:88px;object-fit:contain;" />
+<!-- Nav -->
+<nav class="top-nav">
+  <a class="nav-logo" href="/">
+    <img src="/logo.png.png" alt="HQ" />
+    <span class="nav-logo-name">HQ <span>STRIKEPRO</span></span>
+  </a>
+  <a class="nav-login" href="/login.html">Login</a>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-logo">
+      <img src="/logo.png.png" alt="HQ Strikepro" />
     </div>
-    <div class="logo-name">HQ <span>STRIKEPRO</span></div>
+    <div class="hero-badge">⚡ Strikepro Ecosystem</div>
+    <h1 class="hero-title">HQ <span>Strikepro</span></h1>
+    <p class="hero-sub">FX Trading &nbsp;•&nbsp; Community &nbsp;•&nbsp; Ecosystem</p>
+    <p class="hero-desc">Explore managed strategies, STP Coin, education, trade challenges, and community-driven opportunities inside the Strikepro ecosystem.</p>
+    <a class="hero-cta" href="/login.html">Login / Register</a>
   </div>
+</section>
 
-  <!-- Auth Card -->
-  <div class="card" id="authCard">
-    <div class="tabs">
-      <button class="tab active" id="tabSignIn" onclick="switchTab('signin')">Sign In</button>
-      <button class="tab" id="tabRegister" onclick="switchTab('register')">Register</button>
-    </div>
+<!-- Managed Strategies -->
+<hr class="section-divider" />
+<section class="section">
+  <div class="section-label">Investment</div>
+  <h2 class="section-title">Managed Strategies</h2>
+  <p class="section-sub">Professional fund management via PAMM model</p>
+  <div class="strategy-list">
 
-    <!-- Alert -->
-    <div class="alert" id="alert"></div>
+    <a class="strategy-card ppvp" href="/products/ppvp.html">
+      <div class="strategy-icon">💼</div>
+      <div class="strategy-body">
+        <div class="strategy-name">PPVP</div>
+        <div class="strategy-desc">Multi-currency FX strategy</div>
+      </div>
+      <div class="strategy-arrow">›</div>
+    </a>
 
-    <!-- ── SIGN IN FORM ── -->
-    <form id="signinForm" onsubmit="handleSignIn(event)">
-      <div class="form-group">
-        <label for="siEmail">Strikepro Email</label>
-        <input type="email" id="siEmail" placeholder="you@example.com" autocomplete="email" required />
+    <a class="strategy-card hq" href="/products/hq-ultimate.html">
+      <div class="strategy-icon">👑</div>
+      <div class="strategy-body">
+        <div class="strategy-name">HQ Ultimate</div>
+        <div class="strategy-desc">Professional master trading strategy</div>
       </div>
-      <div class="form-group">
-        <label for="siPassword">Password</label>
-        <div class="password-wrap">
-          <input type="password" id="siPassword" placeholder="Enter your password" autocomplete="current-password" required />
-          <button type="button" class="eye-btn" onclick="togglePwd('siPassword', this)">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-            </svg>
-          </button>
-        </div>
-      </div>
-      <div class="forgot"><a href="#" onclick="return false;">Forgot password?</a></div>
-      <button type="submit" id="btnSignIn" data-label="Sign In" class="btn-primary">Sign In</button>
-    </form>
+      <div class="strategy-arrow">›</div>
+    </a>
 
-    <!-- ── REGISTER FORM ── -->
-    <form id="registerForm" style="display:none" onsubmit="handleRegister(event)">
-      <div class="form-group">
-        <label for="regEmail">Strikepro Email</label>
-        <input type="email" id="regEmail" placeholder="you@example.com" autocomplete="email" required />
+    <a class="strategy-card gb" href="/products/golden-boy.html">
+      <div class="strategy-icon">🏆</div>
+      <div class="strategy-body">
+        <div class="strategy-name">Golden Boy</div>
+        <div class="strategy-desc">Professional gold trading strategy</div>
       </div>
-      <div class="form-group">
-        <label for="regPassword">Password</label>
-        <div class="password-wrap">
-          <input type="password" id="regPassword" placeholder="Create a password" autocomplete="new-password"
-                 oninput="checkStrength(this.value)" required />
-          <button type="button" class="eye-btn" onclick="togglePwd('regPassword', this)">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-            </svg>
-          </button>
-        </div>
-        <div class="strength-bar">
-          <span id="s1"></span><span id="s2"></span><span id="s3"></span><span id="s4"></span>
-        </div>
-        <div class="strength-label" id="strengthLabel"></div>
-      </div>
-      <div class="form-group">
-        <label for="regConfirm">Confirm Password</label>
-        <div class="password-wrap">
-          <input type="password" id="regConfirm" placeholder="Repeat your password" autocomplete="new-password" required />
-          <button type="button" class="eye-btn" onclick="togglePwd('regConfirm', this)">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-            </svg>
-          </button>
-        </div>
-      </div>
-      <button type="submit" id="btnRegister" data-label="Create Account" class="btn-primary">Create Account</button>
-    </form>
+      <div class="strategy-arrow">›</div>
+    </a>
+
   </div>
+</section>
 
-  <!-- Dashboard (shown after login) -->
-  <div id="dashboardView">
-    <div class="logo" style="margin-bottom:24px">
-      <div class="logo-mark">
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="#fff"/>
-        </svg>
+<!-- Ecosystem -->
+<hr class="section-divider" />
+<section class="section">
+  <div class="section-label">Community</div>
+  <h2 class="section-title">Strikepro Ecosystem</h2>
+  <p class="section-sub">Built for traders, learners, and community members</p>
+  <div class="eco-grid">
+
+    <a class="eco-card stp" href="/ecosystem/stp-coin.html">
+      <div class="eco-icon">🪙</div>
+      <div>
+        <div class="eco-name">STP Coin</div>
+        <div class="eco-desc">Community utility token</div>
       </div>
-      <div class="logo-name">Strike<span>pro</span></div>
-    </div>
-    <div class="dash-header">
-      <div class="avatar" id="dashAvatar"></div>
-      <div class="dash-info">
-        <h2>Welcome back!</h2>
-        <p id="dashEmail"></p>
+    </a>
+
+    <a class="eco-card edu" href="/ecosystem/free-education.html">
+      <div class="eco-icon">📚</div>
+      <div>
+        <div class="eco-name">Free Education</div>
+        <div class="eco-desc">Learn trading &amp; marketing for free</div>
       </div>
-    </div>
-    <div class="dash-card">
-      <h3>Account</h3>
-      <p id="dashEmailFull"></p>
-    </div>
-    <div class="dash-card">
-      <h3>Member Since</h3>
-      <p id="dashJoined">—</p>
-    </div>
-    <div class="dash-card">
-      <h3>Status</h3>
-      <p style="color:#4ade80">● Active</p>
-    </div>
-    <button class="btn-outline" onclick="signOut()">Sign Out</button>
+    </a>
+
+    <a class="eco-card trade" href="/ecosystem/trade-challenge.html">
+      <div class="eco-icon">🏁</div>
+      <div>
+        <div class="eco-name">Trade Challenge</div>
+        <div class="eco-desc">Trading competition for community members</div>
+      </div>
+    </a>
+
+    <a class="eco-card charity" href="/ecosystem/charity-project.html">
+      <div class="eco-icon">❤️</div>
+      <div>
+        <div class="eco-name">Charity Project</div>
+        <div class="eco-desc">Community activities &amp; giving</div>
+      </div>
+    </a>
+
   </div>
+</section>
 
-</div>
+<footer class="footer">
+  © 2026 HQ Strikepro &nbsp;·&nbsp; Powered by <a href="https://strikeprofx.com" target="_blank">StrikePro FX</a>
+</footer>
 
 <script>
-  const API = '/api/auth';
   const TOKEN_KEY = 'sp_token';
-
-  // ── API helper ──
-  async function apiFetch(path, options = {}) {
+  // If already logged in → go to dashboard
+  (async () => {
     const token = localStorage.getItem(TOKEN_KEY);
-    const res = await fetch(API + path, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {})
-      },
-      ...options,
-      body: options.body ? JSON.stringify(options.body) : undefined
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Something went wrong.');
-    return data;
-  }
-
-  // ── Tab switching ──
-  function switchTab(tab) {
-    clearAlert();
-    document.getElementById('tabSignIn').classList.toggle('active', tab === 'signin');
-    document.getElementById('tabRegister').classList.toggle('active', tab === 'register');
-    document.getElementById('signinForm').style.display = tab === 'signin' ? '' : 'none';
-    document.getElementById('registerForm').style.display = tab === 'register' ? '' : 'none';
-  }
-
-  // ── Alert ──
-  function showAlert(msg, type = 'error') {
-    const el = document.getElementById('alert');
-    el.textContent = msg;
-    el.className = `alert ${type} show`;
-  }
-
-  function clearAlert() {
-    document.getElementById('alert').className = 'alert';
-  }
-
-  function shakeCard() {
-    const card = document.getElementById('authCard');
-    card.classList.remove('shake');
-    void card.offsetWidth;
-    card.classList.add('shake');
-  }
-
-  function setLoading(btnId, loading) {
-    const btn = document.getElementById(btnId);
-    btn.disabled = loading;
-    btn.textContent = loading ? 'Please wait…' : btn.dataset.label;
-  }
-
-  // ── Password visibility toggle ──
-  function togglePwd(inputId, btn) {
-    const input = document.getElementById(inputId);
-    const isText = input.type === 'text';
-    input.type = isText ? 'password' : 'text';
-    btn.innerHTML = isText
-      ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`
-      : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
-  }
-
-  // ── Password strength ──
-  function checkStrength(pwd) {
-    let score = 0;
-    if (pwd.length >= 8) score++;
-    if (/[A-Z]/.test(pwd)) score++;
-    if (/[0-9]/.test(pwd)) score++;
-    if (/[^A-Za-z0-9]/.test(pwd)) score++;
-
-    const colors = ['#E63946','#f4a261','#e9c46a','#4ade80'];
-    const labels = ['Weak','Fair','Good','Strong'];
-
-    ['s1','s2','s3','s4'].forEach((id, i) => {
-      document.getElementById(id).style.background = i < score ? colors[score - 1] : 'var(--border)';
-    });
-
-    const label = document.getElementById('strengthLabel');
-    label.textContent = pwd.length === 0 ? '' : labels[score - 1] || 'Weak';
-    label.style.color  = pwd.length === 0 ? '' : colors[score - 1] || colors[0];
-  }
-
-  // ── Register ──
-  async function handleRegister(e) {
-    e.preventDefault();
-    clearAlert();
-
-    const email = document.getElementById('regEmail').value.trim();
-    const pwd   = document.getElementById('regPassword').value;
-    const conf  = document.getElementById('regConfirm').value;
-
-    if (pwd.length < 6) { showAlert('Password must be at least 6 characters.'); shakeCard(); return; }
-    if (pwd !== conf)    { showAlert('Passwords do not match.');                 shakeCard(); return; }
-
-    setLoading('btnRegister', true);
+    if (!token) return;
     try {
-      const { token, user } = await apiFetch('/register', { method: 'POST', body: { email, password: pwd } });
-      localStorage.setItem(TOKEN_KEY, token);
-      showAlert('Account created! Signing you in…', 'success');
-      setTimeout(() => loadDashboard(user), 800);
-    } catch (err) {
-      showAlert(err.message);
-      shakeCard();
-    } finally {
-      setLoading('btnRegister', false);
-    }
-  }
-
-  // ── Sign In ──
-  async function handleSignIn(e) {
-    e.preventDefault();
-    clearAlert();
-
-    const email = document.getElementById('siEmail').value.trim();
-    const pwd   = document.getElementById('siPassword').value;
-
-    setLoading('btnSignIn', true);
-    try {
-      const { token, user } = await apiFetch('/login', { method: 'POST', body: { email, password: pwd } });
-      localStorage.setItem(TOKEN_KEY, token);
-      loadDashboard(user);
-    } catch (err) {
-      showAlert(err.message);
-      shakeCard();
-    } finally {
-      setLoading('btnSignIn', false);
-    }
-  }
-
-  // ── After login → go to Dashboard ──
-  function loadDashboard() {
-    window.location.href = '/dashboard.html';
-  }
-
-  // ── Auto-login on reload ──
-  (async function init() {
-    if (!localStorage.getItem(TOKEN_KEY)) return;
-    try {
-      await apiFetch('/me');
-      window.location.href = '/dashboard.html';
-    } catch {
-      localStorage.removeItem(TOKEN_KEY);
-    }
+      const r = await fetch('/api/auth/me', { headers: { Authorization: 'Bearer ' + token } });
+      if (r.ok) window.location.href = '/dashboard.html';
+    } catch {}
   })();
 </script>
 </body>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>HQ Ultimate – HQ Strikepro</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#0f172a" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #E63946;
+      --accent: #d4af37; --accent-dim: rgba(212,175,55,.12); --accent-mid: rgba(212,175,55,.28);
+      --bg: #0d0d0d; --surface: #1a1a1a; --surface2: #222;
+      --border: #2e2e2e; --text: #f1f1f1; --text-muted: #777; --text-sub: #555;
+      --green: #4ade80; --radius: 14px; --radius-sm: 8px; --nav-h: 56px;
+    }
+    html, body { background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    .top-nav { position: sticky; top: 0; z-index: 100; height: var(--nav-h);
+      background: rgba(13,13,13,.92); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; padding: 0 16px; }
+    .nav-back { background: none; border: none; cursor: pointer; color: var(--text-muted);
+      padding: 8px; margin-left: -8px; display: flex; align-items: center; gap: 6px;
+      font-size: 14px; font-weight: 600; border-radius: 8px;
+      transition: color .15s, background .15s; text-decoration: none; }
+    .nav-back:hover { color: var(--text); background: var(--surface2); }
+    .nav-back svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+    .nav-product-name { font-size: 15px; font-weight: 800; color: var(--accent); }
+    .nav-login { display: inline-flex; padding: 7px 14px; border-radius: var(--radius-sm);
+      background: none; border: 1px solid var(--accent-mid); color: var(--accent);
+      font-size: 12px; font-weight: 700; text-decoration: none; transition: background .15s; }
+    .nav-login:hover { background: var(--accent-dim); }
+    .hero { background: linear-gradient(160deg, #12100a 0%, #1a1505 100%);
+      border-bottom: 1px solid var(--border); padding: 28px 16px 24px; position: relative; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; top: -60px; right: -60px; width: 220px; height: 220px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(212,175,55,.12) 0%, transparent 70%); pointer-events: none; }
+    .hero-inner { max-width: 640px; margin: 0 auto; }
+    .hero-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--accent-dim); border: 1px solid var(--accent-mid);
+      border-radius: 20px; padding: 4px 12px; margin-bottom: 14px; font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: .05em; text-transform: uppercase; }
+    .hero-title { font-size: 28px; font-weight: 900; color: var(--accent); letter-spacing: -.5px; line-height: 1.1; margin-bottom: 6px; }
+    .hero-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 18px; line-height: 1.6; }
+    .page-main { max-width: 640px; margin: 0 auto; padding: 40px 16px 80px; display: flex; flex-direction: column; gap: 16px; align-items: center; }
+    .coming-soon-icon { font-size: 64px; margin-bottom: 16px; }
+    .coming-soon-title { font-size: 22px; font-weight: 800; color: var(--accent); margin-bottom: 8px; }
+    .coming-soon-sub { font-size: 14px; color: var(--text-muted); text-align: center; line-height: 1.7; max-width: 340px; margin-bottom: 28px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; width: 100%; }
+    .card-header { padding: 14px 16px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+    .card-header-icon { width: 28px; height: 28px; border-radius: 8px; background: var(--accent-dim); display: flex; align-items: center; justify-content: center; font-size: 14px; }
+    .card-header-title { font-size: 14px; font-weight: 700; }
+    .card-body { padding: 16px; }
+    .info-table { width: 100%; border-collapse: collapse; }
+    .info-table tr { border-bottom: 1px solid var(--border); }
+    .info-table tr:last-child { border-bottom: none; }
+    .info-table td { padding: 10px 0; font-size: 13px; }
+    .info-table td:first-child { color: var(--text-muted); width: 45%; }
+    .info-table td:last-child { color: var(--text); font-weight: 600; text-align: right; }
+    .bullet-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .bullet-list li { font-size: 13px; color: var(--text-muted); display: flex; align-items: flex-start; gap: 8px; line-height: 1.5; }
+    .bullet-list li::before { content: '•'; color: var(--accent); flex-shrink: 0; }
+    .notify-form { display: flex; flex-direction: column; gap: 10px; }
+    .notify-input { width: 100%; padding: 12px 14px; background: #111; border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm); color: var(--text); font-size: 14px; outline: none; transition: border-color .15s; }
+    .notify-input:focus { border-color: var(--accent); }
+    .notify-input::placeholder { color: #3a3a3a; }
+    .notify-btn { width: 100%; padding: 13px; background: var(--accent); color: #000; border: none;
+      border-radius: var(--radius-sm); font-size: 14px; font-weight: 700; cursor: pointer; transition: opacity .15s; }
+    .notify-btn:hover { opacity: .85; }
+    .cta-login { display: inline-flex; align-items: center; gap: 6px; background: var(--accent-dim);
+      border: 1px solid var(--accent-mid); color: var(--accent); text-decoration: none;
+      padding: 12px 24px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 700; transition: background .15s; }
+    .cta-login:hover { background: rgba(212,175,55,.2); }
+  </style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a class="nav-back" href="/">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    Home
+  </a>
+  <span class="nav-product-name">HQ Ultimate</span>
+  <a class="nav-login" href="/login.html">Login</a>
+</nav>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge">👑 Premium Strategy · PAMM Model</div>
+    <div class="hero-title">HQ Ultimate</div>
+    <div class="hero-sub">Professional Master Trading Strategy · Expert-Level Portfolio Management</div>
+  </div>
+</div>
+
+<main class="page-main">
+
+  <div class="coming-soon-icon">👑</div>
+  <div class="coming-soon-title">Coming Soon</div>
+  <div class="coming-soon-sub">
+    HQ Ultimate whitepaper และรายละเอียดกองทุนกำลังจัดเตรียม<br>
+    กรุณาติดต่อทีมงานเพื่อรับข้อมูลเพิ่มเติม
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-header-icon">📋</div><div class="card-header-title">ข้อมูลเบื้องต้น</div></div>
+    <div class="card-body">
+      <table class="info-table">
+        <tr><td>ชื่อกองทุน</td><td>HQ Ultimate</td></tr>
+        <tr><td>รูปแบบ</td><td>PAMM Model</td></tr>
+        <tr><td>ระดับ</td><td>Premium / Professional</td></tr>
+        <tr><td>ค่าบริหาร</td><td>Profit Sharing</td></tr>
+        <tr><td>สถานะ</td><td>Coming Soon</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-header-icon">⭐</div><div class="card-header-title">จุดเด่น</div></div>
+    <div class="card-body">
+      <ul class="bullet-list">
+        <li>กลยุทธ์ระดับมืออาชีพโดยทีมผู้เชี่ยวชาญ</li>
+        <li>PAMM Model — เงินอยู่ในพอร์ตตัวเอง ปลอดภัย โปร่งใส</li>
+        <li>บริหารจัดการความเสี่ยงอย่างเป็นระบบ</li>
+        <li>เหมาะกับนักลงทุนที่ต้องการผลตอบแทนระดับพรีเมียม</li>
+      </ul>
+    </div>
+  </div>
+
+  <a class="cta-login" href="/login.html">ลงทะเบียนเพื่อรับข้อมูล →</a>
+
+</main>
+</body>
+</html>

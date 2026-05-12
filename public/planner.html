@@ -849,13 +849,13 @@ const TOKEN_KEY = 'sp_token';
 // ── Auth check ─────────────────────────────────────────────────────────────────
 (async () => {
   const token = localStorage.getItem(TOKEN_KEY);
-  if (!token) { window.location.href = '/'; return; }
+  if (!token) { window.location.href = '/login.html'; return; }
   try {
     const r = await fetch('/api/auth/me', { headers: { Authorization: 'Bearer ' + token } });
-    if (!r.ok) { window.location.href = '/'; return; }
+    if (!r.ok) { window.location.href = '/login.html'; return; }
     const { user } = await r.json();
     document.getElementById('drawerUser').textContent = user.email;
-  } catch { window.location.href = '/'; }
+  } catch { window.location.href = '/login.html'; }
 })();
 
 function toggleDrawer() {

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Login – HQ Strikepro</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="HQ STRIKEPRO" />
+  <meta name="theme-color" content="#0f172a" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #E63946; --primary-dark: #c1121f;
+      --bg: #0d0d0d; --surface: #1a1a1a; --surface2: #242424;
+      --border: #2e2e2e; --text: #f1f1f1; --text-muted: #888;
+      --input-bg: #111; --radius: 14px; --radius-sm: 8px;
+    }
+    html, body { height: 100%; background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased; }
+    .app { min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; padding: 24px 20px; }
+    .back-link { align-self: flex-start; display: flex; align-items: center; gap: 6px;
+      color: var(--text-muted); text-decoration: none; font-size: 13px; font-weight: 600;
+      margin-bottom: 20px; padding: 6px 10px; border-radius: 8px; transition: color .15s, background .15s; }
+    .back-link:hover { color: var(--text); background: var(--surface); }
+    .back-link svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+    .logo { display: flex; flex-direction: column; align-items: center; margin-bottom: 36px; }
+    .logo-mark { width: 88px; height: 88px; background: transparent; border-radius: 18px;
+      display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
+    .logo-name { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; color: var(--text); }
+    .logo-name span { color: var(--primary); }
+    .card { width: 100%; max-width: 400px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: var(--radius); padding: 28px 24px; }
+    .tabs { display: flex; background: var(--surface2); border-radius: var(--radius-sm);
+      padding: 4px; margin-bottom: 28px; gap: 4px; }
+    .tab { flex: 1; padding: 9px; border: none; border-radius: calc(var(--radius-sm) - 2px);
+      font-size: 14px; font-weight: 600; cursor: pointer; transition: background .2s, color .2s;
+      background: transparent; color: var(--text-muted); }
+    .tab.active { background: var(--primary); color: #fff; }
+    .form-group { margin-bottom: 18px; }
+    label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 8px; }
+    input { width: 100%; padding: 13px 14px; background: var(--input-bg);
+      border: 1.5px solid var(--border); border-radius: var(--radius-sm); color: var(--text);
+      font-size: 15px; outline: none; transition: border-color .2s; -webkit-appearance: none; }
+    input::placeholder { color: #444; }
+    input:focus { border-color: var(--primary); }
+    .password-wrap { position: relative; }
+    .password-wrap input { padding-right: 44px; }
+    .eye-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer; color: var(--text-muted);
+      display: flex; align-items: center; padding: 4px; }
+    .eye-btn:hover { color: var(--text); }
+    .btn-primary { width: 100%; padding: 14px; background: var(--primary); color: #fff;
+      border: none; border-radius: var(--radius-sm); font-size: 15px; font-weight: 700;
+      cursor: pointer; margin-top: 6px; transition: background .2s, transform .1s; letter-spacing: .2px; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-primary:active { transform: scale(.98); }
+    .forgot { text-align: right; margin-top: -10px; margin-bottom: 18px; }
+    .forgot a { font-size: 12px; color: var(--primary); text-decoration: none; }
+    .alert { padding: 11px 14px; border-radius: var(--radius-sm); font-size: 13px;
+      margin-bottom: 16px; display: none; }
+    .alert.error { background: rgba(230,57,70,.12); border: 1px solid rgba(230,57,70,.3); color: #ff6b76; }
+    .alert.success { background: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.3); color: #4ade80; }
+    .alert.show { display: block; }
+    .strength-bar { display: flex; gap: 4px; margin-top: 8px; }
+    .strength-bar span { flex: 1; height: 3px; border-radius: 2px; background: var(--border); transition: background .3s; }
+    .strength-label { font-size: 11px; margin-top: 5px; color: var(--text-muted); }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-6px); } 40% { transform: translateX(6px); }
+      60% { transform: translateX(-4px); } 80% { transform: translateX(4px); }
+    }
+    .shake { animation: shake .4s ease; }
+  </style>
+</head>
+<body>
+<div class="app">
+  <a class="back-link" href="/">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    Back to Home
+  </a>
+
+  <div class="logo">
+    <div class="logo-mark">
+      <img src="/logo.png.png" alt="HQ Strikepro" style="width:88px;height:88px;object-fit:contain;" />
+    </div>
+    <div class="logo-name">HQ <span>STRIKEPRO</span></div>
+  </div>
+
+  <div class="card" id="authCard">
+    <div class="tabs">
+      <button class="tab active" id="tabSignIn" onclick="switchTab('signin')">Sign In</button>
+      <button class="tab" id="tabRegister" onclick="switchTab('register')">Register</button>
+    </div>
+    <div class="alert" id="alert"></div>
+
+    <form id="signinForm" onsubmit="handleSignIn(event)">
+      <div class="form-group">
+        <label for="siEmail">Strikepro Email</label>
+        <input type="email" id="siEmail" placeholder="you@example.com" autocomplete="email" required />
+      </div>
+      <div class="form-group">
+        <label for="siPassword">Password</label>
+        <div class="password-wrap">
+          <input type="password" id="siPassword" placeholder="Enter your password" autocomplete="current-password" required />
+          <button type="button" class="eye-btn" onclick="togglePwd('siPassword', this)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="forgot"><a href="#" onclick="return false;">Forgot password?</a></div>
+      <button type="submit" id="btnSignIn" data-label="Sign In" class="btn-primary">Sign In</button>
+    </form>
+
+    <form id="registerForm" style="display:none" onsubmit="handleRegister(event)">
+      <div class="form-group">
+        <label for="regEmail">Strikepro Email</label>
+        <input type="email" id="regEmail" placeholder="you@example.com" autocomplete="email" required />
+      </div>
+      <div class="form-group">
+        <label for="regPassword">Password</label>
+        <div class="password-wrap">
+          <input type="password" id="regPassword" placeholder="Create a password" autocomplete="new-password" oninput="checkStrength(this.value)" required />
+          <button type="button" class="eye-btn" onclick="togglePwd('regPassword', this)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <div class="strength-bar"><span id="s1"></span><span id="s2"></span><span id="s3"></span><span id="s4"></span></div>
+        <div class="strength-label" id="strengthLabel"></div>
+      </div>
+      <div class="form-group">
+        <label for="regConfirm">Confirm Password</label>
+        <div class="password-wrap">
+          <input type="password" id="regConfirm" placeholder="Repeat your password" autocomplete="new-password" required />
+          <button type="button" class="eye-btn" onclick="togglePwd('regConfirm', this)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <button type="submit" id="btnRegister" data-label="Create Account" class="btn-primary">Create Account</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  const API = '/api/auth';
+  const TOKEN_KEY = 'sp_token';
+
+  async function apiFetch(path, options = {}) {
+    const token = localStorage.getItem(TOKEN_KEY);
+    const res = await fetch(API + path, {
+      headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      ...options,
+      body: options.body ? JSON.stringify(options.body) : undefined
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Something went wrong.');
+    return data;
+  }
+
+  function switchTab(tab) {
+    clearAlert();
+    document.getElementById('tabSignIn').classList.toggle('active', tab === 'signin');
+    document.getElementById('tabRegister').classList.toggle('active', tab === 'register');
+    document.getElementById('signinForm').style.display  = tab === 'signin'   ? '' : 'none';
+    document.getElementById('registerForm').style.display = tab === 'register' ? '' : 'none';
+  }
+
+  function showAlert(msg, type = 'error') {
+    const el = document.getElementById('alert');
+    el.textContent = msg; el.className = `alert ${type} show`;
+  }
+  function clearAlert() { document.getElementById('alert').className = 'alert'; }
+  function shakeCard() {
+    const card = document.getElementById('authCard');
+    card.classList.remove('shake'); void card.offsetWidth; card.classList.add('shake');
+  }
+  function setLoading(btnId, loading) {
+    const btn = document.getElementById(btnId);
+    btn.disabled = loading;
+    btn.textContent = loading ? 'Please wait…' : btn.dataset.label;
+  }
+  function togglePwd(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const isText = input.type === 'text';
+    input.type = isText ? 'password' : 'text';
+    btn.innerHTML = isText
+      ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`
+      : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
+  }
+  function checkStrength(pwd) {
+    let score = 0;
+    if (pwd.length >= 8) score++;
+    if (/[A-Z]/.test(pwd)) score++;
+    if (/[0-9]/.test(pwd)) score++;
+    if (/[^A-Za-z0-9]/.test(pwd)) score++;
+    const colors = ['#E63946','#f4a261','#e9c46a','#4ade80'];
+    ['s1','s2','s3','s4'].forEach((id, i) => {
+      document.getElementById(id).style.background = i < score ? colors[score - 1] : 'var(--border)';
+    });
+    const label = document.getElementById('strengthLabel');
+    label.textContent = pwd.length === 0 ? '' : ['Weak','Fair','Good','Strong'][score - 1] || 'Weak';
+    label.style.color  = pwd.length === 0 ? '' : colors[score - 1] || colors[0];
+  }
+
+  async function handleRegister(e) {
+    e.preventDefault(); clearAlert();
+    const email = document.getElementById('regEmail').value.trim();
+    const pwd   = document.getElementById('regPassword').value;
+    const conf  = document.getElementById('regConfirm').value;
+    if (pwd.length < 6) { showAlert('Password must be at least 6 characters.'); shakeCard(); return; }
+    if (pwd !== conf)   { showAlert('Passwords do not match.');                  shakeCard(); return; }
+    setLoading('btnRegister', true);
+    try {
+      const { token } = await apiFetch('/register', { method: 'POST', body: { email, password: pwd } });
+      localStorage.setItem(TOKEN_KEY, token);
+      showAlert('Account created! Signing you in…', 'success');
+      setTimeout(() => { window.location.href = '/dashboard.html'; }, 800);
+    } catch (err) { showAlert(err.message); shakeCard();
+    } finally { setLoading('btnRegister', false); }
+  }
+
+  async function handleSignIn(e) {
+    e.preventDefault(); clearAlert();
+    const email = document.getElementById('siEmail').value.trim();
+    const pwd   = document.getElementById('siPassword').value;
+    setLoading('btnSignIn', true);
+    try {
+      const { token } = await apiFetch('/login', { method: 'POST', body: { email, password: pwd } });
+      localStorage.setItem(TOKEN_KEY, token);
+      window.location.href = '/dashboard.html';
+    } catch (err) { showAlert(err.message); shakeCard();
+    } finally { setLoading('btnSignIn', false); }
+  }
+
+  (async function init() {
+    if (!localStorage.getItem(TOKEN_KEY)) return;
+    try { await apiFetch('/me'); window.location.href = '/dashboard.html'; }
+    catch { localStorage.removeItem(TOKEN_KEY); }
+  })();
+</script>
+</body>
+</html>
