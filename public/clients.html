@@ -555,6 +555,15 @@
         <label class="pill-check"><input type="checkbox" name="prev_investments" value="หุ้น"><span>หุ้น</span></label>
         <label class="pill-check"><input type="checkbox" name="prev_investments" value="กองทุนหุ้น/ดัชนี"><span>กองทุนหุ้น/ดัชนี</span></label>
         <label class="pill-check"><input type="checkbox" name="prev_investments" value="Crypto Currency"><span>Crypto Currency</span></label>
+        <label class="pill-check"><input type="checkbox" name="prev_investments" value="อื่นๆ" id="inv_other_chk" onchange="toggleInvOther(this)"><span>อื่นๆ</span></label>
+      </div>
+      <div id="inv_other_wrap" style="display:none; margin-top:10px;">
+        <input type="text" id="inv_other_text" placeholder="ระบุการลงทุนอื่นๆ..."
+          style="width:100%; padding:10px 14px; border-radius:10px; border:1px solid #2e2e2e;
+                 background:#1a1a1a; color:#f1f1f1; font-size:14px; outline:none;
+                 transition:border-color .2s;"
+          onfocus="this.style.borderColor='#d4af37'"
+          onblur="this.style.borderColor='#2e2e2e'" />
       </div>
     </div>
 
@@ -893,7 +902,15 @@
     document.getElementById('f_notes').value       = c.notes  || '';
 
     checkGroup('activities',      c.activities       || []);
-    checkGroup('prev_investments', c.prev_investments || []);
+    const rawInv = (c.prev_investments || []).map(v => {
+      if (v.startsWith('อื่นๆ: ')) {
+        document.getElementById('inv_other_text').value = v.replace('อื่นๆ: ', '');
+        document.getElementById('inv_other_wrap').style.display = 'block';
+        return 'อื่นๆ';
+      }
+      return v;
+    });
+    checkGroup('prev_investments', rawInv);
     checkGroup('follow_up',        c.follow_up        || []);
     calcCapital();
   }
@@ -906,6 +923,18 @@
 
   function getChecked(name) {
     return [...document.querySelectorAll(`input[name="${name}"]:checked`)].map(cb => cb.value);
+  }
+
+  function toggleInvOther(cb) {
+    const wrap = document.getElementById('inv_other_wrap');
+    wrap.style.display = cb.checked ? 'block' : 'none';
+    if (!cb.checked) document.getElementById('inv_other_text').value = '';
+  }
+
+  function getInvestments() {
+    const checked = getChecked('prev_investments');
+    const otherText = document.getElementById('inv_other_text').value.trim();
+    return checked.map(v => (v === 'อื่นๆ' && otherText) ? `อื่นๆ: ${otherText}` : v);
   }
 
   // ── Capital calculation ─────────────────────────────────────────────────────
@@ -952,7 +981,7 @@
       line_id:                 document.getElementById('f_line').value.trim(),
       channel:                 document.getElementById('f_channel').value,
       activities:              getChecked('activities'),
-      prev_investments:        getChecked('prev_investments'),
+      prev_investments:        getInvestments(),
       investment_reason:       document.getElementById('f_reason').value.trim(),
       expected_profit_pct:     document.getElementById('f_pct').value,
       expected_monthly_profit: document.getElementById('f_monthly').value,
