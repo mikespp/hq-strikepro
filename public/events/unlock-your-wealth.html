@@ -77,6 +77,15 @@
       text-decoration: none;
     }
 
+    .nav-back {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 14px; font-weight: 600; color: var(--text-muted);
+      text-decoration: none; transition: color .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .nav-back:hover { color: var(--text); }
+    .nav-back svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
     .nav-tag {
       font-size: 11px;
       font-weight: 600;
@@ -420,7 +429,10 @@
 
   <!-- Nav -->
   <nav>
-    <a class="nav-brand" href="/">StrikePro</a>
+    <a class="nav-back" href="/">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      Back
+    </a>
     <span class="nav-tag">EVENT</span>
   </nav>
 
