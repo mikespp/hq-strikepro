@@ -232,13 +232,13 @@
   // ── Auth guard ──
   (async () => {
     const token = localStorage.getItem(TOKEN_KEY);
-    if (!token) { window.location.href = '/login.html'; return; }
+    if (!token) { window.location.href = '/login'; return; }
     try {
       const r = await fetch('/api/auth/me', { headers: { Authorization: 'Bearer ' + token } });
-      if (!r.ok) { window.location.href = '/login.html'; return; }
+      if (!r.ok) { window.location.href = '/login'; return; }
       const { user } = await r.json();
       document.getElementById('drawerUser').textContent = user.email;
-    } catch { window.location.href = '/login.html'; }
+    } catch { window.location.href = '/login'; }
   })();
 
   function toggleDrawer() {
@@ -253,7 +253,7 @@
     const token = localStorage.getItem(TOKEN_KEY);
     fetch('/api/auth/logout', { method: 'POST', headers: { Authorization: 'Bearer ' + token } }).catch(() => {});
     localStorage.removeItem(TOKEN_KEY);
-    window.location.href = '/login.html';
+    window.location.href = '/login';
   }
 
 </script>

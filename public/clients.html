@@ -678,14 +678,14 @@
   // ── Auth guard ──────────────────────────────────────────────────────────────
   async function init() {
     const token = localStorage.getItem(TOKEN_KEY);
-    if (!token) { window.location.href = '/login.html'; return; }
+    if (!token) { window.location.href = '/login'; return; }
     try {
       const { user } = await api('/api/auth/me');
       document.getElementById('drawerUser').textContent = user.email;
       loadClients();
     } catch {
       localStorage.removeItem(TOKEN_KEY);
-      window.location.href = '/login.html';
+      window.location.href = '/login';
     }
   }
 
@@ -701,7 +701,7 @@
   async function signOut() {
     try { await api('/api/auth/logout', { method: 'POST' }); } catch {}
     localStorage.removeItem(TOKEN_KEY);
-    window.location.href = '/login.html';
+    window.location.href = '/login';
   }
 
   // ── Clients list ────────────────────────────────────────────────────────────
