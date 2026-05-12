@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SBC : StrikePro Building Course</title>
+  <meta name="description" content="ค่ายพลังความคิด พลิกชีวิตสู่ความสำเร็จ — StrikePro Building Course" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold:        #d4af37;
+      --gold-light:  #f5d96b;
+      --gold-pale:   #ffe99a;
+      --gold-dim:    rgba(212,175,55,.12);
+      --gold-border: rgba(212,175,55,.22);
+      --bg:          #060606;
+      --bg2:         #0d0d0d;
+      --card:        #0f0f0f;
+      --card2:       #131313;
+      --border:      rgba(255,255,255,.06);
+      --text:        #f0f0f0;
+      --muted:       #7a7a7a;
+      --radius:      18px;
+      --radius-sm:   12px;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── Canvas particles ─── */
+    #particles { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+    /* ─── Ambient glows ─── */
+    .glow-top {
+      position: fixed; top: -200px; left: 50%; transform: translateX(-50%);
+      width: 1000px; height: 700px; pointer-events: none; z-index: 0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(212,175,55,.09) 0%, transparent 65%);
+    }
+    .glow-mid {
+      position: absolute; left: 50%; transform: translateX(-50%);
+      width: 800px; height: 500px; pointer-events: none;
+      background: radial-gradient(ellipse at 50% 50%, rgba(212,175,55,.06) 0%, transparent 70%);
+    }
+
+    /* ─── Nav ─── */
+    nav {
+      position: sticky; top: 0; z-index: 200;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px;
+      background: rgba(6,6,6,.80); backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-back {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 14px; font-weight: 600; color: var(--muted);
+      text-decoration: none; transition: color .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .nav-back:hover { color: var(--text); }
+    .nav-back svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .nav-badge {
+      font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--gold); border: 1px solid var(--gold-border); background: var(--gold-dim);
+      padding: 4px 12px; border-radius: 50px;
+    }
+
+    /* ─── Page wrapper ─── */
+    .page { position: relative; z-index: 1; }
+
+    /* ─── HERO ─── */
+    .hero {
+      min-height: 92vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center; padding: 80px 24px 64px;
+      position: relative; overflow: hidden;
+    }
+
+    /* Cinematic light streak */
+    .hero::before {
+      content: '';
+      position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+      width: 2px; height: 55%;
+      background: linear-gradient(to bottom, transparent, rgba(212,175,55,.5), transparent);
+      filter: blur(1px);
+    }
+    .hero::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0; right: 0; height: 200px;
+      background: linear-gradient(to bottom, transparent, var(--bg));
+      pointer-events: none;
+    }
+
+    /* Horizontal light streaks */
+    .streak {
+      position: absolute; height: 1px; pointer-events: none;
+      background: linear-gradient(90deg, transparent, rgba(212,175,55,.25), transparent);
+    }
+    .streak-1 { width: 60%; top: 30%; left: 20%; }
+    .streak-2 { width: 40%; top: 60%; left: 30%; opacity: .5; }
+
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 10px;
+      font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
+      color: var(--gold); border: 1px solid var(--gold-border); background: var(--gold-dim);
+      padding: 7px 18px; border-radius: 50px; margin-bottom: 40px;
+      position: relative; z-index: 1;
+    }
+    .hero-eyebrow .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--gold); box-shadow: 0 0 10px var(--gold);
+      animation: blink 2.2s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:.3;} }
+
+    .hero-label {
+      font-size: clamp(13px, 2.5vw, 16px); font-weight: 500; letter-spacing: 4px;
+      text-transform: uppercase; color: rgba(212,175,55,.6);
+      margin-bottom: 16px; position: relative; z-index: 1;
+    }
+
+    .hero-title {
+      font-size: clamp(36px, 9vw, 80px); font-weight: 900;
+      letter-spacing: -2px; line-height: 1.0;
+      background: linear-gradient(160deg, #ffffff 20%, var(--gold-pale) 55%, var(--gold) 85%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 24px; position: relative; z-index: 1;
+    }
+
+    .hero-sub {
+      font-size: clamp(17px, 3.5vw, 24px); font-weight: 300;
+      color: rgba(240,240,240,.75); letter-spacing: .5px;
+      margin-bottom: 36px; position: relative; z-index: 1;
+    }
+
+    .hero-duration {
+      display: inline-flex; align-items: center; gap: 12px;
+      background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1);
+      border-radius: 50px; padding: 10px 24px;
+      font-size: 15px; font-weight: 700; color: var(--text);
+      letter-spacing: .5px; position: relative; z-index: 1;
+    }
+    .hero-duration .dur-icon { font-size: 18px; }
+    .hero-duration .dur-gold { color: var(--gold); }
+
+    /* ─── Content wrapper ─── */
+    .content { max-width: 780px; margin: 0 auto; padding: 0 20px 160px; }
+
+    /* ─── Gold divider ─── */
+    .divider {
+      display: flex; align-items: center; gap: 16px;
+      margin: 56px 0 48px;
+    }
+    .divider-line { flex: 1; height: 1px; background: var(--gold-border); }
+    .divider-diamond {
+      width: 8px; height: 8px; background: var(--gold);
+      transform: rotate(45deg); flex-shrink: 0;
+      box-shadow: 0 0 12px rgba(212,175,55,.5);
+    }
+
+    /* ─── Section label ─── */
+    .s-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 3px;
+      text-transform: uppercase; color: var(--gold);
+      margin-bottom: 16px; display: flex; align-items: center; gap: 10px;
+    }
+    .s-label::after { content: ''; flex: 1; height: 1px; background: var(--gold-border); }
+
+    /* ─── Description block ─── */
+    .desc-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 36px 28px;
+      position: relative; overflow: hidden; margin-bottom: 14px;
+    }
+    .desc-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(212,175,55,.35), transparent);
+    }
+    .desc-card p {
+      font-size: 16px; line-height: 1.9; color: rgba(240,240,240,.82);
+      font-weight: 400;
+    }
+    .desc-card p + p { margin-top: 18px; }
+    .desc-card .highlight {
+      font-size: 17px; font-weight: 600; color: var(--text);
+      border-left: 3px solid var(--gold); padding-left: 16px;
+      margin-top: 20px; line-height: 1.7;
+    }
+
+    /* ─── Experience grid ─── */
+    .exp-grid { display: flex; flex-direction: column; gap: 12px; }
+
+    .exp-item {
+      display: flex; align-items: flex-start; gap: 16px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 20px 20px;
+      transition: border-color .2s, transform .2s;
+      position: relative; overflow: hidden;
+    }
+    .exp-item::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+      width: 3px; background: linear-gradient(to bottom, var(--gold), rgba(212,175,55,.3));
+      border-radius: 3px 0 0 3px;
+    }
+    .exp-item:hover { border-color: var(--gold-border); transform: translateX(4px); }
+
+    .exp-num {
+      width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+      background: var(--gold-dim); border: 1px solid var(--gold-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 800; color: var(--gold);
+    }
+    .exp-text { font-size: 15px; font-weight: 500; color: var(--text); line-height: 1.5; padding-top: 6px; }
+
+    /* ─── Pricing ─── */
+    .price-main {
+      background: linear-gradient(135deg, #0f0f0f 0%, #111 100%);
+      border: 1px solid var(--gold-border); border-radius: var(--radius);
+      padding: 36px 28px; text-align: center;
+      position: relative; overflow: hidden; margin-bottom: 16px;
+    }
+    .price-main::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+    .price-main::after {
+      content: ''; position: absolute; top: -60px; left: 50%; transform: translateX(-50%);
+      width: 400px; height: 200px;
+      background: radial-gradient(ellipse, rgba(212,175,55,.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .price-tag {
+      display: inline-block;
+      font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--gold); background: var(--gold-dim); border: 1px solid var(--gold-border);
+      padding: 4px 14px; border-radius: 50px; margin-bottom: 18px;
+    }
+    .price-amount {
+      font-size: clamp(42px, 10vw, 64px); font-weight: 900; letter-spacing: -2px;
+      background: linear-gradient(135deg, var(--gold-pale), var(--gold));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; line-height: 1;
+    }
+    .price-unit { font-size: 18px; font-weight: 600; color: rgba(212,175,55,.7); margin-top: 6px; }
+
+    /* ─── Tier cards ─── */
+    .tier-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 520px) { .tier-grid { grid-template-columns: 1fr; } }
+
+    .tier-card {
+      background: var(--card2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 28px 22px;
+      position: relative; overflow: hidden;
+      transition: border-color .2s, transform .2s;
+    }
+    .tier-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(212,175,55,.3), transparent);
+    }
+    .tier-card:hover { border-color: var(--gold-border); transform: translateY(-3px); }
+
+    .tier-card.featured {
+      border-color: rgba(212,175,55,.35);
+      background: linear-gradient(160deg, #141408 0%, #111 100%);
+    }
+    .tier-card.featured::before {
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+
+    .tier-amount {
+      font-size: 13px; font-weight: 800; color: var(--gold); margin-bottom: 10px;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .tier-amount .tier-tag {
+      font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+      color: #0a0a0a; background: var(--gold); padding: 2px 8px; border-radius: 4px;
+    }
+    .tier-name {
+      font-size: 16px; font-weight: 800; color: var(--text); margin-bottom: 6px;
+    }
+    .tier-free {
+      font-size: 22px; font-weight: 900; letter-spacing: -.5px;
+      background: linear-gradient(135deg, #fff, var(--gold-pale));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; margin-bottom: 14px;
+    }
+    .tier-perks { display: flex; flex-direction: column; gap: 8px; }
+    .tier-perk {
+      display: flex; align-items: flex-start; gap: 8px;
+      font-size: 13px; color: rgba(240,240,240,.75); line-height: 1.5;
+    }
+    .tier-perk-icon { color: var(--gold); flex-shrink: 0; margin-top: 1px; font-size: 12px; }
+
+    /* ─── CTA ─── */
+    .cta-section {
+      text-align: center; margin-top: 64px;
+      background: var(--card); border: 1px solid var(--gold-border);
+      border-radius: 24px; padding: 56px 28px 48px;
+      position: relative; overflow: hidden;
+    }
+    .cta-section::before {
+      content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+      width: 60%; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+    .cta-section::after {
+      content: ''; position: absolute; top: -80px; left: 50%; transform: translateX(-50%);
+      width: 600px; height: 400px;
+      background: radial-gradient(ellipse, rgba(212,175,55,.07) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .cta-icon { font-size: 48px; margin-bottom: 20px; display: block; filter: drop-shadow(0 0 16px rgba(212,175,55,.5)); }
+    .cta-title { font-size: clamp(22px, 5vw, 34px); font-weight: 900; letter-spacing: -.5px; margin-bottom: 10px; }
+    .cta-sub { font-size: 15px; color: var(--muted); margin-bottom: 36px; line-height: 1.6; }
+
+    .cta-btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%);
+      background-size: 200% 200%;
+      color: #080808; text-decoration: none;
+      font-size: 16px; font-weight: 900; letter-spacing: .3px;
+      padding: 18px 44px; border-radius: 50px;
+      box-shadow: 0 8px 32px rgba(212,175,55,.4), 0 2px 8px rgba(212,175,55,.2);
+      transition: background-position .4s, transform .15s, box-shadow .2s;
+      -webkit-tap-highlight-color: transparent;
+      position: relative; z-index: 1;
+      width: 100%; max-width: 420px;
+    }
+    .cta-btn:hover {
+      background-position: 100% 100%;
+      box-shadow: 0 14px 48px rgba(212,175,55,.55), 0 4px 16px rgba(212,175,55,.3);
+      transform: translateY(-3px);
+    }
+    .cta-btn:active { transform: scale(.97); }
+    .cta-btn svg { width: 20px; height: 20px; fill: #080808; flex-shrink: 0; }
+
+    /* ─── Footer ─── */
+    .page-footer {
+      text-align: center; padding: 28px 20px 32px;
+      font-size: 12px; color: rgba(122,122,122,.5); letter-spacing: .5px;
+    }
+    .page-footer span { color: var(--gold); opacity: .7; }
+
+    /* ─── Scroll fade-up ─── */
+    .fade { opacity: 0; transform: translateY(28px); transition: opacity .65s ease, transform .65s ease; }
+    .fade.in { opacity: 1; transform: translateY(0); }
+    .fade-d1 { transition-delay: .08s; }
+    .fade-d2 { transition-delay: .16s; }
+    .fade-d3 { transition-delay: .24s; }
+  </style>
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="glow-top"></div>
+
+<!-- Nav -->
+<nav>
+  <a class="nav-back" href="/">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    Back
+  </a>
+  <span class="nav-badge">SBC Event</span>
+</nav>
+
+<div class="page">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="streak streak-1"></div>
+    <div class="streak streak-2"></div>
+
+    <div class="hero-eyebrow"><span class="dot"></span> StrikePro Exclusive Camp</div>
+    <p class="hero-label">StrikePro Building Course</p>
+    <h1 class="hero-title">SBC</h1>
+    <p class="hero-sub">ค่ายพลังความคิด พลิกชีวิตสู่ความสำเร็จ</p>
+    <div class="hero-duration">
+      <span class="dur-icon">🏕️</span>
+      <span><span class="dur-gold">3 Days</span> 2 Nights</span>
+    </div>
+  </section>
+
+  <div class="content">
+
+    <!-- Description -->
+    <div class="fade">
+      <p class="s-label">เกี่ยวกับกิจกรรม</p>
+      <div class="desc-card">
+        <p>ค่ายที่จะพาคุณเรียนรู้แนวคิดและ Mindset ที่สามารถนำไปใช้ได้จริง ทั้งกับการเทรด การทำงาน การใช้ชีวิต รวมถึงความสัมพันธ์กับครอบครัวและคนรอบตัว</p>
+        <p class="highlight">นี่ไม่ใช่แค่การอบรมทั่วไป<br />แต่คือประสบการณ์ที่คุณต้องมาสัมผัสด้วยตัวเอง</p>
+      </div>
+    </div>
+
+    <div class="divider"><div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-line"></div></div>
+
+    <!-- Experience -->
+    <div class="fade fade-d1">
+      <p class="s-label">ประสบการณ์ภายในค่าย</p>
+      <div class="exp-grid">
+        <div class="exp-item">
+          <div class="exp-num">01</div>
+          <p class="exp-text">เรียนรู้ผ่านกิจกรรม Workshop และกิจกรรมกลุ่ม</p>
+        </div>
+        <div class="exp-item">
+          <div class="exp-num">02</div>
+          <p class="exp-text">พัฒนาความคิดและมุมมองในการใช้ชีวิต</p>
+        </div>
+        <div class="exp-item">
+          <div class="exp-num">03</div>
+          <p class="exp-text">ฝึกการสื่อสาร ความมั่นใจ และการทำงานร่วมกับผู้อื่น</p>
+        </div>
+        <div class="exp-item">
+          <div class="exp-num">04</div>
+          <p class="exp-text">สร้างวินัย ความรับผิดชอบ และการเติบโตทางความคิด</p>
+        </div>
+        <div class="exp-item">
+          <div class="exp-num">05</div>
+          <p class="exp-text">กิจกรรมสนุก มันส์ ฮา และเต็มไปด้วยพลังงานบวก ⚡</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"><div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-line"></div></div>
+
+    <!-- Pricing -->
+    <div class="fade fade-d2">
+      <p class="s-label">ค่าเข้าร่วมกิจกรรม</p>
+
+      <div class="price-main">
+        <div class="price-tag">📌 ราคาปกติ</div>
+        <div class="price-amount">15,000</div>
+        <div class="price-unit">บาท / คน</div>
+      </div>
+
+      <div style="margin: 10px 0 8px; font-size: 13px; color: var(--muted); text-align: center; letter-spacing: .5px;">— หรือ เข้าร่วมฟรี สำหรับ —</div>
+
+      <div class="tier-grid">
+
+        <div class="tier-card">
+          <div class="tier-amount">$1,000 – $2,999 <span class="tier-tag">Tier 1</span></div>
+          <div class="tier-free">ฟรี</div>
+          <div class="tier-perks">
+            <div class="tier-perk"><span class="tier-perk-icon">✦</span> ฝากกองทุนตามกำหนด</div>
+            <div class="tier-perk"><span class="tier-perk-icon">✦</span> เข้าร่วมฟรี ไม่มีค่าใช้จ่าย</div>
+            <div class="tier-perk" style="color: var(--muted);"><span class="tier-perk-icon" style="color:var(--muted);">–</span> ไม่รวมที่พัก</div>
+          </div>
+        </div>
+
+        <div class="tier-card featured">
+          <div class="tier-amount">$3,000 ขึ้นไป <span class="tier-tag">Tier 2</span></div>
+          <div class="tier-free">ฟรี + ที่พัก</div>
+          <div class="tier-perks">
+            <div class="tier-perk"><span class="tier-perk-icon">✦</span> ฝากกองทุนตามกำหนด</div>
+            <div class="tier-perk"><span class="tier-perk-icon">✦</span> เข้าร่วมฟรี ไม่มีค่าใช้จ่าย</div>
+            <div class="tier-perk"><span class="tier-perk-icon">✦</span> ที่พักฟรี 2 คืน</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="divider"><div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-line"></div></div>
+
+    <!-- CTA -->
+    <div class="cta-section fade fade-d3">
+      <span class="cta-icon">🔥</span>
+      <h2 class="cta-title">พร้อมเปลี่ยนแปลงตัวเองแล้วหรือยัง?</h2>
+      <p class="cta-sub">จำนวนที่นั่งมีจำกัด — สมัครก่อนมีสิทธิ์ก่อน</p>
+      <a class="cta-btn" href="https://docs.google.com/forms/d/e/1FAIpQLSeS5LpWjbQACnZypIvOXK_z9_cy4B-Bp_muuEfZHkEWRzBg5w/viewform" target="_blank">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 14.93V15h-2v1.93A8 8 0 0 1 4.07 11H6V9H4.07A8 8 0 0 1 11 4.07V6h2V4.07A8 8 0 0 1 19.93 11H18v2h1.93A8 8 0 0 1 13 16.93zM12 10a2 2 0 1 0 2 2 2 2 0 0 0-2-2z"/></svg>
+        สมัครเข้าร่วมกิจกรรม
+      </a>
+    </div>
+
+    <p class="page-footer">© 2025 <span>StrikePro</span> · SBC : StrikePro Building Course</p>
+
+  </div>
+</div>
+
+<script>
+  /* ── Particle canvas ── */
+  const canvas = document.getElementById('particles');
+  const ctx    = canvas.getContext('2d');
+  let W, H, pts = [];
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function randBetween(a, b) { return a + Math.random() * (b - a); }
+
+  for (let i = 0; i < 55; i++) {
+    pts.push({
+      x: Math.random() * 1600 - 400,
+      y: Math.random() * 2400,
+      r: randBetween(.4, 1.4),
+      vy: randBetween(.1, .35),
+      o: randBetween(.1, .45)
+    });
+  }
+
+  function drawParticles() {
+    ctx.clearRect(0, 0, W, H);
+    pts.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y % H, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(212,175,55,${p.o})`;
+      ctx.fill();
+      p.y += p.vy;
+      if (p.y > H + 10) p.y = -10;
+    });
+    requestAnimationFrame(drawParticles);
+  }
+  drawParticles();
+
+  /* ── Scroll fade-in ── */
+  const fades = document.querySelectorAll('.fade');
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+    });
+  }, { threshold: 0.06 });
+  fades.forEach(el => io.observe(el));
+</script>
+</body>
+</html>
