@@ -3,6 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const cors    = require('cors');
 const path    = require('path');
+const fs      = require('fs');
 
 const db                  = require('./db/database');
 const { router: authRouter } = require('./routes/auth');
@@ -26,6 +27,40 @@ app.use((req, res, next) => {
     res.setHeader('Expires', '0');
   }
   next();
+});
+
+// Stream video files with proper range-request support (required for seek/play)
+app.get('/videos/:filename', (req, res) => {
+  const filename  = path.basename(req.params.filename);
+  const videoPath = path.join(__dirname, 'public', 'videos', filename);
+
+  if (!fs.existsSync(videoPath)) return res.status(404).end();
+
+  const stat     = fs.statSync(videoPath);
+  const fileSize = stat.size;
+  const range    = req.headers.range;
+
+  if (range) {
+    const [startStr, endStr] = range.replace(/bytes=/, '').split('-');
+    const start     = parseInt(startStr, 10);
+    const end       = endStr ? Math.min(parseInt(endStr, 10), fileSize - 1) : fileSize - 1;
+    const chunkSize = (end - start) + 1;
+
+    res.writeHead(206, {
+      'Content-Range':  `bytes ${start}-${end}/${fileSize}`,
+      'Accept-Ranges':  'bytes',
+      'Content-Length': chunkSize,
+      'Content-Type':   'video/mp4',
+    });
+    fs.createReadStream(videoPath, { start, end }).pipe(res);
+  } else {
+    res.writeHead(200, {
+      'Content-Length': fileSize,
+      'Content-Type':   'video/mp4',
+      'Accept-Ranges':  'bytes',
+    });
+    fs.createReadStream(videoPath).pipe(res);
+  }
 });
 
 // Serve static frontend files
