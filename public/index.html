@@ -223,6 +223,67 @@
     .line-btn:active { transform: scale(.97); }
     .line-btn svg { width: 22px; height: 22px; fill: #fff; flex-shrink: 0; }
 
+    /* ── Lock icon ── */
+    .admin-lock {
+      position: fixed; top: 12px; right: 14px; z-index: 500;
+      width: 20px; height: 20px; opacity: 0.3; cursor: default;
+      color: #888; background: none; border: none; padding: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: opacity .2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .admin-lock:hover { opacity: 0.45; }
+    .admin-lock svg { width: 16px; height: 16px; fill: currentColor; }
+
+    /* ── Passcode modal ── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 1000;
+      background: rgba(0,0,0,.65); backdrop-filter: blur(4px);
+      display: none; align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: #161616; border: 1px solid #2e2e2e;
+      border-radius: 16px; padding: 32px 28px 28px;
+      width: 100%; max-width: 340px;
+      box-shadow: 0 24px 64px rgba(0,0,0,.6);
+      animation: modal-in .2s ease;
+    }
+    @keyframes modal-in { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+    .modal-title {
+      font-size: 17px; font-weight: 800; color: #f1f1f1;
+      margin-bottom: 6px; letter-spacing: -.3px;
+    }
+    .modal-sub { font-size: 13px; color: #666; margin-bottom: 22px; }
+    .modal-input {
+      width: 100%; padding: 12px 14px; background: #1e1e1e;
+      border: 1.5px solid #2e2e2e; border-radius: 10px;
+      color: #f1f1f1; font-size: 16px; outline: none;
+      transition: border-color .15s; margin-bottom: 10px;
+      font-family: inherit; letter-spacing: 3px;
+    }
+    .modal-input:focus { border-color: #555; }
+    .modal-error {
+      font-size: 12px; color: #E63946; margin-bottom: 14px;
+      min-height: 18px; display: none;
+    }
+    .modal-error.show { display: block; }
+    .modal-actions { display: flex; gap: 10px; }
+    .modal-btn-cancel {
+      flex: 1; padding: 12px; background: none;
+      border: 1px solid #2e2e2e; border-radius: 10px;
+      color: #666; font-size: 14px; font-weight: 600;
+      cursor: pointer; font-family: inherit; transition: border-color .15s, color .15s;
+    }
+    .modal-btn-cancel:hover { border-color: #444; color: #999; }
+    .modal-btn-submit {
+      flex: 1; padding: 12px; background: #f1f1f1;
+      border: none; border-radius: 10px;
+      color: #0d0d0d; font-size: 14px; font-weight: 700;
+      cursor: pointer; font-family: inherit; transition: background .15s;
+    }
+    .modal-btn-submit:hover { background: #fff; }
+
     /* ── Footer ── */
     .footer {
       text-align: center; padding: 24px 16px 40px;
@@ -366,6 +427,29 @@
   © 2026 HQ Strikepro &nbsp;·&nbsp; Powered by <a href="https://strikeprofx.com" target="_blank">StrikePro FX</a>
 </footer>
 
+<!-- Hidden admin lock -->
+<button class="admin-lock" onclick="openPasscode()" aria-hidden="true" tabindex="-1">
+  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M18 11H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2zm-6 6a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm4-6V8a4 4 0 0 0-8 0v3"/>
+  </svg>
+</button>
+
+<!-- Passcode modal -->
+<div class="modal-overlay" id="passcodeModal" onclick="handleOverlayClick(event)">
+  <div class="modal-box">
+    <div class="modal-title">Company Access</div>
+    <div class="modal-sub">Enter your company passcode to continue</div>
+    <input class="modal-input" id="passcodeInput" type="password"
+      placeholder="••••••" maxlength="10"
+      onkeydown="if(event.key==='Enter')submitPasscode()" />
+    <div class="modal-error" id="passcodeError">Invalid passcode</div>
+    <div class="modal-actions">
+      <button class="modal-btn-cancel" onclick="closePasscode()">Cancel</button>
+      <button class="modal-btn-submit" onclick="submitPasscode()">Continue</button>
+    </div>
+  </div>
+</div>
+
 <div class="line-cta">
   <a class="line-btn" href="https://lin.ee/8WkoRmL" target="_blank">
     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.070 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
@@ -384,6 +468,31 @@
       if (r.ok) window.location.href = '/dashboard.html';
     } catch {}
   })();
+
+  // ── Passcode modal ──
+  function openPasscode() {
+    document.getElementById('passcodeInput').value = '';
+    document.getElementById('passcodeError').classList.remove('show');
+    document.getElementById('passcodeModal').classList.add('open');
+    setTimeout(() => document.getElementById('passcodeInput').focus(), 80);
+  }
+  function closePasscode() {
+    document.getElementById('passcodeModal').classList.remove('open');
+  }
+  function handleOverlayClick(e) {
+    if (e.target === document.getElementById('passcodeModal')) closePasscode();
+  }
+  function submitPasscode() {
+    const val = document.getElementById('passcodeInput').value.trim();
+    const err = document.getElementById('passcodeError');
+    if (val === '23156') {
+      window.location.href = '/login';
+    } else {
+      err.classList.add('show');
+      document.getElementById('passcodeInput').value = '';
+      document.getElementById('passcodeInput').focus();
+    }
+  }
 </script>
 </body>
 </html>
