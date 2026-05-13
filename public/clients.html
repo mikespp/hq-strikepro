@@ -543,7 +543,7 @@
   <h1 class="page-title">My Clients <span class="client-count" id="clientCount"></span></h1>
   <button class="btn-add" onclick="openForm()">
     <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    เพิ่มลูกค้า
+    เพิ่มสมาชิก
   </button>
 </div>
 
@@ -561,21 +561,21 @@
 
   <div class="overlay-header">
     <button class="btn-close" onclick="closeForm()">✕</button>
-    <span class="overlay-title" id="overlayTitle">เพิ่มลูกค้าใหม่</span>
+    <span class="overlay-title" id="overlayTitle">เพิ่มสมาชิกใหม่</span>
   </div>
 
   <div class="overlay-body">
     <div class="form-alert" id="formAlert"></div>
 
-    <!-- 1. ข้อมูลลูกค้า -->
+    <!-- 1. ข้อมูลสมาชิก -->
     <div class="form-section">
       <div class="section-header">
         <div class="section-num">1</div>
-        <span class="section-title">ข้อมูลลูกค้า</span>
+        <span class="section-title">ข้อมูลสมาชิก</span>
       </div>
 
       <div class="form-row">
-        <label class="field-label" for="f_name">ชื่อลูกค้า <span class="req">*</span></label>
+        <label class="field-label" for="f_name">ชื่อสมาชิก <span class="req">*</span></label>
         <input type="text" id="f_name" placeholder="ชื่อ-นามสกุล" />
       </div>
       <div class="form-row">
@@ -820,8 +820,8 @@
           <div class="empty-icon">
             <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           </div>
-          <div class="empty-title">ยังไม่มีข้อมูลลูกค้า</div>
-          <div class="empty-sub">กดปุ่ม "เพิ่มลูกค้า" เพื่อเริ่มบันทึกข้อมูล</div>
+          <div class="empty-title">ยังไม่มีข้อมูลสมาชิก</div>
+          <div class="empty-sub">กดปุ่ม "เพิ่มสมาชิก" เพื่อเริ่มบันทึกข้อมูล</div>
         </div>`;
       return;
     }
@@ -833,7 +833,7 @@
             <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           </div>
           <div class="empty-title">ไม่พบผลการค้นหา</div>
-          <div class="empty-sub">ไม่มีลูกค้าที่ตรงกับ "<strong>${esc(query)}</strong>"</div>
+          <div class="empty-sub">ไม่มีสมาชิกที่ตรงกับ "<strong>${esc(query)}</strong>"</div>
         </div>`;
       return;
     }
@@ -921,7 +921,7 @@
   // ── Form open / close ───────────────────────────────────────────────────────
   function openForm(client = null) {
     currentEditId = client ? client.id : null;
-    document.getElementById('overlayTitle').textContent = client ? 'แก้ไขข้อมูลลูกค้า' : 'เพิ่มลูกค้าใหม่';
+    document.getElementById('overlayTitle').textContent = client ? 'แก้ไขข้อมูลสมาชิก' : 'เพิ่มสมาชิกใหม่';
     resetForm();
     if (client) fillForm(client);
     document.getElementById('formOverlay').classList.add('open');
@@ -1040,7 +1040,7 @@
     if (!nameEl.value.trim()) {
       nameEl.classList.add('error');
       nameEl.focus();
-      showFormAlert('กรุณากรอกชื่อลูกค้า');
+      showFormAlert('กรุณากรอกชื่อสมาชิก');
       document.getElementById('formOverlay').querySelector('.overlay-body').scrollTop = 0;
       return;
     }
@@ -1073,10 +1073,10 @@
     try {
       if (currentEditId) {
         await api(`/api/clients/${currentEditId}`, { method: 'PUT', body });
-        showToast('✓ อัปเดตข้อมูลลูกค้าแล้ว', 'success');
+        showToast('✓ อัปเดตข้อมูลสมาชิกแล้ว', 'success');
       } else {
         await api('/api/clients', { method: 'POST', body });
-        showToast('✓ เพิ่มลูกค้าใหม่แล้ว', 'success');
+        showToast('✓ เพิ่มสมาชิกใหม่แล้ว', 'success');
       }
       closeForm();
       loadClients();
@@ -1103,7 +1103,7 @@
     if (!confirm(`ลบข้อมูลของ "${name}" ใช่หรือไม่?`)) return;
     try {
       await api(`/api/clients/${id}`, { method: 'DELETE' });
-      showToast('ลบข้อมูลลูกค้าแล้ว', 'success');
+      showToast('ลบข้อมูลสมาชิกแล้ว', 'success');
       loadClients();
     } catch (err) {
       showToast(err.message, 'error');
