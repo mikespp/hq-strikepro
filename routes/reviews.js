@@ -22,8 +22,8 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: 'กรุณากรอกชื่อผู้รีวิว' });
   }
   const r = parseInt(rating, 10);
-  if (!r || r < 1 || r > 10) {
-    return res.status(400).json({ error: 'กรุณาให้คะแนน 1–10 ดาว' });
+  if (!r || r < 1 || r > 5) {
+    return res.status(400).json({ error: 'กรุณาให้คะแนน 1–5 ดาว' });
   }
   if (!message || !message.trim()) {
     return res.status(400).json({ error: 'กรุณากรอกข้อความรีวิว' });

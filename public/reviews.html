@@ -419,7 +419,7 @@ let selectedRating = 0;
 
 (function buildStars() {
   const row = document.getElementById('star-row');
-  for (let i = 1; i <= 10; i++) {
+  for (let i = 1; i <= 5; i++) {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'star-btn';
@@ -441,8 +441,8 @@ function highlightStars(n) {
 function setRating(n) {
   selectedRating = n;
   highlightStars(n);
-  const labels = ['','ไม่ดีเลย','แย่มาก','แย่','พอใช้ได้','กลางๆ','โอเค','ดี','ดีมาก','ยอดเยี่ยม','สุดยอด!'];
-  document.getElementById('rating-label').textContent = `${n}/10 — ${labels[n]}`;
+  const labels = ['','แย่มาก','พอใช้ได้','โอเค','ดีมาก','สุดยอด!'];
+  document.getElementById('rating-label').textContent = `${n}/5 — ${labels[n]}`;
 }
 
 /* ── Image upload ── */
@@ -480,7 +480,7 @@ async function submitReview() {
   const message  = document.getElementById('r-message').value.trim();
 
   if (!reviewer)         { showToast('กรุณากรอกชื่อผู้รีวิว', 'error'); return; }
-  if (!selectedRating)   { showToast('กรุณาให้คะแนนก่อนส่ง', 'error'); return; }
+  if (!selectedRating)   { showToast('กรุณาให้คะแนน 1–5 ดาวก่อนส่ง', 'error'); return; }
   if (!message)          { showToast('กรุณากรอกข้อความรีวิว', 'error'); return; }
 
   const btn = document.getElementById('btn-submit');
@@ -532,7 +532,7 @@ async function loadReviews() {
 
     list.innerHTML = data.map(r => {
       const initial = (r.reviewer || '?')[0].toUpperCase();
-      const stars   = Array.from({length:10}, (_,i) =>
+      const stars   = Array.from({length:5}, (_,i) =>
         `<span class="star ${i < r.rating ? 'filled' : 'empty'}">★</span>`
       ).join('');
       const dateStr = new Date(r.created_at).toLocaleDateString('th-TH', {
@@ -557,7 +557,7 @@ async function loadReviews() {
               <div class="review-info">${productBadge}</div>
             </div>
           </div>
-          <div class="review-stars">${stars}<span class="score">${r.rating}/10</span></div>
+          <div class="review-stars">${stars}<span class="score">${r.rating}/5</span></div>
           <div class="review-message">${escHtml(r.message)}</div>
           ${imgHtml}
           <div class="review-date">${dateStr}</div>
