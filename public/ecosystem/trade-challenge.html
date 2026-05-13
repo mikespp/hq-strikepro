@@ -118,51 +118,108 @@
     .card-header-title { font-size: 14px; font-weight: 700; color: var(--text); }
     .card-body { padding: 16px; }
 
-    /* ── About card ── */
-    .about-text { font-size: 14px; color: var(--text-muted); line-height: 1.8; }
-    .about-text + .about-text { margin-top: 10px; }
+    /* ── Bullet list ── */
+    .bullet-list { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+    .bullet-list li { font-size: 13px; color: var(--text-muted); display: flex; align-items: flex-start; gap: 8px; line-height: 1.55; }
+    .bullet-list li::before { content: '⚔'; color: var(--gold); flex-shrink: 0; font-size: 11px; margin-top: 2px; }
 
-    /* ── Features grid ── */
-    .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    @media (max-width:360px) { .feature-grid { grid-template-columns: 1fr; } }
-    .feature-item {
-      background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm);
-      padding: 14px 12px; position: relative; overflow: hidden;
-      transition: border-color .2s;
-    }
-    .feature-item:hover { border-color: rgba(212,175,55,.25); }
-    .feature-icon { font-size: 22px; margin-bottom: 8px; }
-    .feature-name { font-size: 13px; font-weight: 700; color: var(--gold); margin-bottom: 3px; }
-    .feature-desc { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+    /* ── Date row ── */
+    .date-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+    .date-cell { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; }
+    .date-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--crimson); margin-bottom: 4px; }
+    .date-val { font-size: 13px; font-weight: 800; color: var(--text); line-height: 1.4; }
+    .date-cell.announce { border-color: rgba(212,175,55,.2); }
+    .date-cell.announce .date-label { color: var(--gold); }
+    .date-cell.announce .date-val { color: var(--gold); }
 
-    /* ── Steps ── */
-    .step-list { display: flex; flex-direction: column; gap: 14px; }
-    .step-item { display: flex; gap: 14px; align-items: flex-start; }
-    .step-num {
-      width: 30px; height: 30px; border-radius: 8px;
-      background: var(--gold-dim); border: 1px solid var(--gold-mid);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 12px; font-weight: 900; color: var(--gold); flex-shrink: 0;
+    /* ── Prize table ── */
+    .prize-list { display: flex; flex-direction: column; gap: 8px; }
+    .prize-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 14px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border); background: var(--surface2);
+      transition: border-color .15s;
     }
-    .step-content { flex: 1; }
-    .step-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
-    .step-desc { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+    .prize-row.p1 { background: rgba(212,175,55,.08); border-color: rgba(212,175,55,.4); }
+    .prize-row.p2 { background: rgba(192,192,192,.05); border-color: rgba(192,192,192,.22); }
+    .prize-row.p3 { background: rgba(184,115,51,.05); border-color: rgba(184,115,51,.22); }
+    .prize-row.p4, .prize-row.p5 { border-color: rgba(212,175,55,.12); }
+    .prize-row.p610 { background: var(--surface3); }
+    .prize-rank-badge {
+      width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center;
+      justify-content: center; font-size: 16px; flex-shrink: 0;
+    }
+    .prize-place { font-size: 13px; font-weight: 700; color: var(--text); flex: 1; }
+    .prize-amount { font-size: 16px; font-weight: 900; }
+    .prize-row.p1 .prize-amount { color: var(--gold); }
+    .prize-row.p2 .prize-amount { color: #c0c0c0; }
+    .prize-row.p3 .prize-amount { color: #b87333; }
+    .prize-row.p4 .prize-amount, .prize-row.p5 .prize-amount { color: var(--text); }
+    .prize-row.p610 .prize-amount { color: var(--text-muted); }
 
-    /* ── Rewards ── */
-    .reward-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
-    .reward-cell {
-      text-align: center; background: var(--surface2); border-radius: var(--radius-sm);
-      padding: 16px 8px; border: 1px solid var(--border);
+    /* ── Rebirth cards ── */
+    .rebirth-quote {
+      font-size: 15px; font-weight: 700; font-style: italic;
+      color: var(--text-muted); text-align: center;
+      border-left: 3px solid var(--crimson); padding: 10px 14px; margin-bottom: 14px;
+      background: rgba(220,38,38,.05); border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      line-height: 1.6;
     }
-    .reward-cell.first { border-color: rgba(212,175,55,.35); background: rgba(212,175,55,.06); }
-    .reward-cell.second { border-color: rgba(192,192,192,.25); background: rgba(192,192,192,.04); }
-    .reward-cell.third { border-color: rgba(184,115,51,.25); background: rgba(184,115,51,.04); }
-    .reward-rank { font-size: 26px; margin-bottom: 6px; }
-    .reward-val { font-size: 14px; font-weight: 800; color: var(--gold); }
-    .reward-cell.second .reward-val { color: #c0c0c0; }
-    .reward-cell.third .reward-val { color: #b87333; }
-    .reward-lbl { font-size: 10px; color: var(--text-sub); margin-top: 4px; text-transform: uppercase; letter-spacing: .05em; }
-    .reward-note { font-size: 11px; color: var(--text-sub); margin-top: 14px; font-style: italic; line-height: 1.6; }
+    .rebirth-condition {
+      font-size: 12px; color: #f87171; background: rgba(220,38,38,.08);
+      border: 1px solid rgba(220,38,38,.22); border-radius: var(--radius-sm);
+      padding: 10px 12px; margin-bottom: 14px; line-height: 1.6;
+    }
+    .rebirth-grid { display: flex; flex-direction: column; gap: 10px; }
+    .rebirth-card {
+      border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--border);
+    }
+    .rebirth-card-head {
+      padding: 10px 14px; display: flex; align-items: center; gap: 8px;
+      font-size: 13px; font-weight: 800;
+    }
+    .rebirth-card-head.blood { background: rgba(220,38,38,.15); color: #f87171; border-bottom: 1px solid rgba(220,38,38,.2); }
+    .rebirth-card-head.valhalla { background: rgba(212,175,55,.12); color: var(--gold); border-bottom: 1px solid rgba(212,175,55,.2); }
+    .rebirth-card-head.normal { background: var(--surface3); color: var(--text-muted); border-bottom: 1px solid var(--border); }
+    .rebirth-card-body { padding: 12px 14px; background: var(--surface2); font-size: 12px; color: var(--text-muted); line-height: 1.7; }
+
+    /* ── Leaderboard ── */
+    .lb-update-note { font-size: 11px; color: var(--text-sub); margin-bottom: 14px; line-height: 1.7; }
+    .lb-update-note span { color: var(--gold); font-weight: 700; }
+    .lb-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .lb-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 340px; }
+    .lb-table th {
+      font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+      color: var(--text-sub); padding: 0 8px 10px; text-align: left; white-space: nowrap;
+    }
+    .lb-table th:last-child, .lb-table td:last-child { text-align: right; }
+    .lb-table td { padding: 10px 8px; border-top: 1px solid var(--border); vertical-align: middle; }
+    .lb-table tr:hover td { background: rgba(212,175,55,.04); }
+    .lb-rank { font-weight: 800; color: var(--text-sub); width: 28px; }
+    .lb-rank.top1 { color: var(--gold); }
+    .lb-rank.top2 { color: #c0c0c0; }
+    .lb-rank.top3 { color: #b87333; }
+    .lb-port { font-weight: 700; color: var(--text-muted); }
+    .lb-port.active { color: #f87171; }
+    .lb-name { color: var(--text); font-weight: 600; }
+    .lb-profit { font-weight: 800; color: var(--green); }
+    .lb-balance { font-weight: 700; color: var(--text-muted); }
+    .lb-port-note { font-size: 11px; color: #f87171; display: flex; align-items: center; gap: 4px; margin-top: 10px; }
+    .lb-empty { text-align: center; padding: 24px 0; color: var(--text-sub); font-size: 13px; }
+
+    /* ── Final warning ── */
+    .final-warning {
+      background: rgba(220,38,38,.08); border: 1px solid rgba(220,38,38,.3);
+      border-radius: var(--radius-sm); padding: 16px 14px; position: relative; overflow: hidden;
+    }
+    .final-warning::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--crimson), transparent);
+    }
+    .final-warning-title { font-size: 13px; font-weight: 800; color: #f87171; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .final-warning p { font-size: 12px; color: var(--text-muted); line-height: 1.7; margin-bottom: 6px; }
+    .final-warning p:last-child { margin-bottom: 0; }
+    .final-warning strong { color: #fca5a5; }
 
     /* ── CTA Card ── */
     .cta-card {
@@ -176,35 +233,23 @@
     }
     .cta-card-title { font-size: 18px; font-weight: 900; color: var(--gold); margin-bottom: 6px; }
     .cta-card-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 18px; line-height: 1.6; }
-    .cta-btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
     .cta-btn {
       display: inline-flex; align-items: center; justify-content: center; gap: 7px;
-      padding: 13px 22px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 700;
+      padding: 14px 24px; border-radius: var(--radius-sm); font-size: 15px; font-weight: 800;
       text-decoration: none; transition: opacity .15s, transform .1s;
+      background: linear-gradient(135deg, #d4af37, #b8941e);
+      color: #0a0704; box-shadow: 0 4px 24px rgba(212,175,55,.3); width: 100%;
     }
     .cta-btn:active { transform: scale(.97); }
-    .cta-btn.gold {
-      background: linear-gradient(135deg, #d4af37, #b8941e);
-      color: #0a0704; box-shadow: 0 4px 20px rgba(212,175,55,.28); min-width: 180px;
-    }
-    .cta-btn.gold:hover { opacity: .88; }
-    .cta-btn.outline {
-      background: none; border: 1px solid var(--gold-mid); color: var(--gold);
-    }
-    .cta-btn.outline:hover { background: var(--gold-dim); }
+    .cta-btn:hover { opacity: .88; }
 
     /* ── Disclaimer ── */
     .disclaimer {
-      background: rgba(220,38,38,.06); border: 1px solid rgba(220,38,38,.2);
-      border-radius: var(--radius-sm); padding: 14px 16px;
-      font-size: 12px; color: var(--text-muted); line-height: 1.7;
+      background: rgba(220,38,38,.05); border: 1px solid rgba(220,38,38,.15);
+      border-radius: var(--radius-sm); padding: 12px 14px;
+      font-size: 12px; color: var(--text-sub); line-height: 1.7;
     }
     .disclaimer::before { content: '⚠️  '; }
-
-    /* ── Bullet list ── */
-    .bullet-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
-    .bullet-list li { font-size: 13px; color: var(--text-muted); display: flex; align-items: flex-start; gap: 8px; line-height: 1.5; }
-    .bullet-list li::before { content: '⚔'; color: var(--gold); flex-shrink: 0; font-size: 11px; margin-top: 2px; }
 
     /* ── LINE CTA ── */
     .line-cta { position: fixed; bottom: 0; left: 0; right: 0; z-index: 90;
@@ -358,15 +403,15 @@
 <div class="hero">
   <div class="hero-inner">
     <div class="rune-row">ᚢ ᚦ ᚨ ᚱ ᚲ ᚷ ᚹ ᚺ</div>
-    <div class="hero-badge">⚔️ &nbsp;TRADING COMPETITION &nbsp; · &nbsp; SS.2</div>
+    <div class="hero-badge">⚔️ &nbsp;MARATHON TRADING · SS.2 · LIVE</div>
     <div class="hero-title">Valhalla Dungeon</div>
-    <div class="hero-sub">สมรภูมิแห่งนักรบเทรดเดอร์<br>ผู้ที่แข็งแกร่งที่สุดเท่านั้นที่จะอยู่รอด</div>
+    <div class="hero-sub">สมรภูมิมาราธอนเทรดดิ้งของ Strike ProFx<br>ผู้ที่แข็งแกร่งที่สุดเท่านั้นที่จะอยู่รอด</div>
     <div class="hero-cta-row">
       <a class="hero-btn gold" href="https://www.strikeprofx.com/th/valhalla-dungeon/" target="_blank">
-        ⚔️ Enter Valhalla Dungeon
+        ⚔️ Join the Tournament
       </a>
       <a class="hero-btn outline" href="https://my.strikeprofx.com/register?referral=3" target="_blank">
-        📋 Register Now
+        📋 ลงทะเบียนสมัครแข่งขัน
       </a>
     </div>
   </div>
@@ -376,9 +421,19 @@
 
   <!-- Season 2 Banner -->
   <div class="season-banner">
-    <div class="season-label">Current Season</div>
+    <div class="season-label">Season ปัจจุบัน</div>
     <div class="season-title">⚔️ &nbsp;VALHALLA DUNGEON SS.2&nbsp; ⚔️</div>
-    <div class="season-sub">ศึกบทใหม่แห่งนักรบเทรดเดอร์ — เปิดสมรภูมิแล้ว</div>
+    <div class="season-sub">การแข่งขันมาราธอนเทรดดิ้ง · ไม่มีค่าสมัคร · รางวัลรวมกว่า 85,000 บาท</div>
+    <div class="date-row" style="margin-top:14px;margin-bottom:0;">
+      <div class="date-cell">
+        <div class="date-label">⚔️ ระยะเวลาแข่งขัน</div>
+        <div class="date-val">11 พ.ค. 2569 05:00<br>– 29 พ.ค. 2569 22:00</div>
+      </div>
+      <div class="date-cell announce">
+        <div class="date-label">🏆 วันประกาศผล</div>
+        <div class="date-val">05 มิถุนายน 2569</div>
+      </div>
+    </div>
   </div>
 
   <!-- About -->
@@ -388,146 +443,154 @@
       <div class="card-header-title">Valhalla Dungeon คืออะไร?</div>
     </div>
     <div class="card-body">
-      <p class="about-text">Valhalla Dungeon คือกิจกรรมแข่งขันสำหรับนักเทรด ภายใต้ธีมโลกแห่งนักรบ Valhalla ผู้เข้าแข่งขันจะได้พิสูจน์ฝีมือ กลยุทธ์ และวินัยในการเทรด</p>
-      <p class="about-text" style="margin-top:10px;">เพื่อไต่อันดับสู่จุดสูงสุดของสมรภูมิ พร้อมโอกาสรับรางวัลและการยอมรับจาก Community</p>
+      <p style="font-size:14px;color:var(--text-muted);line-height:1.8;margin-bottom:14px;">
+        Valhalla Dungeon คือการแข่งขันมาราธอนเทรดดิ้งของ Strike ProFx จัดเป็น Season โดยผู้เข้าร่วมต้องเป็นสมาชิกที่ลงทะเบียนล่วงหน้า และ<strong style="color:var(--gold);">ไม่มีค่าสมัคร</strong>
+      </p>
+      <ul class="bullet-list">
+        <li>เปิดพอร์ต Cent <strong style="color:var(--gold);">$300</strong></li>
+        <li>ไม่มีค่าธรรมเนียมการสมัคร</li>
+        <li>เทรดได้เท่าไหร่ ถอนออกได้หมด</li>
+        <li>วัดผลแพ้ชนะจาก <strong style="color:var(--text);">Equity สูงสุด</strong></li>
+        <li>ต้องมี Lot รวมอย่างน้อย <strong style="color:var(--text);">0.1 Lot</strong></li>
+        <li>เทรดได้ทุกผลิตภัณฑ์ใน MT5 ของ StrikeProFX</li>
+        <li>สามารถใช้ EA ของ SNAP Club ช่วยเทรดได้</li>
+      </ul>
     </div>
   </div>
 
-  <!-- Features -->
-  <div class="card">
-    <div class="card-header">
-      <div class="card-header-icon">⚡</div>
-      <div class="card-header-title">สิ่งที่คุณจะได้รับ</div>
-    </div>
-    <div class="card-body">
-      <div class="feature-grid">
-        <div class="feature-item">
-          <div class="feature-icon">🏅</div>
-          <div class="feature-name">Ranking System</div>
-          <div class="feature-desc">ระบบจัดอันดับ Real-time ติดตามผลการเทรดแบบ Live Leaderboard</div>
-        </div>
-        <div class="feature-item">
-          <div class="feature-icon">⚔️</div>
-          <div class="feature-name">Trading Competition</div>
-          <div class="feature-desc">การแข่งขันเทรดจริงที่ท้าทายทักษะและกลยุทธ์ของคุณ</div>
-        </div>
-        <div class="feature-item">
-          <div class="feature-icon">🛡️</div>
-          <div class="feature-name">Warrior Theme</div>
-          <div class="feature-desc">บรรยากาศนักรบแห่ง Valhalla ที่สร้างแรงบันดาลใจในการเทรด</div>
-        </div>
-        <div class="feature-item">
-          <div class="feature-icon">🌐</div>
-          <div class="feature-name">Community Battle</div>
-          <div class="feature-desc">แข่งขันและเติบโตไปพร้อมกับสมาชิก Strikepro ทั่วประเทศ</div>
-        </div>
-        <div class="feature-item">
-          <div class="feature-icon">🏆</div>
-          <div class="feature-name">Reward & Recognition</div>
-          <div class="feature-desc">รางวัลพิเศษและการยอมรับจาก Community สำหรับผู้ชนะ</div>
-        </div>
-        <div class="feature-item">
-          <div class="feature-icon">🔄</div>
-          <div class="feature-name">Seasonal Event (SS.2)</div>
-          <div class="feature-desc">กิจกรรม Season ใหม่พร้อมกฎระเบียบและรางวัลที่อัปเดตทุก Season</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- How to Enter -->
-  <div class="card">
-    <div class="card-header">
-      <div class="card-header-icon">📋</div>
-      <div class="card-header-title">วิธีการเข้าร่วมสมรภูมิ</div>
-    </div>
-    <div class="card-body">
-      <div class="step-list">
-        <div class="step-item">
-          <div class="step-num">I</div>
-          <div class="step-content">
-            <div class="step-title">สมัครและลงทะเบียน</div>
-            <div class="step-desc">สมัครสมาชิก Strikepro และลงทะเบียนเข้าร่วม Valhalla Dungeon ผ่านลิงก์ที่กำหนด</div>
-          </div>
-        </div>
-        <div class="step-item">
-          <div class="step-num">II</div>
-          <div class="step-content">
-            <div class="step-title">เตรียมอาวุธ — Account ของคุณ</div>
-            <div class="step-desc">เปิด Account บน Platform Strikepro และฝากเงินตามเงื่อนไขที่กำหนดในแต่ละ Season</div>
-          </div>
-        </div>
-        <div class="step-item">
-          <div class="step-num">III</div>
-          <div class="step-content">
-            <div class="step-title">เข้าสู่สมรภูมิ — เริ่มเทรด</div>
-            <div class="step-desc">เทรดตามกติกาที่กำหนด วัดผลจาก % Profit, Risk Management และความสม่ำเสมอ</div>
-          </div>
-        </div>
-        <div class="step-item">
-          <div class="step-num">IV</div>
-          <div class="step-content">
-            <div class="step-title">ไต่อันดับ Leaderboard</div>
-            <div class="step-desc">ติดตามอันดับแบบ Real-time ปรับกลยุทธ์เพื่อขึ้นสู่จุดสูงสุดของสมรภูมิ</div>
-          </div>
-        </div>
-        <div class="step-item">
-          <div class="step-num">V</div>
-          <div class="step-content">
-            <div class="step-title">รับรางวัลแห่งนักรบ</div>
-            <div class="step-desc">ผู้ชนะรับรางวัลและเกียรติยศจาก Community พร้อม STP Coin ตามอันดับที่จบ</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Rewards -->
+  <!-- Prizes -->
   <div class="card">
     <div class="card-header">
       <div class="card-header-icon">🏆</div>
-      <div class="card-header-title">รางวัลแห่งสมรภูมิ</div>
+      <div class="card-header-title">รางวัล Valhalla Dungeon</div>
     </div>
     <div class="card-body">
-      <div class="reward-grid">
-        <div class="reward-cell first">
-          <div class="reward-rank">🥇</div>
-          <div class="reward-val">Champion</div>
-          <div class="reward-lbl">นักรบสูงสุด</div>
+      <div class="prize-list">
+        <div class="prize-row p1">
+          <div class="prize-rank-badge">🥇</div>
+          <div class="prize-place">รางวัลที่ 1</div>
+          <div class="prize-amount">50,000 ฿</div>
         </div>
-        <div class="reward-cell second">
-          <div class="reward-rank">🥈</div>
-          <div class="reward-val">2nd Warrior</div>
-          <div class="reward-lbl">รองแชมป์</div>
+        <div class="prize-row p2">
+          <div class="prize-rank-badge">🥈</div>
+          <div class="prize-place">รางวัลที่ 2</div>
+          <div class="prize-amount">15,000 ฿</div>
         </div>
-        <div class="reward-cell third">
-          <div class="reward-rank">🥉</div>
-          <div class="reward-val">3rd Warrior</div>
-          <div class="reward-lbl">อันดับสาม</div>
+        <div class="prize-row p3">
+          <div class="prize-rank-badge">🥉</div>
+          <div class="prize-place">รางวัลที่ 3</div>
+          <div class="prize-amount">10,000 ฿</div>
+        </div>
+        <div class="prize-row p4">
+          <div class="prize-rank-badge">4️⃣</div>
+          <div class="prize-place">รางวัลที่ 4</div>
+          <div class="prize-amount">5,000 ฿</div>
+        </div>
+        <div class="prize-row p5">
+          <div class="prize-rank-badge">5️⃣</div>
+          <div class="prize-place">รางวัลที่ 5</div>
+          <div class="prize-amount">3,000 ฿</div>
+        </div>
+        <div class="prize-row p610">
+          <div class="prize-rank-badge">🎖️</div>
+          <div class="prize-place">รางวัลที่ 6 – 10</div>
+          <div class="prize-amount">1,500 ฿</div>
         </div>
       </div>
-      <p class="reward-note">* รางวัลและเงื่อนไขอาจแตกต่างกันในแต่ละ Season — ติดตามประกาศจากทีมงาน Strikepro</p>
-      <ul class="bullet-list" style="margin-top:14px;">
-        <li>เงินรางวัลพิเศษและ STP Coin ตามอันดับ</li>
-        <li>การยอมรับและเกียรติยศจาก Community</li>
-        <li>Badge นักรบพิเศษประจำ Season</li>
-        <li>โอกาสรับสิทธิพิเศษสำหรับ Season ถัดไป</li>
-      </ul>
     </div>
+  </div>
+
+  <!-- Rebirth -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">💀</div>
+      <div class="card-header-title">รางวัลซับน้ำตา — Rebirth</div>
+    </div>
+    <div class="card-body">
+      <div class="rebirth-quote">"คุณอาจจะแพ้, แต่คุณไม่เคยล้มเหลว"</div>
+      <div class="rebirth-condition">
+        ⚠️ เงื่อนไข: ถ้าพอร์ตมีทุนต่ำกว่า <strong>1,000 Cents</strong> จะมีสิทธิ์ฟื้นคืนชีพ
+      </div>
+      <div class="rebirth-grid">
+        <!-- First Blood -->
+        <div class="rebirth-card">
+          <div class="rebirth-card-head blood">🩸 First Blood</div>
+          <div class="rebirth-card-body">
+            เติมเงิน <strong style="color:#fca5a5;">30,000 Cent</strong> เพื่อลุ้นรับสิทธิ์คืนชีพพอร์ตฟรี
+          </div>
+        </div>
+        <!-- Valhalla Rebirth -->
+        <div class="rebirth-card">
+          <div class="rebirth-card-head valhalla">⚔️ Valhalla Rebirth</div>
+          <div class="rebirth-card-body">
+            ใช้ <strong style="color:var(--gold);">3,000 STP Coin</strong> เพื่อรับสิทธิ์คืนชีพพอร์ตทันที
+          </div>
+        </div>
+        <!-- Normal Rebirth -->
+        <div class="rebirth-card">
+          <div class="rebirth-card-head normal">🔄 Normal Rebirth</div>
+          <div class="rebirth-card-body">
+            เติมเงิน <strong style="color:var(--text);">30,000 Cent</strong> เพื่อเริ่มต้นการเทรดใหม่<br>
+            หรือใช้ <strong style="color:var(--gold);">1,500 STP Coin</strong> เพื่อรับสิทธิ์เริ่มต้นพอร์ตใหม่มูลค่า 15,000 Cent
+          </div>
+        </div>
+      </div>
+      <p style="font-size:11px;color:#f87171;margin-top:12px;font-weight:700;text-align:center;">
+        📣 แจ้งเคลมสิทธิ์กับแอดมินก่อนทุกกรณี
+      </p>
+    </div>
+  </div>
+
+  <!-- Leaderboard -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">📊</div>
+      <div class="card-header-title">Leaderboard SS.2</div>
+    </div>
+    <div class="card-body">
+      <p class="lb-update-note">
+        <span>08:00–22:00</span> อัปเดตทุก 10 นาที &nbsp;·&nbsp; <span>23:00–07:00</span> อัปเดตทุก 1 ชั่วโมง
+      </p>
+      <div class="lb-table-wrap">
+        <table class="lb-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Port No.</th>
+              <th>ชื่อ</th>
+              <th>Profit</th>
+              <th>Balance</th>
+            </tr>
+          </thead>
+          <tbody id="lbBody">
+            <tr>
+              <td colspan="5" class="lb-empty">⏳ รอข้อมูลการแข่งขัน — อัปเดตเมื่อการแข่งขันเริ่ม</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="lb-port-note">
+        <span style="width:10px;height:10px;background:#f87171;border-radius:2px;display:inline-block;flex-shrink:0;"></span>
+        เลขพอร์ตสีแดง = มีออเดอร์เปิดอยู่
+      </div>
+    </div>
+  </div>
+
+  <!-- Final Day Warning -->
+  <div class="final-warning">
+    <div class="final-warning-title">🚨 ข้อควรระวัง — วันสุดท้ายของการแข่งขัน</div>
+    <p>ผู้เข้าร่วมต้องปิดคำสั่งซื้อขายทั้งหมด รวมถึง <strong>Pending Orders</strong> ภายในเวลา <strong>22:00 น.</strong></p>
+    <p>หากยังมีคำสั่งเปิดอยู่หลังเวลานี้ จะ<strong>ถูกตัดสิทธิ์จากการจัดอันดับทันที</strong></p>
+    <p>แนะนำให้ปิดคำสั่งก่อนเวลาตัดประมาณ <strong>5 นาที</strong></p>
   </div>
 
   <!-- CTA -->
   <div class="cta-card">
     <div class="cta-card-title">⚔️ พร้อมเข้าสู่สมรภูมิแล้วหรือยัง?</div>
-    <div class="cta-card-sub">เพียงแค่ลงทะเบียนและพิสูจน์ตัวเองในสนามรบแห่ง Valhalla Dungeon SS.2</div>
-    <div class="cta-btn-row">
-      <a class="cta-btn gold" href="https://www.strikeprofx.com/th/valhalla-dungeon/" target="_blank">
-        ⚔️ Enter Valhalla Dungeon
-      </a>
-      <a class="cta-btn outline" href="https://my.strikeprofx.com/register?referral=3" target="_blank">
-        📋 Register Now
-      </a>
-    </div>
+    <div class="cta-card-sub">ลงทะเบียนฟรี — พิสูจน์ตัวเองในสนามรบแห่ง Valhalla Dungeon SS.2</div>
+    <a class="cta-btn" href="https://www.strikeprofx.com/th/valhalla-dungeon/" target="_blank">
+      ⚔️ Join the Tournament / ลงทะเบียนสมัครแข่งขัน
+    </a>
   </div>
 
   <!-- Disclaimer -->
