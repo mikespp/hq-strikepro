@@ -44,20 +44,79 @@
     .card-header-icon { width: 28px; height: 28px; border-radius: 8px; background: var(--accent-dim); display: flex; align-items: center; justify-content: center; font-size: 14px; }
     .card-header-title { font-size: 14px; font-weight: 700; }
     .card-body { padding: 16px; }
-    .course-list { display: flex; flex-direction: column; gap: 10px; }
-    .course-item { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; display: flex; gap: 12px; align-items: flex-start; }
-    .course-icon { font-size: 22px; flex-shrink: 0; }
-    .course-name { font-size: 14px; font-weight: 700; color: var(--accent); margin-bottom: 4px; }
-    .course-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
-    .course-tag { display: inline-block; background: var(--accent-dim); border: 1px solid var(--accent-mid); color: var(--accent); font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px; margin-top: 6px; }
     .bullet-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
     .bullet-list li { font-size: 13px; color: var(--text-muted); display: flex; align-items: flex-start; gap: 8px; line-height: 1.5; }
     .bullet-list li::before { content: '•'; color: var(--accent); flex-shrink: 0; }
     .bullet-list.check li::before { content: '✓'; color: var(--green); }
-    .cta-banner { background: var(--accent-dim); border: 1px solid var(--accent-mid); border-radius: var(--radius-sm); padding: 18px 16px; text-align: center; }
-    .cta-banner p { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; }
-    .cta-btn { display: inline-flex; background: var(--accent); color: #000; text-decoration: none; padding: 12px 24px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 700; transition: opacity .15s; }
-    .cta-btn:hover { opacity: .85; }
+
+    /* ── Step 1 card ── */
+    .step-intro { font-size: 14px; color: var(--text-muted); line-height: 1.7; margin-bottom: 16px; }
+    .action-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 13px 20px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 700;
+      text-decoration: none; transition: opacity .15s, transform .1s; width: 100%; margin-bottom: 10px;
+    }
+    .action-btn:active { transform: scale(.97); }
+    .action-btn.primary { background: var(--accent); color: #0a0a0a; box-shadow: 0 4px 18px rgba(56,189,248,.25); }
+    .action-btn.primary:hover { opacity: .88; }
+    .action-btn.secondary {
+      background: none; border: 1px solid var(--accent-mid); color: var(--accent);
+    }
+    .action-btn.secondary:hover { background: var(--accent-dim); }
+    .note-hint { font-size: 12px; color: var(--text-sub); text-align: center; margin-bottom: 16px; }
+    .notice-list { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+    .notice-item {
+      display: flex; gap: 8px; align-items: flex-start;
+      background: rgba(251,191,36,.07); border: 1px solid rgba(251,191,36,.18);
+      border-radius: var(--radius-sm); padding: 10px 12px;
+      font-size: 12px; color: #d4a017; line-height: 1.6;
+    }
+    .notice-icon { flex-shrink: 0; font-size: 13px; margin-top: 1px; }
+
+    /* ── Feature grid ── */
+    .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width:360px) { .feature-grid { grid-template-columns: 1fr; } }
+    .feature-item {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm);
+      padding: 14px 12px; transition: border-color .2s;
+    }
+    .feature-item:hover { border-color: var(--accent-mid); }
+    .feature-icon { font-size: 22px; margin-bottom: 7px; }
+    .feature-name { font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 3px; }
+    .feature-desc { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+
+    /* ── CTA card ── */
+    .cta-card {
+      background: var(--accent-dim); border: 1px solid var(--accent-mid);
+      border-radius: var(--radius); padding: 22px 18px; text-align: center; position: relative; overflow: hidden;
+    }
+    .cta-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    }
+    .cta-card-title { font-size: 17px; font-weight: 900; color: var(--accent); margin-bottom: 6px; }
+    .cta-card-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 18px; line-height: 1.6; }
+    .cta-btn-row { display: flex; flex-direction: column; gap: 10px; }
+    .cta-btn {
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+      padding: 13px 20px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 700;
+      text-decoration: none; transition: opacity .15s, transform .1s;
+    }
+    .cta-btn:active { transform: scale(.97); }
+    .cta-btn.sky { background: var(--accent); color: #0a0a0a; box-shadow: 0 4px 18px rgba(56,189,248,.25); }
+    .cta-btn.sky:hover { opacity: .88; }
+    .cta-btn.outline { background: none; border: 1px solid var(--accent-mid); color: var(--accent); }
+    .cta-btn.outline:hover { background: var(--accent-dim); }
+    .cta-btn.green-btn { background: #22c55e; color: #fff; box-shadow: 0 4px 16px rgba(34,197,94,.25); }
+    .cta-btn.green-btn:hover { opacity: .88; }
+
+    /* ── Disclaimer ── */
+    .disclaimer {
+      font-size: 12px; color: var(--text-sub); background: var(--surface2);
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      padding: 12px 14px; line-height: 1.7;
+    }
+    .disclaimer::before { content: '⚠️  '; }
   .line-cta { position: fixed; bottom: 0; left: 0; right: 0; z-index: 90; padding: 12px 16px; background: linear-gradient(to top, rgba(13,13,13,1) 70%, rgba(13,13,13,0)); display: flex; justify-content: center; }
 .line-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #22c55e; color: #fff; text-decoration: none; padding: 14px 28px; border-radius: 50px; font-size: 15px; font-weight: 700; width: 100%; max-width: 480px; box-shadow: 0 4px 20px rgba(34,197,94,.35); transition: background .15s, transform .1s; -webkit-tap-highlight-color: transparent; }
 .line-btn:hover { background: #16a34a; }
@@ -218,67 +277,121 @@
 
 <div class="hero">
   <div class="hero-inner">
-    <div class="hero-badge">📚 Community Learning</div>
+    <div class="hero-badge">📚 Community Learning · FREE</div>
     <div class="hero-title">Free Education</div>
-    <div class="hero-sub">เรียนรู้การเทรดและการตลาดแบบฟรี — สำหรับสมาชิกชุมชน Strikepro ทุกระดับ</div>
+    <div class="hero-sub">เรียนรู้การเทรด การตลาด และการพัฒนาตัวเอง ฟรี<br>จาก Community ของ Strikepro</div>
   </div>
 </div>
 
 <main class="page-main">
 
+  <!-- Step 1 -->
   <div class="card">
-    <div class="card-header"><div class="card-header-icon">📚</div><div class="card-header-title">หลักสูตรที่ครอบคลุม</div></div>
+    <div class="card-header">
+      <div class="card-header-icon">⭐</div>
+      <div class="card-header-title">ขั้นแรก : สมัครเข้าเป็นสมาชิก</div>
+    </div>
     <div class="card-body">
-      <div class="course-list">
-        <div class="course-item">
-          <div class="course-icon">📊</div>
-          <div>
-            <div class="course-name">FX Trading Fundamentals</div>
-            <div class="course-desc">พื้นฐานการเทรด Forex — Price Action, Support & Resistance, Trend Analysis</div>
-            <div class="course-tag">FREE</div>
-          </div>
+      <p class="step-intro">สมัครเพื่อเข้าร่วมคอร์สจาร์ยบัส และเรียนสดวันเสาร์ กับ Community Strikepro</p>
+      <a class="action-btn primary" href="https://my.strikeprofx.com/register?referral=3" target="_blank">
+        📚 สมัครสมาชิก Strikepro
+      </a>
+      <p class="note-hint">(สามารถกดดูวิดีโอสอนสมัครสมาชิกได้จากด้านล่าง)</p>
+      <a class="action-btn secondary" href="https://www.youtube.com/shorts/rs-BEkinynU" target="_blank">
+        🎥 วิธีสมัครสมาชิก Strikepro
+      </a>
+      <div class="notice-list">
+        <div class="notice-item">
+          <span class="notice-icon">🔺</span>
+          <span>เติมเงินภายหลังได้ สมัครเพื่อเข้าร่วม Community ได้ก่อน</span>
         </div>
-        <div class="course-item">
-          <div class="course-icon">🧠</div>
-          <div>
-            <div class="course-name">Trading Psychology</div>
-            <div class="course-desc">จิตวิทยาการเทรด — ความวินัย การควบคุมอารมณ์ และ Mindset ของนักเทรดมืออาชีพ</div>
-            <div class="course-tag">FREE</div>
-          </div>
-        </div>
-        <div class="course-item">
-          <div class="course-icon">📣</div>
-          <div>
-            <div class="course-name">Marketing & Network Building</div>
-            <div class="course-desc">การสร้างเครือข่าย การตลาดในยุคดิจิทัล และการขยายธุรกิจในชุมชน Strikepro</div>
-            <div class="course-tag">FREE</div>
-          </div>
-        </div>
-        <div class="course-item">
-          <div class="course-icon">💼</div>
-          <div>
-            <div class="course-name">Investment Planning</div>
-            <div class="course-desc">วางแผนการลงทุน — การกระจายความเสี่ยง Compound Growth และการตั้งเป้าหมาย</div>
-            <div class="course-tag">FREE</div>
-          </div>
+        <div class="notice-item">
+          <span class="notice-icon">🔺</span>
+          <span>หากสมัครเรียบร้อยแล้ว กรุณาแคปหน้าจอส่งให้แอดมิน เพื่อเข้าห้องเรียนและกลุ่ม Private</span>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- Features -->
   <div class="card">
-    <div class="card-header"><div class="card-header-icon">⭐</div><div class="card-header-title">ทำไมต้อง Free Education?</div></div>
+    <div class="card-header">
+      <div class="card-header-icon">✨</div>
+      <div class="card-header-title">สิ่งที่คุณจะได้รับ</div>
+    </div>
+    <div class="card-body">
+      <div class="feature-grid">
+        <div class="feature-item">
+          <div class="feature-icon">💻</div>
+          <div class="feature-name">เรียน Online ฟรี</div>
+          <div class="feature-desc">เข้าถึงเนื้อหาได้ทุกที่ ไม่มีค่าใช้จ่าย</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">📡</div>
+          <div class="feature-name">Live สอนสดทุกวันเสาร์</div>
+          <div class="feature-desc">Session สดทุกสัปดาห์ เรียนแบบ Interactive</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">💬</div>
+          <div class="feature-name">กลุ่ม Line Private</div>
+          <div class="feature-desc">กลุ่มสำหรับสมาชิก แลกเปลี่ยนความรู้เฉพาะกลุ่ม</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🧑‍🏫</div>
+          <div class="feature-name">มีโค้ชคอยดูแล</div>
+          <div class="feature-desc">โค้ชมืออาชีพสอนและแนะนำฟรีตลอด</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">📈</div>
+          <div class="feature-name">เทรด · การตลาด · Mindset</div>
+          <div class="feature-desc">ครอบคลุมทุกมิติของการลงทุนและพัฒนาตัวเอง</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🌐</div>
+          <div class="feature-name">Community Support</div>
+          <div class="feature-desc">เครือข่ายนักลงทุนที่เติบโตและสนับสนุนกัน</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Why Join -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">💡</div>
+      <div class="card-header-title">ทำไมต้องเข้าร่วม Free Education?</div>
+    </div>
     <div class="card-body">
       <ul class="bullet-list check">
-        <li>เรียนฟรี ไม่มีค่าใช้จ่ายสำหรับสมาชิก Strikepro</li>
-        <li>เนื้อหาอัปเดตสม่ำเสมอจากผู้เชี่ยวชาญ</li>
-        <li>เรียนได้ทุกที่ทุกเวลาผ่านมือถือ</li>
-        <li>ชุมชนนักเรียนที่แลกเปลี่ยนความรู้กัน</li>
-        <li>ได้รับ STP Coin เมื่อเรียนจบหลักสูตร</li>
+        <li>เรียนฟรี ไม่มีค่าใช้จ่าย</li>
+        <li>ได้เข้าถึง Community ของนักลงทุน</li>
+        <li>มีโค้ชช่วยดูแลและแนะนำตลอดเส้นทาง</li>
+        <li>เรียนรู้จากประสบการณ์จริงของผู้เชี่ยวชาญ</li>
+        <li>สามารถต่อยอดสู่สายงานนักการตลาดและนักลงทุนได้</li>
       </ul>
     </div>
   </div>
 
+  <!-- CTA -->
+  <div class="cta-card">
+    <div class="cta-card-title">📚 พร้อมเริ่มเรียนฟรีแล้วหรือยัง?</div>
+    <div class="cta-card-sub">สมัครสมาชิก Strikepro แล้วเข้าร่วม Community ได้เลย</div>
+    <div class="cta-btn-row">
+      <a class="cta-btn sky" href="https://my.strikeprofx.com/register?referral=3" target="_blank">
+        📚 สมัครสมาชิก
+      </a>
+      <a class="cta-btn outline" href="https://www.youtube.com/shorts/rs-BEkinynU" target="_blank">
+        🎥 ดูวิธีสมัคร
+      </a>
+      <a class="cta-btn green-btn" href="https://lin.ee/8WkoRmL" target="_blank">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;fill:#fff;flex-shrink:0"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.07 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+        ติดต่อ Admin
+      </a>
+    </div>
+  </div>
+
+  <!-- Disclaimer -->
+  <p class="disclaimer">การลงทุนมีความเสี่ยง ควรศึกษาข้อมูลก่อนตัดสินใจลงทุน</p>
 
 </main>
 <div class="line-cta"><a class="line-btn" href="https://lin.ee/8WkoRmL" target="_blank"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.070 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>สอบถาม / ติดต่อ Admin</a></div>
