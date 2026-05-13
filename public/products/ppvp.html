@@ -128,6 +128,48 @@
     .line-btn:hover { background: #16a34a; }
     .line-btn:active { transform: scale(.97); }
     .line-btn svg { width: 22px; height: 22px; fill: #fff; flex-shrink: 0; }
+  
+    /* ── STP Backup Claim card ── */
+    .stp-card {
+      background: linear-gradient(135deg, rgba(245,158,11,.06) 0%, rgba(245,158,11,.02) 100%);
+      border: 1px solid rgba(245,158,11,.3) !important;
+      border-radius: 14px; overflow: hidden; position: relative;
+    }
+    .stp-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(245,158,11,.6), transparent);
+    }
+    .stp-card .card-header { border-color: rgba(245,158,11,.2) !important; }
+    .stp-card .card-header-icon { background: rgba(245,158,11,.15) !important; }
+    .stp-claim-amount {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(245,158,11,.12); border: 1px solid rgba(245,158,11,.3);
+      border-radius: 50px; padding: 8px 18px; margin: 14px 0;
+      font-size: 15px; font-weight: 800; color: #f59e0b;
+    }
+    .stp-claim-amount .coin-icon { font-size: 18px; }
+    .stp-condition {
+      background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07);
+      border-radius: 10px; padding: 14px 16px; margin: 14px 0;
+    }
+    .stp-condition-label {
+      font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+      color: #f59e0b; margin-bottom: 8px;
+    }
+    .stp-condition p { font-size: 13px; color: var(--text-muted, #777); line-height: 1.7; }
+    .stp-example {
+      background: rgba(245,158,11,.06); border-left: 3px solid rgba(245,158,11,.5);
+      border-radius: 0 8px 8px 0; padding: 14px 16px; margin: 14px 0;
+    }
+    .stp-example-label {
+      font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+      color: rgba(245,158,11,.8); margin-bottom: 6px;
+    }
+    .stp-example p { font-size: 13px; color: var(--text-muted, #777); line-height: 1.7; }
+    .stp-disclaimer {
+      font-size: 11px; color: var(--text-sub, #555); margin-top: 14px;
+      line-height: 1.6; border-top: 1px solid rgba(255,255,255,.06); padding-top: 12px;
+    }
   </style>
 </head>
 <body>
@@ -321,6 +363,32 @@
         <li>ฝากและถอนผ่านระบบ</li>
         <li>ได้รับผลตอบแทนตามสัดส่วนเงินจริง</li>
       </ul>
+    </div>
+  </div>
+
+  <!-- STP Backup Claim -->
+  <div class="card stp-card">
+    <div class="card-header">
+      <div class="card-header-icon">🛡️</div>
+      <div class="card-header-title">STP Backup Claim</div>
+    </div>
+    <div class="card-body">
+      <p style="font-size:14px;color:var(--text-muted,#777);line-height:1.7;margin-bottom:4px;">
+        ผู้ใช้งานสามารถใช้ STP Coin สำหรับ Backup และ Claim ได้
+      </p>
+      <div class="stp-claim-amount">
+        <span class="coin-icon">🪙</span>
+        สูงสุด 3,000 STP Coin / ครั้ง
+      </div>
+      <div class="stp-condition">
+        <div class="stp-condition-label">เงื่อนไขการใช้งาน</div>
+        <p>สามารถใช้ STP Backup ได้เฉพาะกรณีที่มีการปิด Order ขาดทุนจริงเท่านั้น</p>
+      </div>
+      <div class="stp-example">
+        <div class="stp-example-label">ตัวอย่าง</div>
+        <p>หากมีการทำงานของระบบ Circuit Break และมี Order ที่ปิดขาดทุนจริง ผู้ใช้งานสามารถใช้ STP Coin เพื่อช่วย Backup ตามเงื่อนไขที่กำหนด โดยสามารถ Claim ได้สูงสุด 3,000 STP Coin ต่อครั้ง</p>
+      </div>
+      <p class="stp-disclaimer">* STP Backup is a community support mechanism and not a guarantee of investment returns.</p>
     </div>
   </div>
 
