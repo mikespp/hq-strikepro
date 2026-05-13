@@ -3,24 +3,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Trade Challenge – HQ Strikepro</title>
+  <title>Valhalla Dungeon – HQ Strikepro</title>
   <link rel="manifest" href="/manifest.json" />
   <link rel="apple-touch-icon" href="/icon.png" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="theme-color" content="#0f172a" />
+  <meta name="theme-color" content="#0a0704" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --accent: #fb923c; --accent-dim: rgba(251,146,60,.12); --accent-mid: rgba(251,146,60,.28);
-      --bg: #0d0d0d; --surface: #1a1a1a; --surface2: #222;
-      --border: #2e2e2e; --text: #f1f1f1; --text-muted: #777; --text-sub: #555;
+      --gold: #d4af37; --gold-dim: rgba(212,175,55,.10); --gold-mid: rgba(212,175,55,.28);
+      --gold-glow: rgba(212,175,55,.5);
+      --crimson: #dc2626; --crimson-dim: rgba(220,38,38,.10); --crimson-mid: rgba(220,38,38,.3);
+      --bg: #0a0704; --surface: #120e09; --surface2: #1c1610; --surface3: #231a0e;
+      --border: #2c2218; --text: #f1e8d0; --text-muted: #8a7660; --text-sub: #5c4e3a;
       --green: #4ade80; --radius: 14px; --radius-sm: 8px; --nav-h: 56px;
     }
     html, body { background: var(--bg); color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+
+    /* ── Nav ── */
     .top-nav { position: sticky; top: 0; z-index: 100; height: var(--nav-h);
-      background: rgba(13,13,13,.92); backdrop-filter: blur(12px);
+      background: rgba(10,7,4,.95); backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border);
       display: flex; align-items: center; justify-content: space-between; padding: 0 16px; }
     .nav-back { background: none; border: none; cursor: pointer; color: var(--text-muted);
@@ -28,89 +32,222 @@
       font-size: 14px; font-weight: 600; border-radius: 8px; transition: color .15s, background .15s; text-decoration: none; }
     .nav-back:hover { color: var(--text); background: var(--surface2); }
     .nav-back svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
-    .nav-title { font-size: 15px; font-weight: 800; color: var(--accent); }
-    .hero { background: linear-gradient(160deg, #130a02 0%, #1f1005 100%);
-      border-bottom: 1px solid var(--border); padding: 32px 16px 28px; position: relative; overflow: hidden; }
-    .hero::before { content: ''; position: absolute; top: -60px; right: -60px; width: 220px; height: 220px; border-radius: 50%;
-      background: radial-gradient(circle, rgba(251,146,60,.1) 0%, transparent 70%); pointer-events: none; }
-    .hero-inner { max-width: 640px; margin: 0 auto; }
-    .hero-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--accent-dim); border: 1px solid var(--accent-mid);
-      border-radius: 20px; padding: 4px 12px; margin-bottom: 14px; font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: .05em; text-transform: uppercase; }
-    .hero-title { font-size: 28px; font-weight: 900; color: var(--accent); letter-spacing: -.5px; line-height: 1.1; margin-bottom: 6px; }
-    .hero-sub { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
-    .page-main { max-width: 640px; margin: 0 auto; padding: 20px 16px 80px; display: flex; flex-direction: column; gap: 16px; }
+    .nav-title { font-size: 14px; font-weight: 800; color: var(--gold); letter-spacing: .03em; }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(160deg, #0a0704 0%, #160c04 50%, #1a0e06 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 36px 16px 32px; position: relative; overflow: hidden; text-align: center;
+    }
+    .hero::before {
+      content: ''; position: absolute; top: -80px; left: 50%; transform: translateX(-50%);
+      width: 320px; height: 320px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(212,175,55,.08) 0%, rgba(220,38,38,.04) 50%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero::after {
+      content: '⚔'; position: absolute; bottom: -20px; right: -10px;
+      font-size: 120px; opacity: .03; pointer-events: none; line-height: 1;
+      color: var(--gold);
+    }
+    .rune-row {
+      display: flex; justify-content: center; gap: 10px; margin-bottom: 16px;
+      font-size: 14px; color: var(--gold); opacity: .45; letter-spacing: 6px;
+    }
+    .hero-inner { max-width: 640px; margin: 0 auto; position: relative; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(220,38,38,.12); border: 1px solid rgba(220,38,38,.35);
+      border-radius: 20px; padding: 4px 14px; margin-bottom: 16px;
+      font-size: 11px; font-weight: 800; color: #f87171; letter-spacing: .1em; text-transform: uppercase;
+    }
+    .hero-title {
+      font-size: 34px; font-weight: 900; letter-spacing: -.5px; line-height: 1.05; margin-bottom: 10px;
+      background: linear-gradient(135deg, #f5e17a 0%, #d4af37 40%, #b8941e 80%, #f5e17a 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      text-shadow: none;
+    }
+    .hero-sub {
+      font-size: 13px; color: var(--text-muted); line-height: 1.7; margin-bottom: 18px;
+      max-width: 480px; margin-left: auto; margin-right: auto;
+    }
+    .hero-cta-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    .hero-btn {
+      display: inline-flex; align-items: center; gap: 7px; padding: 11px 20px;
+      border-radius: var(--radius-sm); font-size: 13px; font-weight: 700; text-decoration: none; transition: opacity .15s, transform .1s;
+    }
+    .hero-btn:active { transform: scale(.97); }
+    .hero-btn.gold {
+      background: linear-gradient(135deg, #d4af37, #b8941e);
+      color: #0a0704; box-shadow: 0 4px 18px rgba(212,175,55,.3);
+    }
+    .hero-btn.gold:hover { opacity: .88; }
+    .hero-btn.outline {
+      background: none; border: 1px solid var(--gold-mid); color: var(--gold);
+    }
+    .hero-btn.outline:hover { background: var(--gold-dim); }
+
+    /* ── Season Banner ── */
+    .season-banner {
+      background: linear-gradient(135deg, rgba(220,38,38,.12) 0%, rgba(212,175,55,.08) 100%);
+      border: 1px solid rgba(220,38,38,.3); border-radius: var(--radius);
+      padding: 20px 18px; text-align: center; position: relative; overflow: hidden;
+    }
+    .season-banner::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--crimson), var(--gold), var(--crimson), transparent);
+    }
+    .season-label {
+      font-size: 11px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase;
+      color: var(--crimson); margin-bottom: 8px;
+    }
+    .season-title {
+      font-size: 22px; font-weight: 900; letter-spacing: 2px;
+      background: linear-gradient(135deg, #f5e17a, #d4af37, #f5e17a);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      margin-bottom: 6px;
+    }
+    .season-sub { font-size: 13px; color: var(--text-muted); }
+
+    /* ── Cards ── */
+    .page-main { max-width: 640px; margin: 0 auto; padding: 20px 16px 100px; display: flex; flex-direction: column; gap: 16px; }
     .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
     .card-header { padding: 14px 16px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
-    .card-header-icon { width: 28px; height: 28px; border-radius: 8px; background: var(--accent-dim); display: flex; align-items: center; justify-content: center; font-size: 14px; }
-    .card-header-title { font-size: 14px; font-weight: 700; }
+    .card-header-icon { width: 30px; height: 30px; border-radius: 8px; background: var(--gold-dim); display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; border: 1px solid rgba(212,175,55,.15); }
+    .card-header-title { font-size: 14px; font-weight: 700; color: var(--text); }
     .card-body { padding: 16px; }
-    .prize-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
-    .prize-cell { text-align: center; background: var(--surface2); border-radius: var(--radius-sm); padding: 14px 8px; }
-    .prize-rank { font-size: 20px; margin-bottom: 6px; }
-    .prize-val { font-size: 16px; font-weight: 800; color: var(--accent); }
-    .prize-lbl { font-size: 10px; color: var(--text-sub); margin-top: 3px; text-transform: uppercase; letter-spacing: .04em; }
-    .step-list { display: flex; flex-direction: column; gap: 12px; }
-    .step-item { display: flex; gap: 12px; align-items: flex-start; }
-    .step-num { width: 28px; height: 28px; border-radius: 8px; background: var(--accent-dim); border: 1px solid var(--accent-mid);
-      display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: var(--accent); flex-shrink: 0; }
+
+    /* ── About card ── */
+    .about-text { font-size: 14px; color: var(--text-muted); line-height: 1.8; }
+    .about-text + .about-text { margin-top: 10px; }
+
+    /* ── Features grid ── */
+    .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width:360px) { .feature-grid { grid-template-columns: 1fr; } }
+    .feature-item {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm);
+      padding: 14px 12px; position: relative; overflow: hidden;
+      transition: border-color .2s;
+    }
+    .feature-item:hover { border-color: rgba(212,175,55,.25); }
+    .feature-icon { font-size: 22px; margin-bottom: 8px; }
+    .feature-name { font-size: 13px; font-weight: 700; color: var(--gold); margin-bottom: 3px; }
+    .feature-desc { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+
+    /* ── Steps ── */
+    .step-list { display: flex; flex-direction: column; gap: 14px; }
+    .step-item { display: flex; gap: 14px; align-items: flex-start; }
+    .step-num {
+      width: 30px; height: 30px; border-radius: 8px;
+      background: var(--gold-dim); border: 1px solid var(--gold-mid);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 900; color: var(--gold); flex-shrink: 0;
+    }
     .step-content { flex: 1; }
-    .step-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
-    .step-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+    .step-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+    .step-desc { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+
+    /* ── Rewards ── */
+    .reward-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+    .reward-cell {
+      text-align: center; background: var(--surface2); border-radius: var(--radius-sm);
+      padding: 16px 8px; border: 1px solid var(--border);
+    }
+    .reward-cell.first { border-color: rgba(212,175,55,.35); background: rgba(212,175,55,.06); }
+    .reward-cell.second { border-color: rgba(192,192,192,.25); background: rgba(192,192,192,.04); }
+    .reward-cell.third { border-color: rgba(184,115,51,.25); background: rgba(184,115,51,.04); }
+    .reward-rank { font-size: 26px; margin-bottom: 6px; }
+    .reward-val { font-size: 14px; font-weight: 800; color: var(--gold); }
+    .reward-cell.second .reward-val { color: #c0c0c0; }
+    .reward-cell.third .reward-val { color: #b87333; }
+    .reward-lbl { font-size: 10px; color: var(--text-sub); margin-top: 4px; text-transform: uppercase; letter-spacing: .05em; }
+    .reward-note { font-size: 11px; color: var(--text-sub); margin-top: 14px; font-style: italic; line-height: 1.6; }
+
+    /* ── CTA Card ── */
+    .cta-card {
+      background: linear-gradient(135deg, rgba(212,175,55,.08) 0%, rgba(220,38,38,.06) 100%);
+      border: 1px solid rgba(212,175,55,.25); border-radius: var(--radius);
+      padding: 24px 18px; text-align: center; position: relative; overflow: hidden;
+    }
+    .cta-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+    .cta-card-title { font-size: 18px; font-weight: 900; color: var(--gold); margin-bottom: 6px; }
+    .cta-card-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 18px; line-height: 1.6; }
+    .cta-btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    .cta-btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+      padding: 13px 22px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 700;
+      text-decoration: none; transition: opacity .15s, transform .1s;
+    }
+    .cta-btn:active { transform: scale(.97); }
+    .cta-btn.gold {
+      background: linear-gradient(135deg, #d4af37, #b8941e);
+      color: #0a0704; box-shadow: 0 4px 20px rgba(212,175,55,.28); min-width: 180px;
+    }
+    .cta-btn.gold:hover { opacity: .88; }
+    .cta-btn.outline {
+      background: none; border: 1px solid var(--gold-mid); color: var(--gold);
+    }
+    .cta-btn.outline:hover { background: var(--gold-dim); }
+
+    /* ── Disclaimer ── */
+    .disclaimer {
+      background: rgba(220,38,38,.06); border: 1px solid rgba(220,38,38,.2);
+      border-radius: var(--radius-sm); padding: 14px 16px;
+      font-size: 12px; color: var(--text-muted); line-height: 1.7;
+    }
+    .disclaimer::before { content: '⚠️  '; }
+
+    /* ── Bullet list ── */
     .bullet-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
     .bullet-list li { font-size: 13px; color: var(--text-muted); display: flex; align-items: flex-start; gap: 8px; line-height: 1.5; }
-    .bullet-list li::before { content: '•'; color: var(--accent); flex-shrink: 0; }
-    .bullet-list.check li::before { content: '✓'; color: var(--green); }
-    .cta-banner { background: var(--accent-dim); border: 1px solid var(--accent-mid); border-radius: var(--radius-sm); padding: 18px 16px; text-align: center; }
-    .cta-banner p { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; }
-    .cta-btn { display: inline-flex; background: var(--accent); color: #000; text-decoration: none; padding: 12px 24px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 700; transition: opacity .15s; }
-    .cta-btn:hover { opacity: .85; }
-  .line-cta { position: fixed; bottom: 0; left: 0; right: 0; z-index: 90; padding: 12px 16px; background: linear-gradient(to top, rgba(13,13,13,1) 70%, rgba(13,13,13,0)); display: flex; justify-content: center; }
-.line-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #22c55e; color: #fff; text-decoration: none; padding: 14px 28px; border-radius: 50px; font-size: 15px; font-weight: 700; width: 100%; max-width: 480px; box-shadow: 0 4px 20px rgba(34,197,94,.35); transition: background .15s, transform .1s; -webkit-tap-highlight-color: transparent; }
-.line-btn:hover { background: #16a34a; }
-.line-btn:active { transform: scale(.97); }
-.line-btn svg { width: 22px; height: 22px; fill: #fff; flex-shrink: 0; }
+    .bullet-list li::before { content: '⚔'; color: var(--gold); flex-shrink: 0; font-size: 11px; margin-top: 2px; }
+
+    /* ── LINE CTA ── */
+    .line-cta { position: fixed; bottom: 0; left: 0; right: 0; z-index: 90;
+      padding: 12px 16px; background: linear-gradient(to top, rgba(10,7,4,1) 70%, rgba(10,7,4,0));
+      display: flex; justify-content: center; }
+    .line-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      background: #22c55e; color: #fff; text-decoration: none;
+      padding: 14px 28px; border-radius: 50px; font-size: 15px; font-weight: 700;
+      width: 100%; max-width: 480px; box-shadow: 0 4px 20px rgba(34,197,94,.35);
+      transition: background .15s, transform .1s; -webkit-tap-highlight-color: transparent; }
+    .line-btn:hover { background: #16a34a; }
+    .line-btn:active { transform: scale(.97); }
+    .line-btn svg { width: 22px; height: 22px; fill: #fff; flex-shrink: 0; }
 
     /* ── Hamburger ── */
-    .hamburger {
-      background: none; border: none; cursor: pointer; color: var(--text, #f0f0f0);
+    .hamburger { background: none; border: none; cursor: pointer; color: var(--text);
       padding: 8px; display: flex; flex-direction: column; gap: 5px;
-      align-items: center; justify-content: center;
-      border-radius: 8px; transition: background .15s; flex-shrink: 0;
-    }
+      align-items: center; justify-content: center; border-radius: 8px; transition: background .15s; flex-shrink: 0; }
     .hamburger:hover { background: rgba(255,255,255,.08); }
     .hamburger span { display: block; width: 22px; height: 2px; background: currentColor; border-radius: 2px; }
     /* ── Drawer overlay ── */
-    .drawer-overlay {
-      position: fixed; inset: 0; z-index: 200;
-      background: rgba(0,0,0,.6); opacity: 0; pointer-events: none; transition: opacity .25s;
-    }
+    .drawer-overlay { position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,.6); opacity: 0; pointer-events: none; transition: opacity .25s; }
     .drawer-overlay.open { opacity: 1; pointer-events: all; }
     /* ── Drawer ── */
-    .drawer {
-      position: fixed; top: 0; left: 0; bottom: 0; z-index: 201; width: 275px;
+    .drawer { position: fixed; top: 0; left: 0; bottom: 0; z-index: 201; width: 275px;
       background: #1a1a1a; border-right: 1px solid #2e2e2e;
       display: flex; flex-direction: column;
-      transform: translateX(-100%); transition: transform .28s cubic-bezier(.4,0,.2,1);
-    }
+      transform: translateX(-100%); transition: transform .28s cubic-bezier(.4,0,.2,1); }
     .drawer.open { transform: translateX(0); }
     .drawer-header { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid #2e2e2e; }
     .drawer-logo-name { font-size: 16px; font-weight: 800; color: #f1f1f1; letter-spacing: -.3px; }
     .drawer-logo-name span { color: #E63946; }
     .drawer-nav { flex: 1; padding: 10px 0; overflow-y: auto; display: block !important; position: static !important; background: transparent !important; border: none !important; backdrop-filter: none !important; }
-    .drawer-link {
-      display: flex; align-items: center; gap: 12px; padding: 13px 20px;
+    .drawer-link { display: flex; align-items: center; gap: 12px; padding: 13px 20px;
       font-size: 15px; font-weight: 600; color: #777; text-decoration: none;
-      transition: color .15s, background .15s; border-left: 3px solid transparent;
-    }
+      transition: color .15s, background .15s; border-left: 3px solid transparent; }
     .drawer-link:hover { color: #f1f1f1; background: #222; }
     .drawer-link-icon { font-size: 18px; }
     .drawer-footer { padding: 16px 18px; border-top: 1px solid #2e2e2e; }
-    .drawer-signout {
-      width: 100%; background: none; border: 1px solid #2e2e2e; color: #777;
+    .drawer-signout { width: 100%; background: none; border: 1px solid #2e2e2e; color: #777;
       border-radius: 8px; padding: 10px; font-size: 13px; font-weight: 600;
-      cursor: pointer; transition: border-color .15s, color .15s;
-      font-family: inherit;
-    }
+      cursor: pointer; transition: border-color .15s, color .15s; font-family: inherit; }
     .drawer-signout:hover { border-color: #E63946; color: #E63946; }
     .drawer-section-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #555; padding: 14px 20px 6px; }
     .drawer-divider { border: none; border-top: 1px solid #2e2e2e; margin: 6px 0; }
@@ -119,23 +256,18 @@
     .drawer-link-line svg { width: 18px; height: 18px; fill: #fff; flex-shrink: 0; }
     /* ── Accordion ── */
     .drawer-accordion { border-left: 3px solid transparent; }
-    .drawer-accordion-btn {
-      display: flex; align-items: center; gap: 12px; width: 100%;
+    .drawer-accordion-btn { display: flex; align-items: center; gap: 12px; width: 100%;
       padding: 13px 20px; font-size: 15px; font-weight: 600;
       color: #777; background: none; border: none; cursor: pointer;
-      transition: color .15s, background .15s; text-align: left; font-family: inherit;
-    }
+      transition: color .15s, background .15s; text-align: left; font-family: inherit; }
     .drawer-accordion-btn:hover { color: #f1f1f1; background: #222; }
     .drawer-accordion-btn .acc-arrow { margin-left: auto; font-size: 12px; transition: transform .22s; }
     .drawer-accordion.open .acc-arrow { transform: rotate(180deg); }
     .drawer-accordion-body { display: none; }
     .drawer-accordion.open .drawer-accordion-body { display: block; }
-    .drawer-sub-link {
-      display: flex; align-items: center; gap: 10px;
+    .drawer-sub-link { display: flex; align-items: center; gap: 10px;
       padding: 10px 20px 10px 52px; font-size: 14px; font-weight: 500;
-      color: #777; text-decoration: none;
-      transition: color .15s, background .15s; border-left: 3px solid transparent;
-    }
+      color: #777; text-decoration: none; transition: color .15s, background .15s; border-left: 3px solid transparent; }
     .drawer-sub-link:hover { color: #f1f1f1; background: #222; }
     .drawer-sub-icon { font-size: 15px; }
   </style>
@@ -150,7 +282,7 @@
   <button class="hamburger" id="navHamburgerBtn" onclick="toggleDrawer()" aria-label="Menu" style="display:none">
     <span></span><span></span><span></span>
   </button>
-  <span class="nav-title">Trade Challenge</span>
+  <span class="nav-title">⚔️ Valhalla Dungeon</span>
 </nav>
 
 <!-- ── Drawer overlay ── -->
@@ -204,7 +336,7 @@
           <span class="drawer-sub-icon">📚</span> Free Education
         </a>
         <a class="drawer-sub-link" href="/ecosystem/trade-challenge.html">
-          <span class="drawer-sub-icon">🏁</span> Trade Challenge
+          <span class="drawer-sub-icon">⚔️</span> Valhalla Dungeon
         </a>
         <a class="drawer-sub-link" href="/ecosystem/charity-project.html">
           <span class="drawer-sub-icon">❤️</span> Charity Project
@@ -222,94 +354,195 @@
   </div>
 </div>
 
+<!-- ── Hero ── -->
 <div class="hero">
   <div class="hero-inner">
-    <div class="hero-badge">🏁 Community Competition</div>
-    <div class="hero-title">Trade Challenge</div>
-    <div class="hero-sub">การแข่งขันเทรดสำหรับสมาชิกชุมชน Strikepro — พิสูจน์ฝีมือ รับรางวัล และเติบโตไปด้วยกัน</div>
+    <div class="rune-row">ᚢ ᚦ ᚨ ᚱ ᚲ ᚷ ᚹ ᚺ</div>
+    <div class="hero-badge">⚔️ &nbsp;TRADING COMPETITION &nbsp; · &nbsp; SS.2</div>
+    <div class="hero-title">Valhalla Dungeon</div>
+    <div class="hero-sub">สมรภูมิแห่งนักรบเทรดเดอร์<br>ผู้ที่แข็งแกร่งที่สุดเท่านั้นที่จะอยู่รอด</div>
+    <div class="hero-cta-row">
+      <a class="hero-btn gold" href="https://www.strikeprofx.com/th/valhalla-dungeon/" target="_blank">
+        ⚔️ Enter Valhalla Dungeon
+      </a>
+      <a class="hero-btn outline" href="https://my.strikeprofx.com/register?referral=3" target="_blank">
+        📋 Register Now
+      </a>
+    </div>
   </div>
 </div>
 
 <main class="page-main">
 
+  <!-- Season 2 Banner -->
+  <div class="season-banner">
+    <div class="season-label">Current Season</div>
+    <div class="season-title">⚔️ &nbsp;VALHALLA DUNGEON SS.2&nbsp; ⚔️</div>
+    <div class="season-sub">ศึกบทใหม่แห่งนักรบเทรดเดอร์ — เปิดสมรภูมิแล้ว</div>
+  </div>
+
+  <!-- About -->
   <div class="card">
-    <div class="card-header"><div class="card-header-icon">🏆</div><div class="card-header-title">รางวัลสำหรับผู้ชนะ</div></div>
+    <div class="card-header">
+      <div class="card-header-icon">🏰</div>
+      <div class="card-header-title">Valhalla Dungeon คืออะไร?</div>
+    </div>
     <div class="card-body">
-      <div class="prize-grid">
-        <div class="prize-cell">
-          <div class="prize-rank">🥇</div>
-          <div class="prize-val">1st Place</div>
-          <div class="prize-lbl">แชมป์การแข่งขัน</div>
-        </div>
-        <div class="prize-cell">
-          <div class="prize-rank">🥈</div>
-          <div class="prize-val">2nd Place</div>
-          <div class="prize-lbl">รองชนะเลิศ</div>
-        </div>
-        <div class="prize-cell">
-          <div class="prize-rank">🥉</div>
-          <div class="prize-val">3rd Place</div>
-          <div class="prize-lbl">อันดับสาม</div>
-        </div>
-      </div>
-      <p style="font-size:12px;color:var(--text-sub);margin-top:12px;font-style:italic;">* รายละเอียดรางวัลอาจแตกต่างกันในแต่ละรอบการแข่งขัน</p>
+      <p class="about-text">Valhalla Dungeon คือกิจกรรมแข่งขันสำหรับนักเทรด ภายใต้ธีมโลกแห่งนักรบ Valhalla ผู้เข้าแข่งขันจะได้พิสูจน์ฝีมือ กลยุทธ์ และวินัยในการเทรด</p>
+      <p class="about-text" style="margin-top:10px;">เพื่อไต่อันดับสู่จุดสูงสุดของสมรภูมิ พร้อมโอกาสรับรางวัลและการยอมรับจาก Community</p>
     </div>
   </div>
 
+  <!-- Features -->
   <div class="card">
-    <div class="card-header"><div class="card-header-icon">📋</div><div class="card-header-title">วิธีการแข่งขัน</div></div>
+    <div class="card-header">
+      <div class="card-header-icon">⚡</div>
+      <div class="card-header-title">สิ่งที่คุณจะได้รับ</div>
+    </div>
+    <div class="card-body">
+      <div class="feature-grid">
+        <div class="feature-item">
+          <div class="feature-icon">🏅</div>
+          <div class="feature-name">Ranking System</div>
+          <div class="feature-desc">ระบบจัดอันดับ Real-time ติดตามผลการเทรดแบบ Live Leaderboard</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">⚔️</div>
+          <div class="feature-name">Trading Competition</div>
+          <div class="feature-desc">การแข่งขันเทรดจริงที่ท้าทายทักษะและกลยุทธ์ของคุณ</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🛡️</div>
+          <div class="feature-name">Warrior Theme</div>
+          <div class="feature-desc">บรรยากาศนักรบแห่ง Valhalla ที่สร้างแรงบันดาลใจในการเทรด</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🌐</div>
+          <div class="feature-name">Community Battle</div>
+          <div class="feature-desc">แข่งขันและเติบโตไปพร้อมกับสมาชิก Strikepro ทั่วประเทศ</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🏆</div>
+          <div class="feature-name">Reward & Recognition</div>
+          <div class="feature-desc">รางวัลพิเศษและการยอมรับจาก Community สำหรับผู้ชนะ</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🔄</div>
+          <div class="feature-name">Seasonal Event (SS.2)</div>
+          <div class="feature-desc">กิจกรรม Season ใหม่พร้อมกฎระเบียบและรางวัลที่อัปเดตทุก Season</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- How to Enter -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">📋</div>
+      <div class="card-header-title">วิธีการเข้าร่วมสมรภูมิ</div>
+    </div>
     <div class="card-body">
       <div class="step-list">
         <div class="step-item">
-          <div class="step-num">1</div>
+          <div class="step-num">I</div>
           <div class="step-content">
-            <div class="step-title">สมัครเข้าร่วม</div>
-            <div class="step-desc">ลงทะเบียนผ่าน Strikepro และรับ Demo Account สำหรับการแข่งขัน</div>
+            <div class="step-title">สมัครและลงทะเบียน</div>
+            <div class="step-desc">สมัครสมาชิก Strikepro และลงทะเบียนเข้าร่วม Valhalla Dungeon ผ่านลิงก์ที่กำหนด</div>
           </div>
         </div>
         <div class="step-item">
-          <div class="step-num">2</div>
+          <div class="step-num">II</div>
           <div class="step-content">
-            <div class="step-title">เทรดตามกติกา</div>
-            <div class="step-desc">เทรดบน Platform ของ Strikepro ตามกฎระเบียบที่กำหนดในแต่ละรอบ</div>
+            <div class="step-title">เตรียมอาวุธ — Account ของคุณ</div>
+            <div class="step-desc">เปิด Account บน Platform Strikepro และฝากเงินตามเงื่อนไขที่กำหนดในแต่ละ Season</div>
           </div>
         </div>
         <div class="step-item">
-          <div class="step-num">3</div>
+          <div class="step-num">III</div>
           <div class="step-content">
-            <div class="step-title">ติดตามอันดับ</div>
-            <div class="step-desc">ดู Leaderboard แบบ Real-time และปรับกลยุทธ์เพื่อขึ้นอันดับ</div>
+            <div class="step-title">เข้าสู่สมรภูมิ — เริ่มเทรด</div>
+            <div class="step-desc">เทรดตามกติกาที่กำหนด วัดผลจาก % Profit, Risk Management และความสม่ำเสมอ</div>
           </div>
         </div>
         <div class="step-item">
-          <div class="step-num">4</div>
+          <div class="step-num">IV</div>
           <div class="step-content">
-            <div class="step-title">รับรางวัล</div>
-            <div class="step-desc">ผู้ชนะรับรางวัลและ STP Coin ตามอันดับที่จบในรอบการแข่งขัน</div>
+            <div class="step-title">ไต่อันดับ Leaderboard</div>
+            <div class="step-desc">ติดตามอันดับแบบ Real-time ปรับกลยุทธ์เพื่อขึ้นสู่จุดสูงสุดของสมรภูมิ</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">V</div>
+          <div class="step-content">
+            <div class="step-title">รับรางวัลแห่งนักรบ</div>
+            <div class="step-desc">ผู้ชนะรับรางวัลและเกียรติยศจาก Community พร้อม STP Coin ตามอันดับที่จบ</div>
           </div>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- Rewards -->
   <div class="card">
-    <div class="card-header"><div class="card-header-icon">⚖️</div><div class="card-header-title">กติกาการแข่งขัน</div></div>
+    <div class="card-header">
+      <div class="card-header-icon">🏆</div>
+      <div class="card-header-title">รางวัลแห่งสมรภูมิ</div>
+    </div>
     <div class="card-body">
-      <ul class="bullet-list check">
-        <li>เปิดให้สมาชิก Strikepro ทุกคนเข้าร่วม</li>
-        <li>ใช้ Demo Account หรือ Live Account ตามที่กำหนด</li>
-        <li>วัดผลจาก % Profit ในช่วงเวลาที่กำหนด</li>
-        <li>มีการพิจารณา Risk Management ร่วมด้วย</li>
-        <li>ผลการตัดสินของคณะกรรมการถือเป็นที่สิ้นสุด</li>
+      <div class="reward-grid">
+        <div class="reward-cell first">
+          <div class="reward-rank">🥇</div>
+          <div class="reward-val">Champion</div>
+          <div class="reward-lbl">นักรบสูงสุด</div>
+        </div>
+        <div class="reward-cell second">
+          <div class="reward-rank">🥈</div>
+          <div class="reward-val">2nd Warrior</div>
+          <div class="reward-lbl">รองแชมป์</div>
+        </div>
+        <div class="reward-cell third">
+          <div class="reward-rank">🥉</div>
+          <div class="reward-val">3rd Warrior</div>
+          <div class="reward-lbl">อันดับสาม</div>
+        </div>
+      </div>
+      <p class="reward-note">* รางวัลและเงื่อนไขอาจแตกต่างกันในแต่ละ Season — ติดตามประกาศจากทีมงาน Strikepro</p>
+      <ul class="bullet-list" style="margin-top:14px;">
+        <li>เงินรางวัลพิเศษและ STP Coin ตามอันดับ</li>
+        <li>การยอมรับและเกียรติยศจาก Community</li>
+        <li>Badge นักรบพิเศษประจำ Season</li>
+        <li>โอกาสรับสิทธิพิเศษสำหรับ Season ถัดไป</li>
       </ul>
     </div>
   </div>
 
+  <!-- CTA -->
+  <div class="cta-card">
+    <div class="cta-card-title">⚔️ พร้อมเข้าสู่สมรภูมิแล้วหรือยัง?</div>
+    <div class="cta-card-sub">เพียงแค่ลงทะเบียนและพิสูจน์ตัวเองในสนามรบแห่ง Valhalla Dungeon SS.2</div>
+    <div class="cta-btn-row">
+      <a class="cta-btn gold" href="https://www.strikeprofx.com/th/valhalla-dungeon/" target="_blank">
+        ⚔️ Enter Valhalla Dungeon
+      </a>
+      <a class="cta-btn outline" href="https://my.strikeprofx.com/register?referral=3" target="_blank">
+        📋 Register Now
+      </a>
+    </div>
+  </div>
+
+  <!-- Disclaimer -->
+  <p class="disclaimer">กิจกรรมนี้มีความเสี่ยง ผู้เข้าร่วมควรศึกษารายละเอียดและกติกาก่อนเข้าร่วมการแข่งขัน การลงทุนและการเทรดมีความเสี่ยงเสมอ</p>
 
 </main>
-<div class="line-cta"><a class="line-btn" href="https://lin.ee/8WkoRmL" target="_blank"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.070 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>สอบถาม / ติดต่อ Admin</a></div>
+
+<div class="line-cta">
+  <a class="line-btn" href="https://lin.ee/8WkoRmL" target="_blank">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.07 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+    สอบถาม / ติดต่อ Admin
+  </a>
+</div>
+
 <script>
-  // ── Drawer ──
   function toggleDrawer() {
     document.getElementById('drawer').classList.toggle('open');
     document.getElementById('drawerOverlay').classList.toggle('open');
