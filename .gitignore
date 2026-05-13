@@ -4,4 +4,3 @@ db/data.db
 db/users.json
 db/sessions.json
 db/clients.json
-public/videos/
