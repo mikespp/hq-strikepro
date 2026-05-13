@@ -183,30 +183,6 @@
     .rebirth-card-head.normal { background: var(--surface3); color: var(--text-muted); border-bottom: 1px solid var(--border); }
     .rebirth-card-body { padding: 12px 14px; background: var(--surface2); font-size: 12px; color: var(--text-muted); line-height: 1.7; }
 
-    /* ── Leaderboard ── */
-    .lb-update-note { font-size: 11px; color: var(--text-sub); margin-bottom: 14px; line-height: 1.7; }
-    .lb-update-note span { color: var(--gold); font-weight: 700; }
-    .lb-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    .lb-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 340px; }
-    .lb-table th {
-      font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
-      color: var(--text-sub); padding: 0 8px 10px; text-align: left; white-space: nowrap;
-    }
-    .lb-table th:last-child, .lb-table td:last-child { text-align: right; }
-    .lb-table td { padding: 10px 8px; border-top: 1px solid var(--border); vertical-align: middle; }
-    .lb-table tr:hover td { background: rgba(212,175,55,.04); }
-    .lb-rank { font-weight: 800; color: var(--text-sub); width: 28px; }
-    .lb-rank.top1 { color: var(--gold); }
-    .lb-rank.top2 { color: #c0c0c0; }
-    .lb-rank.top3 { color: #b87333; }
-    .lb-port { font-weight: 700; color: var(--text-muted); }
-    .lb-port.active { color: #f87171; }
-    .lb-name { color: var(--text); font-weight: 600; }
-    .lb-profit { font-weight: 800; color: var(--green); }
-    .lb-balance { font-weight: 700; color: var(--text-muted); }
-    .lb-port-note { font-size: 11px; color: #f87171; display: flex; align-items: center; gap: 4px; margin-top: 10px; }
-    .lb-empty { text-align: center; padding: 24px 0; color: var(--text-sub); font-size: 13px; }
-
     /* ── Final warning ── */
     .final-warning {
       background: rgba(220,38,38,.08); border: 1px solid rgba(220,38,38,.3);
@@ -538,41 +514,6 @@
       <p style="font-size:11px;color:#f87171;margin-top:12px;font-weight:700;text-align:center;">
         📣 แจ้งเคลมสิทธิ์กับแอดมินก่อนทุกกรณี
       </p>
-    </div>
-  </div>
-
-  <!-- Leaderboard -->
-  <div class="card">
-    <div class="card-header">
-      <div class="card-header-icon">📊</div>
-      <div class="card-header-title">Leaderboard SS.2</div>
-    </div>
-    <div class="card-body">
-      <p class="lb-update-note">
-        <span>08:00–22:00</span> อัปเดตทุก 10 นาที &nbsp;·&nbsp; <span>23:00–07:00</span> อัปเดตทุก 1 ชั่วโมง
-      </p>
-      <div class="lb-table-wrap">
-        <table class="lb-table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Port No.</th>
-              <th>ชื่อ</th>
-              <th>Profit</th>
-              <th>Balance</th>
-            </tr>
-          </thead>
-          <tbody id="lbBody">
-            <tr>
-              <td colspan="5" class="lb-empty">⏳ รอข้อมูลการแข่งขัน — อัปเดตเมื่อการแข่งขันเริ่ม</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="lb-port-note">
-        <span style="width:10px;height:10px;background:#f87171;border-radius:2px;display:inline-block;flex-shrink:0;"></span>
-        เลขพอร์ตสีแดง = มีออเดอร์เปิดอยู่
-      </div>
     </div>
   </div>
 
