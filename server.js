@@ -9,6 +9,7 @@ const { router: authRouter } = require('./routes/auth');
 const clientsRouter          = require('./routes/clients');
 const dashboardRouter        = require('./routes/dashboard');
 const productsRouter         = require('./routes/products');
+const reviewsRouter          = require('./routes/reviews');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -35,6 +36,7 @@ app.use('/api/auth',      authRouter);
 app.use('/api/clients',   clientsRouter);
 app.use('/api/dashboard', dashboardRouter);
 app.use('/api/products',  productsRouter);
+app.use('/api/reviews',   reviewsRouter);
 
 // Health check
 app.get('/api/health', (_, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
@@ -52,6 +54,11 @@ app.get('/events/unlock-your-wealth', (req, res) => {
 // /events/sbc → serve SBC event page
 app.get('/events/sbc', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'events', 'sbc.html'));
+});
+
+// /reviews → serve public reviews page
+app.get('/reviews', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'reviews.html'));
 });
 
 // Serve index.html for all non-API routes (SPA fallback)

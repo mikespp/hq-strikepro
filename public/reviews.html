@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>รีวิวจากผู้ใช้งาน — HQ Strikepro</title>
+  <meta name="description" content="อ่านรีวิวจากสมาชิกจริงและแชร์ประสบการณ์ของคุณกับ HQ Strikepro" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold:       #d4af37;
+      --gold-light: #f0d060;
+      --gold-dim:   rgba(212,175,55,.15);
+      --gold-mid:   rgba(212,175,55,.28);
+      --gold-border:rgba(212,175,55,.25);
+      --bg:         #0c0c0c;
+      --surface:    #131313;
+      --surface2:   #1a1a1a;
+      --border:     rgba(255,255,255,.07);
+      --text:       #f0f0f0;
+      --text-muted: #8a8a8a;
+      --text-sub:   #666;
+      --radius:     14px;
+      --radius-sm:  10px;
+      --nav-h:      56px;
+      --green:      #22c55e;
+      --green-dim:  rgba(34,197,94,.15);
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      padding-top: var(--nav-h);
+    }
+
+    /* ── Nav ── */
+    .top-nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100; height: var(--nav-h);
+      background: rgba(12,12,12,.93); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; padding: 0 16px; gap: 12px;
+    }
+    .nav-back {
+      background: none; border: none; cursor: pointer; color: var(--text-muted);
+      padding: 8px; margin-left: -8px; display: flex; align-items: center; gap: 6px;
+      font-size: 14px; font-weight: 600; border-radius: 8px;
+      transition: color .15s, background .15s; text-decoration: none; flex-shrink: 0;
+    }
+    .nav-back:hover { color: var(--text); background: rgba(255,255,255,.06); }
+    .nav-back svg { width: 18px; height: 18px; }
+    .nav-title {
+      font-size: 15px; font-weight: 700; color: var(--text);
+      flex: 1; text-align: center; margin-right: 34px;
+    }
+
+    /* ── Page layout ── */
+    .page { max-width: 480px; margin: 0 auto; padding: 20px 16px 100px; }
+
+    /* ── Hero ── */
+    .hero {
+      text-align: center; padding: 28px 0 24px;
+    }
+    .hero-icon { font-size: 40px; margin-bottom: 10px; }
+    .hero-title {
+      font-size: 22px; font-weight: 800;
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      margin-bottom: 6px;
+    }
+    .hero-sub { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 14px;
+    }
+    .card-title {
+      font-size: 15px; font-weight: 700; color: var(--text);
+      margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+    }
+    .card-title span { font-size: 16px; }
+
+    /* ── Form ── */
+    .field { margin-bottom: 14px; }
+    .label {
+      display: block; font-size: 12px; font-weight: 600;
+      color: var(--text-muted); margin-bottom: 6px; letter-spacing: .3px;
+    }
+    .label .req { color: var(--gold); margin-left: 2px; }
+    .input, .select, .textarea {
+      width: 100%; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      color: var(--text); font-family: inherit; font-size: 14px;
+      padding: 10px 12px; outline: none;
+      transition: border-color .15s;
+    }
+    .input:focus, .select:focus, .textarea:focus {
+      border-color: var(--gold-border);
+    }
+    .select { cursor: pointer; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238a8a8a' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 12px center;
+      padding-right: 32px;
+    }
+    .select option { background: #1a1a1a; }
+    .textarea { resize: vertical; min-height: 90px; line-height: 1.55; }
+
+    /* ── Star rating ── */
+    .stars-wrap {
+      display: flex; gap: 4px; flex-wrap: wrap;
+    }
+    .star-btn {
+      background: none; border: none; cursor: pointer;
+      font-size: 24px; padding: 2px; transition: transform .1s;
+      line-height: 1; color: #333;
+    }
+    .star-btn.active { color: var(--gold); }
+    .star-btn:hover { transform: scale(1.15); }
+    .rating-label {
+      font-size: 12px; color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    /* ── Image upload ── */
+    .upload-zone {
+      border: 1.5px dashed rgba(255,255,255,.15);
+      border-radius: var(--radius-sm);
+      padding: 18px 12px;
+      text-align: center; cursor: pointer;
+      transition: border-color .15s, background .15s;
+    }
+    .upload-zone:hover { border-color: var(--gold-border); background: var(--gold-dim); }
+    .upload-zone input { display: none; }
+    .upload-icon { font-size: 24px; margin-bottom: 6px; }
+    .upload-text { font-size: 12px; color: var(--text-muted); }
+    .preview-img {
+      width: 100%; border-radius: var(--radius-sm);
+      margin-top: 10px; display: none;
+      max-height: 200px; object-fit: contain;
+      border: 1px solid var(--border);
+    }
+    .remove-img {
+      display: none; margin-top: 6px;
+      background: none; border: 1px solid rgba(255,255,255,.12);
+      border-radius: 6px; color: var(--text-muted);
+      font-size: 12px; padding: 4px 10px; cursor: pointer;
+      transition: color .15s, border-color .15s;
+    }
+    .remove-img:hover { color: #f87171; border-color: rgba(248,113,113,.3); }
+
+    /* ── Submit button ── */
+    .btn-submit {
+      width: 100%; padding: 13px;
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+      border: none; border-radius: var(--radius-sm);
+      color: #0c0c0c; font-family: inherit; font-size: 15px;
+      font-weight: 800; cursor: pointer; letter-spacing: .3px;
+      transition: opacity .15s, transform .1s;
+    }
+    .btn-submit:hover { opacity: .9; }
+    .btn-submit:active { transform: scale(.98); }
+    .btn-submit:disabled { opacity: .45; cursor: not-allowed; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: #1a1a1a; border: 1px solid var(--border);
+      border-radius: 10px; padding: 10px 18px;
+      font-size: 13px; font-weight: 600; color: var(--text);
+      opacity: 0; transition: opacity .25s, transform .25s;
+      pointer-events: none; z-index: 200; white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.success { border-color: rgba(34,197,94,.35); color: var(--green); }
+    .toast.error   { border-color: rgba(248,113,113,.35); color: #f87171; }
+
+    /* ── Section divider ── */
+    .section-divider {
+      border: none; border-top: 1px solid var(--border);
+      margin: 8px 0 20px;
+    }
+    .reviews-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .reviews-count {
+      font-size: 13px; color: var(--text-muted); font-weight: 500;
+    }
+    .section-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+      color: var(--gold); text-transform: uppercase; margin-bottom: 4px;
+    }
+    .section-title {
+      font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 16px;
+    }
+
+    /* ── Review card ── */
+    .review-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 12px;
+      transition: border-color .15s;
+    }
+    .review-card.featured {
+      border-color: var(--gold-mid);
+      background: linear-gradient(135deg, rgba(212,175,55,.07) 0%, var(--surface) 60%);
+    }
+    .review-card:hover { border-color: rgba(255,255,255,.13); }
+    .review-top {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+    }
+    .review-avatar {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; font-weight: 800; color: #0c0c0c;
+      flex-shrink: 0;
+    }
+    .review-meta { flex: 1; min-width: 0; }
+    .review-name {
+      font-size: 14px; font-weight: 700; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .review-info {
+      font-size: 11px; color: var(--text-muted); margin-top: 1px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .review-product {
+      background: var(--surface2); border-radius: 4px;
+      padding: 1px 6px; font-size: 11px; color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+    .featured-badge {
+      font-size: 10px; font-weight: 700; letter-spacing: .5px;
+      color: var(--gold); background: var(--gold-dim);
+      border: 1px solid var(--gold-border);
+      border-radius: 4px; padding: 2px 6px; text-transform: uppercase;
+    }
+    .review-stars {
+      display: flex; align-items: center; gap: 3px;
+      margin-bottom: 8px;
+    }
+    .review-stars .star { font-size: 14px; }
+    .review-stars .star.filled { color: var(--gold); }
+    .review-stars .star.empty  { color: #2a2a2a; }
+    .review-stars .score {
+      font-size: 12px; font-weight: 700; color: var(--gold);
+      margin-left: 4px;
+    }
+    .review-message {
+      font-size: 13px; color: var(--text-muted); line-height: 1.6;
+      margin-bottom: 10px;
+    }
+    .review-img {
+      width: 100%; border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      max-height: 220px; object-fit: contain;
+      background: #0a0a0a; cursor: pointer;
+    }
+    .review-date {
+      font-size: 11px; color: var(--text-sub); margin-top: 8px;
+    }
+
+    /* ── Empty / loading ── */
+    .state-box {
+      text-align: center; padding: 40px 20px;
+      color: var(--text-muted); font-size: 14px;
+    }
+    .state-box .icon { font-size: 32px; margin-bottom: 10px; }
+
+    /* ── Image lightbox ── */
+    .lightbox {
+      position: fixed; inset: 0; z-index: 300;
+      background: rgba(0,0,0,.9); display: none;
+      align-items: center; justify-content: center;
+      cursor: zoom-out; padding: 20px;
+    }
+    .lightbox.open { display: flex; }
+    .lightbox img { max-width: 100%; max-height: 90vh; border-radius: 10px; }
+
+    /* ── LINE CTA ── */
+    .line-cta {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 90;
+      padding: 12px 16px 20px;
+      background: linear-gradient(to top, rgba(12,12,12,1) 70%, rgba(12,12,12,0));
+    }
+    .line-btn {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%; padding: 13px 0; border-radius: var(--radius-sm);
+      background: #06c755; color: #fff; text-decoration: none;
+      font-size: 15px; font-weight: 700; letter-spacing: .2px;
+      transition: opacity .15s;
+    }
+    .line-btn svg { width: 20px; height: 20px; fill: #fff; flex-shrink: 0; }
+    .line-btn:hover { opacity: .9; }
+  </style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav class="top-nav">
+  <a class="nav-back" href="/">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="15 18 9 12 15 6"/>
+    </svg>
+    กลับ
+  </a>
+  <div class="nav-title">รีวิว</div>
+</nav>
+
+<div class="page">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-icon">⭐</div>
+    <h1 class="hero-title">รีวิวจากผู้ใช้งาน</h1>
+    <p class="hero-sub">ความคิดเห็นจริงจากสมาชิก HQ Strikepro<br>แชร์ประสบการณ์ของคุณเพื่อเป็นประโยชน์กับคนอื่น</p>
+  </div>
+
+  <!-- Submit form -->
+  <div class="card">
+    <div class="card-title"><span>✍️</span> เขียนรีวิว</div>
+
+    <div class="field">
+      <label class="label" for="r-name">ชื่อผู้รีวิว <span class="req">*</span></label>
+      <input class="input" id="r-name" type="text" placeholder="ชื่อของคุณ" maxlength="100" />
+    </div>
+
+    <div class="field">
+      <label class="label" for="r-product">Product ที่รีวิว</label>
+      <select class="select" id="r-product">
+        <option value="">— เลือก Product —</option>
+        <option value="PPVP">PPVP</option>
+        <option value="HQ Ultimate">HQ Ultimate</option>
+        <option value="Golden Boy">Golden Boy</option>
+        <option value="เทรดเอง">เทรดเอง</option>
+        <option value="อื่นๆ">อื่นๆ</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label class="label">คะแนนรีวิว <span class="req">*</span></label>
+      <div class="stars-wrap" id="star-row">
+        <!-- filled by JS -->
+      </div>
+      <div class="rating-label" id="rating-label">แตะดาวเพื่อให้คะแนน</div>
+    </div>
+
+    <div class="field">
+      <label class="label" for="r-message">ข้อความรีวิว <span class="req">*</span></label>
+      <textarea class="textarea" id="r-message" placeholder="เล่าประสบการณ์ของคุณ..." maxlength="1000"></textarea>
+    </div>
+
+    <div class="field">
+      <label class="label">รูปภาพ / Screenshot <span style="color:var(--text-sub)">(ไม่บังคับ)</span></label>
+      <div class="upload-zone" id="upload-zone" onclick="document.getElementById('r-image').click()">
+        <input type="file" id="r-image" accept="image/*" />
+        <div class="upload-icon">📷</div>
+        <div class="upload-text">แตะเพื่อเลือกรูป (JPG, PNG, GIF · สูงสุด 5 MB)</div>
+      </div>
+      <img class="preview-img" id="preview-img" alt="preview" />
+      <button class="remove-img" id="remove-img" onclick="removeImage()">✕ ลบรูป</button>
+    </div>
+
+    <button class="btn-submit" id="btn-submit" onclick="submitReview()">ส่งรีวิว ⭐</button>
+  </div>
+
+  <!-- Reviews list -->
+  <hr class="section-divider" />
+  <div class="section-label">Community</div>
+  <div class="reviews-header">
+    <div class="section-title" style="margin-bottom:0">รีวิวทั้งหมด</div>
+    <div class="reviews-count" id="reviews-count"></div>
+  </div>
+
+  <div id="reviews-list">
+    <div class="state-box">
+      <div class="icon">⏳</div>
+      <div>กำลังโหลดรีวิว...</div>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<!-- Image lightbox -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <img id="lightbox-img" src="" alt="review image" />
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- LINE CTA -->
+<div class="line-cta">
+  <a class="line-btn" href="https://lin.ee/8WkoRmL" target="_blank">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.070 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+    สอบถาม / ติดต่อ Admin
+  </a>
+</div>
+
+<script>
+/* ── Star rating ── */
+let selectedRating = 0;
+
+(function buildStars() {
+  const row = document.getElementById('star-row');
+  for (let i = 1; i <= 10; i++) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'star-btn';
+    btn.dataset.v = i;
+    btn.textContent = '★';
+    btn.addEventListener('click', () => setRating(i));
+    btn.addEventListener('mouseenter', () => highlightStars(i));
+    btn.addEventListener('mouseleave', () => highlightStars(selectedRating));
+    row.appendChild(btn);
+  }
+})();
+
+function highlightStars(n) {
+  document.querySelectorAll('.star-btn').forEach(b => {
+    b.classList.toggle('active', parseInt(b.dataset.v) <= n);
+  });
+}
+
+function setRating(n) {
+  selectedRating = n;
+  highlightStars(n);
+  const labels = ['','ไม่ดีเลย','แย่มาก','แย่','พอใช้ได้','กลางๆ','โอเค','ดี','ดีมาก','ยอดเยี่ยม','สุดยอด!'];
+  document.getElementById('rating-label').textContent = `${n}/10 — ${labels[n]}`;
+}
+
+/* ── Image upload ── */
+let imageBase64 = null;
+
+document.getElementById('r-image').addEventListener('change', function () {
+  const file = this.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { showToast('รูปภาพต้องมีขนาดไม่เกิน 5 MB', 'error'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    imageBase64 = e.target.result;
+    const img = document.getElementById('preview-img');
+    img.src = imageBase64;
+    img.style.display = 'block';
+    document.getElementById('remove-img').style.display = 'inline-block';
+    document.querySelector('.upload-zone .upload-text').textContent = file.name;
+  };
+  reader.readAsDataURL(file);
+});
+
+function removeImage() {
+  imageBase64 = null;
+  document.getElementById('r-image').value = '';
+  const img = document.getElementById('preview-img');
+  img.style.display = 'none'; img.src = '';
+  document.getElementById('remove-img').style.display = 'none';
+  document.querySelector('.upload-zone .upload-text').textContent = 'แตะเพื่อเลือกรูป (JPG, PNG, GIF · สูงสุด 5 MB)';
+}
+
+/* ── Submit ── */
+async function submitReview() {
+  const reviewer = document.getElementById('r-name').value.trim();
+  const product  = document.getElementById('r-product').value;
+  const message  = document.getElementById('r-message').value.trim();
+
+  if (!reviewer)         { showToast('กรุณากรอกชื่อผู้รีวิว', 'error'); return; }
+  if (!selectedRating)   { showToast('กรุณาให้คะแนนก่อนส่ง', 'error'); return; }
+  if (!message)          { showToast('กรุณากรอกข้อความรีวิว', 'error'); return; }
+
+  const btn = document.getElementById('btn-submit');
+  btn.disabled = true;
+  btn.textContent = 'กำลังส่ง...';
+
+  try {
+    const res = await fetch('/api/reviews', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reviewer, product, rating: selectedRating, message, image_data: imageBase64 }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'เกิดข้อผิดพลาด');
+
+    showToast('ขอบคุณสำหรับรีวิว! ⭐', 'success');
+    // Reset form
+    document.getElementById('r-name').value = '';
+    document.getElementById('r-product').value = '';
+    document.getElementById('r-message').value = '';
+    removeImage();
+    selectedRating = 0;
+    highlightStars(0);
+    document.getElementById('rating-label').textContent = 'แตะดาวเพื่อให้คะแนน';
+    // Reload reviews
+    setTimeout(loadReviews, 600);
+  } catch (err) {
+    showToast(err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'ส่งรีวิว ⭐';
+  }
+}
+
+/* ── Load reviews ── */
+async function loadReviews() {
+  const list = document.getElementById('reviews-list');
+  try {
+    const res  = await fetch('/api/reviews');
+    const data = await res.json();
+
+    document.getElementById('reviews-count').textContent =
+      data.length ? `${data.length} รีวิว` : '';
+
+    if (!data.length) {
+      list.innerHTML = `<div class="state-box"><div class="icon">💬</div><div>ยังไม่มีรีวิว — เป็นคนแรกที่รีวิว!</div></div>`;
+      return;
+    }
+
+    list.innerHTML = data.map(r => {
+      const initial = (r.reviewer || '?')[0].toUpperCase();
+      const stars   = Array.from({length:10}, (_,i) =>
+        `<span class="star ${i < r.rating ? 'filled' : 'empty'}">★</span>`
+      ).join('');
+      const dateStr = new Date(r.created_at).toLocaleDateString('th-TH', {
+        year: 'numeric', month: 'short', day: 'numeric'
+      });
+      const imgHtml = r.image_data
+        ? `<img class="review-img" src="${r.image_data}" alt="screenshot" loading="lazy" onclick="openLightbox(this.src)" />`
+        : '';
+      const featBadge = r.featured
+        ? `<span class="featured-badge">Featured</span>`
+        : '';
+      const productBadge = r.product
+        ? `<span class="review-product">${escHtml(r.product)}</span>`
+        : '';
+
+      return `
+        <div class="review-card${r.featured ? ' featured' : ''}">
+          <div class="review-top">
+            <div class="review-avatar">${initial}</div>
+            <div class="review-meta">
+              <div class="review-name">${escHtml(r.reviewer)} ${featBadge}</div>
+              <div class="review-info">${productBadge}</div>
+            </div>
+          </div>
+          <div class="review-stars">${stars}<span class="score">${r.rating}/10</span></div>
+          <div class="review-message">${escHtml(r.message)}</div>
+          ${imgHtml}
+          <div class="review-date">${dateStr}</div>
+        </div>`;
+    }).join('');
+  } catch {
+    list.innerHTML = `<div class="state-box"><div class="icon">⚠️</div><div>โหลดรีวิวไม่สำเร็จ</div></div>`;
+  }
+}
+
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ── Lightbox ── */
+function openLightbox(src) {
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+}
+
+/* ── Toast ── */
+let toastTimer;
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' ' + type : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.className = 'toast'; }, 3000);
+}
+
+/* ── Init ── */
+loadReviews();
+</script>
+</body>
+</html>

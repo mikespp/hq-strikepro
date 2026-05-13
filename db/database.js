@@ -86,6 +86,19 @@ async function init() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
+  await pool.execute(`
+    CREATE TABLE IF NOT EXISTS reviews (
+      id          INT UNSIGNED     NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      reviewer    VARCHAR(255)     NOT NULL,
+      product     VARCHAR(100)     NOT NULL DEFAULT '',
+      rating      TINYINT UNSIGNED NOT NULL,
+      message     TEXT             NOT NULL,
+      image_data  MEDIUMTEXT       DEFAULT NULL,
+      featured    TINYINT(1)       NOT NULL DEFAULT 0,
+      created_at  DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
   // Purge expired sessions on startup
   await pool.execute('DELETE FROM sessions WHERE expires_at <= NOW()');
 
@@ -346,6 +359,23 @@ async function getProductInvestors(userId, productKey) {
   return rows.map(r => ({ id: Number(r.id), name: r.name, phone: r.phone || '', amount: Number(r.amount) }));
 }
 
+// ── Reviews ───────────────────────────────────────────────────────────────────
+
+async function createReview({ reviewer, product, rating, message, image_data }) {
+  const [result] = await pool.execute(
+    'INSERT INTO reviews (reviewer, product, rating, message, image_data) VALUES (?, ?, ?, ?, ?)',
+    [reviewer, product || '', rating, message, image_data || null]
+  );
+  return result.insertId;
+}
+
+async function listReviews() {
+  const [rows] = await pool.execute(
+    'SELECT id, reviewer, product, rating, message, image_data, featured, created_at FROM reviews ORDER BY featured DESC, created_at DESC'
+  );
+  return rows;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 module.exports = {
@@ -355,4 +385,5 @@ module.exports = {
   getAllClients, getClientById, createClient, updateClient, deleteClient,
   getDashboardStats, refreshUserStats,
   getProductStats, getProductInvestors,
+  createReview, listReviews,
 };
