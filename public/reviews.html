@@ -376,7 +376,7 @@
       <div class="upload-zone" id="upload-zone" onclick="document.getElementById('r-image').click()">
         <input type="file" id="r-image" accept="image/*" />
         <div class="upload-icon">📷</div>
-        <div class="upload-text">แตะเพื่อเลือกรูป (JPG, PNG, GIF · สูงสุด 5 MB)</div>
+        <div class="upload-text">แตะเพื่อเลือกรูป (JPG, PNG, GIF · สูงสุด 20 MB)</div>
       </div>
       <img class="preview-img" id="preview-img" alt="preview" />
       <button class="remove-img" id="remove-img" onclick="removeImage()">✕ ลบรูป</button>
@@ -450,23 +450,47 @@ function setRating(n) {
   document.getElementById('rating-label').textContent = `${n}/5 — ${labels[n]}`;
 }
 
-/* ── Image upload ── */
+/* ── Image upload + compress ── */
 let imageBase64 = null;
 
-document.getElementById('r-image').addEventListener('change', function () {
+function compressImage(file, maxW, maxH, quality) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = e => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+        if (h > maxH) { w = Math.round(w * maxH / h); h = maxH; }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+document.getElementById('r-image').addEventListener('change', async function () {
   const file = this.files[0];
   if (!file) return;
-  if (file.size > 5 * 1024 * 1024) { showToast('รูปภาพต้องมีขนาดไม่เกิน 5 MB', 'error'); return; }
-  const reader = new FileReader();
-  reader.onload = e => {
-    imageBase64 = e.target.result;
-    const img = document.getElementById('preview-img');
-    img.src = imageBase64;
-    img.style.display = 'block';
+  if (file.size > 20 * 1024 * 1024) { showToast('รูปภาพต้องมีขนาดไม่เกิน 20 MB', 'error'); return; }
+  try {
+    document.querySelector('.upload-zone .upload-text').textContent = 'กำลังบีบอัดรูป...';
+    imageBase64 = await compressImage(file, 1200, 1200, 0.75);
+    const preview = document.getElementById('preview-img');
+    preview.src = imageBase64;
+    preview.style.display = 'block';
     document.getElementById('remove-img').style.display = 'inline-block';
     document.querySelector('.upload-zone .upload-text').textContent = file.name;
-  };
-  reader.readAsDataURL(file);
+  } catch {
+    showToast('ไม่สามารถโหลดรูปได้ กรุณาลองใหม่', 'error');
+    document.querySelector('.upload-zone .upload-text').textContent = 'แตะเพื่อเลือกรูป (JPG, PNG, GIF · สูงสุด 20 MB)';
+  }
 });
 
 function removeImage() {
