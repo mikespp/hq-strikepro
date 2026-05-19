@@ -51,6 +51,11 @@ app.use('/api/reviews',   reviewsRouter);
 // Health check
 app.get('/api/health', (_, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
 
+// Favicon — serve PNG so Chrome tab shows the logo
+app.get('/favicon.ico', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'favicon-32.png'));
+});
+
 // /login → serve login.html
 app.get('/login', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'login.html'));

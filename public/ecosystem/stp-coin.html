@@ -271,6 +271,13 @@
     }
     .drawer-sub-link:hover { color: #f1f1f1; background: #222; }
     .drawer-sub-icon { font-size: 15px; }
+  
+    /* ── Share button ── */
+    .nav-share { background: none; border: none; cursor: pointer; color: var(--text-muted);
+      padding: 8px; margin-left: auto; margin-right: -8px; display: flex; align-items: center;
+      justify-content: center; border-radius: 8px; transition: color .15s, background .15s; flex-shrink: 0; }
+    .nav-share:hover { color: var(--text); background: rgba(255,255,255,.08); }
+    .nav-share svg { width: 19px; height: 19px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
   </style>
 </head>
 <body>
@@ -284,6 +291,10 @@
     <span></span><span></span><span></span>
   </button>
   <span class="nav-title">STP Coin</span>
+
+  <button class="nav-share" onclick="sharePage()" aria-label="แชร์">
+    <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+  </button>
 </nav>
 
 <!-- ── Drawer overlay ── -->
@@ -615,5 +626,22 @@
       .catch(() => {});
   })();
 </script>
+<script>
+  /* ── Share ── */
+  async function sharePage() {
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: document.title, url: location.href });
+      } else {
+        await navigator.clipboard.writeText(location.href);
+        const t = document.createElement('div');
+        t.textContent = 'คัดลอกลิงก์แล้ว ✓';
+        t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#222;border:1px solid rgba(255,255,255,.12);color:#f0f0f0;padding:9px 18px;border-radius:10px;font-size:13px;font-weight:600;z-index:9999;pointer-events:none;';
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 2000);
+      }
+    } catch {}
+  }
+  </script>
 </body>
 </html>
