@@ -281,6 +281,22 @@
       font-size: 11px; color: var(--text-sub); margin-top: 8px;
     }
 
+    /* ── Stats bars ── */
+    .stat-bar-row {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+    }
+    .stat-bar-label { font-size: 11px; color: var(--text-muted); width: 24px; text-align: right; flex-shrink: 0; }
+    .stat-bar-track {
+      flex: 1; height: 7px; background: var(--surface2);
+      border-radius: 4px; overflow: hidden;
+    }
+    .stat-bar-fill {
+      height: 100%; border-radius: 4px;
+      background: linear-gradient(90deg, var(--gold) 0%, var(--gold-light) 100%);
+      transition: width .4s ease;
+    }
+    .stat-bar-count { font-size: 11px; color: var(--text-muted); width: 20px; flex-shrink: 0; }
+
     /* ── Empty / loading ── */
     .state-box {
       text-align: center; padding: 40px 20px;
@@ -391,6 +407,24 @@
   <div class="reviews-header">
     <div class="section-title" style="margin-bottom:0">รีวิวทั้งหมด</div>
     <div class="reviews-count" id="reviews-count"></div>
+  </div>
+
+  <!-- Stats card -->
+  <div class="card" id="stats-card" style="display:none;margin-bottom:14px;">
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px;">
+      <div style="text-align:center;flex-shrink:0;">
+        <div style="font-size:40px;font-weight:900;color:var(--gold);line-height:1;" id="stat-avg">—</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">คะแนนเฉลี่ย / 5</div>
+        <div style="display:flex;gap:2px;justify-content:center;margin-top:6px;" id="stat-avg-stars"></div>
+      </div>
+      <div style="width:1px;background:var(--border);align-self:stretch;flex-shrink:0;"></div>
+      <div style="flex:1;">
+        <div id="stat-bars"></div>
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--text-muted);text-align:center;padding-top:10px;border-top:1px solid var(--border);">
+      จากทั้งหมด <span id="stat-total" style="color:var(--gold);font-weight:700;"></span> รีวิว
+    </div>
   </div>
 
   <div id="reviews-list">
@@ -555,9 +589,41 @@ async function loadReviews() {
       data.length ? `${data.length} รีวิว` : '';
 
     if (!data.length) {
+      document.getElementById('stats-card').style.display = 'none';
       list.innerHTML = `<div class="state-box"><div class="icon">💬</div><div>ยังไม่มีรีวิว — เป็นคนแรกที่รีวิว!</div></div>`;
       return;
     }
+
+    /* ── Stats ── */
+    const total   = data.length;
+    const avg     = data.reduce((s, r) => s + r.rating, 0) / total;
+    const counts  = [0,0,0,0,0]; // index 0 = 1-star … index 4 = 5-star
+    data.forEach(r => { if (r.rating >= 1 && r.rating <= 5) counts[r.rating - 1]++; });
+    const maxCount = Math.max(...counts, 1);
+
+    document.getElementById('stat-avg').textContent  = avg.toFixed(1);
+    document.getElementById('stat-total').textContent = total;
+
+    // Average stars (filled / half / empty)
+    document.getElementById('stat-avg-stars').innerHTML =
+      Array.from({length:5}, (_,i) => {
+        const filled = avg >= i + 1 ? 'filled' : (avg >= i + 0.5 ? 'filled' : 'empty');
+        return `<span class="star ${filled}" style="font-size:13px;">★</span>`;
+      }).join('');
+
+    // Bar chart (5 down to 1)
+    document.getElementById('stat-bars').innerHTML =
+      [5,4,3,2,1].map(s => {
+        const c   = counts[s - 1];
+        const pct = Math.round(c / maxCount * 100);
+        return `<div class="stat-bar-row">
+          <div class="stat-bar-label">${s}★</div>
+          <div class="stat-bar-track"><div class="stat-bar-fill" style="width:${pct}%"></div></div>
+          <div class="stat-bar-count">${c}</div>
+        </div>`;
+      }).join('');
+
+    document.getElementById('stats-card').style.display = 'block';
 
     list.innerHTML = data.map(r => {
       const initial = (r.reviewer || '?')[0].toUpperCase();
