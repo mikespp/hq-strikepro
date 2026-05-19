@@ -589,7 +589,7 @@ async function loadReviews() {
           <div class="review-stars">${stars}<span class="score">${r.rating}/5</span></div>
           <div class="review-message">${escHtml(r.message)}</div>
           ${imgHtml}
-          <div class="review-date">${dateStr}</div>
+          <div class="review-date">${dateStr} <span style="opacity:.45;margin-left:6px;">#${r.id}</span></div>
         </div>`;
     }).join('');
   } catch {
