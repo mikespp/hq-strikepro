@@ -376,6 +376,17 @@ async function listReviews() {
   return rows;
 }
 
+async function deleteReview(id) {
+  const [result] = await pool.execute('DELETE FROM reviews WHERE id = ?', [id]);
+  return result.affectedRows > 0;
+}
+
+async function toggleReviewFeatured(id) {
+  await pool.execute('UPDATE reviews SET featured = NOT featured WHERE id = ?', [id]);
+  const [rows] = await pool.execute('SELECT featured FROM reviews WHERE id = ?', [id]);
+  return rows[0] || null;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 module.exports = {
@@ -385,5 +396,5 @@ module.exports = {
   getAllClients, getClientById, createClient, updateClient, deleteClient,
   getDashboardStats, refreshUserStats,
   getProductStats, getProductInvestors,
-  createReview, listReviews,
+  createReview, listReviews, deleteReview, toggleReviewFeatured,
 };

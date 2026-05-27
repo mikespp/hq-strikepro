@@ -1,5 +1,6 @@
 const express = require('express');
 const db      = require('../db/database');
+const { requireAuth } = require('./auth');
 
 const router = express.Router();
 
@@ -38,6 +39,34 @@ router.post('/', async (req, res) => {
       image_data: image_data || null,
     });
     res.status(201).json({ success: true, id });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
+  }
+});
+
+// ── DELETE /api/reviews/:id  (auth required) ─────────────────────────────────
+router.delete('/:id', requireAuth, async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  try {
+    const ok = await db.deleteReview(id);
+    if (!ok) return res.status(404).json({ error: 'Review not found' });
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
+  }
+});
+
+// ── PATCH /api/reviews/:id/feature  (auth required) ──────────────────────────
+router.patch('/:id/feature', requireAuth, async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  try {
+    const row = await db.toggleReviewFeatured(id);
+    if (!row) return res.status(404).json({ error: 'Review not found' });
+    res.json({ success: true, featured: !!row.featured });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });

@@ -76,6 +76,11 @@ app.get('/reviews', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'reviews.html'));
 });
 
+// /reviews-admin → serve internal reviews management page
+app.get('/reviews-admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'reviews-admin.html'));
+});
+
 // Serve index.html for all non-API routes (SPA fallback)
 app.get('*', (req, res) => {
   if (!req.path.startsWith('/api')) {
