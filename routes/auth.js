@@ -26,12 +26,24 @@ async function requireAuth(req, res, next) {
     const payload = jwt.verify(token, JWT_SECRET);
     const session = await db.findSession(payload.jti);
     if (!session) return res.status(401).json({ error: 'Session expired. Please sign in again.' });
+    const user = await db.findUserById(payload.sub);
+    if (!user) return res.status(401).json({ error: 'User not found.' });
     req.userId = payload.sub;
     req.jti    = payload.jti;
+    req.user   = { id: user.id, email: user.email, role: user.role || 'user' };
     next();
   } catch {
     res.status(401).json({ error: 'Invalid token.' });
   }
+}
+
+async function requireAdmin(req, res, next) {
+  requireAuth(req, res, () => {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Admin access required.' });
+    }
+    next();
+  });
 }
 
 // ── POST /api/auth/register ───────────────────────────────────────────────────
@@ -95,7 +107,7 @@ router.get('/me', requireAuth, async (req, res) => {
   try {
     const user = await db.findUserById(req.userId);
     if (!user) return res.status(404).json({ error: 'User not found.' });
-    res.json({ user: { id: user.id, email: user.email } });
+    res.json({ user: { id: user.id, email: user.email, role: user.role || 'user' } });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Something went wrong. Please try again.' });
@@ -114,4 +126,4 @@ router.post('/logout', requireAuth, async (req, res) => {
   }
 });
 
-module.exports = { router, requireAuth };
+module.exports = { router, requireAuth, requireAdmin };

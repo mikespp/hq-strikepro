@@ -1,6 +1,6 @@
 const express = require('express');
 const db      = require('../db/database');
-const { requireAuth } = require('./auth');
+const { requireAuth, requireAdmin } = require('./auth');
 
 const router = express.Router();
 
@@ -45,8 +45,8 @@ router.post('/', async (req, res) => {
   }
 });
 
-// ── DELETE /api/reviews/:id  (auth required) ─────────────────────────────────
-router.delete('/:id', requireAuth, async (req, res) => {
+// ── DELETE /api/reviews/:id  (admin required) ────────────────────────────────
+router.delete('/:id', requireAdmin, async (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (!id) return res.status(400).json({ error: 'Invalid id' });
   try {
@@ -59,8 +59,8 @@ router.delete('/:id', requireAuth, async (req, res) => {
   }
 });
 
-// ── PATCH /api/reviews/:id/feature  (auth required) ──────────────────────────
-router.patch('/:id/feature', requireAuth, async (req, res) => {
+// ── PATCH /api/reviews/:id/feature  (admin required) ─────────────────────────
+router.patch('/:id/feature', requireAdmin, async (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (!id) return res.status(400).json({ error: 'Invalid id' });
   try {

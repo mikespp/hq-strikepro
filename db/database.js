@@ -99,6 +99,13 @@ async function init() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
+  // Add role column to users if it doesn't exist yet (idempotent migration)
+  try {
+    await pool.execute(`ALTER TABLE users ADD COLUMN role VARCHAR(20) NOT NULL DEFAULT 'user'`);
+  } catch (err) {
+    if (err.errno !== 1060) throw err; // 1060 = duplicate column — already exists, ignore
+  }
+
   // Purge expired sessions on startup
   await pool.execute('DELETE FROM sessions WHERE expires_at <= NOW()');
 

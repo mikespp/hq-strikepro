@@ -526,6 +526,7 @@
   let allReviews  = [];
   let currentFilter = 'all';
   let pendingDeleteId = null;
+  let isAdmin = false;
 
   // ── Auth guard ──────────────────────────────────────────────────────────────
   (async () => {
@@ -536,6 +537,8 @@
       if (!r.ok) { window.location.href = '/login'; return; }
       const { user } = await r.json();
       document.getElementById('drawerUser').textContent = user.email;
+      isAdmin = user.role === 'admin';
+      loadReviews();
     } catch { window.location.href = '/login'; }
   })();
 
@@ -634,6 +637,7 @@
             ${r.product ? `<div class="review-product">${esc(r.product)}</div>` : ''}
             <div class="review-stars">${starsHtml(r.rating)}</div>
           </div>
+          ${isAdmin ? `
           <div class="review-actions">
             <button class="action-btn feat-btn ${r.featured ? 'is-featured' : ''}"
               onclick="toggleFeature(${r.id})" title="${r.featured ? 'ยกเลิกปักหมุด' : 'ปักหมุด'}">
@@ -642,7 +646,7 @@
             <button class="action-btn del-btn" onclick="promptDelete(${r.id}, '${esc(r.reviewer)}')" title="ลบ">
               🗑️
             </button>
-          </div>
+          </div>` : ''}
         </div>
         ${r.image_data ? `<img class="review-image" src="${r.image_data}" alt="รีวิวรูปภาพ" onclick="openLightbox(this.src)" loading="lazy" />` : ''}
         <div class="review-message">${esc(r.message)}</div>
@@ -744,8 +748,7 @@
     document.getElementById('lightboxImg').src = '';
   }
 
-  // ── Boot ──────────────────────────────────────────────────────────────────────
-  loadReviews();
+  // loadReviews() is called from the auth guard after role is resolved
 </script>
 </body>
 </html>
