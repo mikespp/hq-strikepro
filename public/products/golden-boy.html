@@ -178,6 +178,50 @@
       justify-content: center; border-radius: 8px; transition: color .15s, background .15s; flex-shrink: 0; }
     .nav-share:hover { color: var(--text); background: rgba(255,255,255,.08); }
     .nav-share svg { width: 19px; height: 19px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  
+    /* ── Inline reviews section ── */
+    .rv-section { padding: 28px 16px 0; max-width: 640px; margin: 0 auto; }
+    .rv-section-head {
+      display: flex; align-items: baseline; justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .rv-section-title { font-size: 17px; font-weight: 800; color: var(--text); }
+    .rv-see-all {
+      font-size: 12px; font-weight: 700; color: var(--accent);
+      text-decoration: none; opacity: .75; transition: opacity .15s;
+    }
+    .rv-see-all:hover { opacity: 1; }
+    .rv-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px; margin-bottom: 10px;
+    }
+    .rv-card.rv-feat { border-color: rgba(212,175,55,.3); }
+    .rv-top { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+    .rv-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--accent-dim, rgba(129,140,248,.12));
+      border: 1px solid rgba(255,255,255,.07);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 800; color: var(--accent);
+      flex-shrink: 0; text-transform: uppercase;
+    }
+    .rv-meta { flex: 1; min-width: 0; }
+    .rv-name { font-size: 13px; font-weight: 700; }
+    .rv-product { font-size: 10px; color: var(--accent); font-weight: 600; margin-top: 1px; }
+    .rv-stars { display: flex; gap: 2px; margin-top: 3px; }
+    .rv-star { font-size: 11px; }
+    .rv-star.on { color: #f5c518; }
+    .rv-star.off { color: #2e2e2e; }
+    .rv-msg {
+      font-size: 13px; color: var(--text-muted); line-height: 1.6;
+      display: -webkit-box; -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .rv-img {
+      width: 100%; max-height: 160px; object-fit: cover;
+      border-radius: 8px; margin-top: 8px; cursor: zoom-in;
+      border: 1px solid var(--border);
+    }
   </style>
 </head>
 <body>
@@ -369,6 +413,16 @@
   </div>
 
 
+
+<!-- ── Reviews section ── -->
+<hr style="border:none;border-top:1px solid var(--border);margin:0 16px;" />
+<section class="rv-section" id="rvSection" style="display:none;">
+  <div class="rv-section-head">
+    <div class="rv-section-title">⭐ รีวิวจากผู้ใช้งาน</div>
+    <a class="rv-see-all" href="/reviews">ดูทั้งหมด →</a>
+  </div>
+  <div id="rvList"></div>
+</section>
 </main>
 <div class="line-cta">
   <a class="line-btn" href="https://lin.ee/8WkoRmL" target="_blank">
@@ -393,5 +447,61 @@
     } catch {}
   }
   </script>
+<script>
+  /* ── Inline reviews fetch ── */
+  (function(){
+    var PRODUCT = 'Golden Boy';
+    function esc(s){
+      return String(s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+    function openLb(src){
+      var o = document.createElement('div');
+      o.style = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;padding:20px;cursor:zoom-out;';
+      o.onclick = function(){ o.remove(); };
+      var img = document.createElement('img');
+      img.src = src;
+      img.style = 'max-width:100%;max-height:90vh;border-radius:10px;';
+      img.onclick = function(e){ e.stopPropagation(); };
+      o.appendChild(img);
+      document.body.appendChild(o);
+    }
+    fetch('/api/reviews')
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        var list = data.filter(function(r){ return r.product === PRODUCT; });
+        if (!list.length) list = data.filter(function(r){ return r.featured; });
+        list = list.slice(0, 6);
+        if (!list.length) return;
+        var section = document.getElementById('rvSection');
+        var listEl  = document.getElementById('rvList');
+        if (!section || !listEl) return;
+        section.style.display = 'block';
+        listEl.innerHTML = list.map(function(r){
+          var stars = [1,2,3,4,5].map(function(i){
+            return '<span class="rv-star ' + (i <= r.rating ? 'on' : 'off') + '">' + (i <= r.rating ? '★' : '☆') + '</span>';
+          }).join('');
+          return '<div class="rv-card' + (r.featured ? ' rv-feat' : '') + '">' +
+            '<div class="rv-top">' +
+              '<div class="rv-avatar">' + esc((r.reviewer || '?')[0]) + '</div>' +
+              '<div class="rv-meta">' +
+                '<div class="rv-name">' + esc(r.reviewer || '') + '</div>' +
+                (r.product ? '<div class="rv-product">' + esc(r.product) + '</div>' : '') +
+                '<div class="rv-stars">' + stars + '</div>' +
+              '</div>' +
+            '</div>' +
+            (r.image_data ? '<img class="rv-img" src="' + r.image_data + '" alt="" loading="lazy" />' : '') +
+            '<div class="rv-msg">' + esc(r.message || '') + '</div>' +
+          '</div>';
+        }).join('');
+        // Attach lightbox after render
+        listEl.querySelectorAll('.rv-img').forEach(function(img){
+          img.addEventListener('click', function(){ openLb(img.src); });
+        });
+      })
+      .catch(function(){});
+  })();
+</script>
 </body>
 </html>
