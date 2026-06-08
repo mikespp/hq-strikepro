@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>World Champions 100 – HQ Strikepro</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#d4af37" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --gold:        #d4af37;
+      --gold-light:  #f0d060;
+      --gold-dim:    rgba(212,175,55,.13);
+      --gold-mid:    rgba(212,175,55,.28);
+      --gold-border: rgba(212,175,55,.22);
+      --crimson:     #dc2626;
+      --crimson-dim: rgba(220,38,38,.10);
+      --bg:          #080808;
+      --surface:     #111111;
+      --surface2:    #181818;
+      --surface3:    #202020;
+      --border:      rgba(255,255,255,.07);
+      --border2:     rgba(212,175,55,.15);
+      --text:        #f0f0f0;
+      --text-muted:  #8a8a8a;
+      --text-sub:    #555;
+      --green:       #22c55e;
+      --radius:      14px;
+      --radius-sm:   9px;
+      --nav-h:       56px;
+    }
+
+    html, body {
+      background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      -webkit-font-smoothing: antialiased; overflow-x: hidden;
+    }
+    body { padding-top: var(--nav-h); }
+
+    /* ── Nav ── */
+    .top-nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: var(--nav-h);
+      background: rgba(8,8,8,.95); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; padding: 0 16px;
+    }
+    .nav-back {
+      background: none; border: none; cursor: pointer; color: var(--text-muted);
+      padding: 8px; margin-left: -8px; display: flex; align-items: center; gap: 6px;
+      font-size: 14px; font-weight: 600; border-radius: 8px;
+      transition: color .15s, background .15s; text-decoration: none; flex-shrink: 0;
+    }
+    .nav-back:hover { color: var(--text); background: var(--surface2); }
+    .nav-back svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+    .nav-title { font-size: 15px; font-weight: 800; color: var(--gold); }
+    .nav-share {
+      background: none; border: none; cursor: pointer; color: var(--text-muted);
+      padding: 8px; margin-left: auto; margin-right: -8px; display: flex; align-items: center;
+      justify-content: center; border-radius: 8px; transition: color .15s, background .15s; flex-shrink: 0;
+    }
+    .nav-share:hover { color: var(--text); background: rgba(255,255,255,.08); }
+    .nav-share svg { width: 19px; height: 19px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* ── Hamburger ── */
+    .hamburger {
+      background: none; border: none; cursor: pointer; color: var(--text, #f0f0f0);
+      padding: 8px; display: flex; flex-direction: column; gap: 5px;
+      align-items: center; justify-content: center;
+      border-radius: 8px; transition: background .15s; flex-shrink: 0;
+    }
+    .hamburger:hover { background: rgba(255,255,255,.08); }
+    .hamburger span { display: block; width: 22px; height: 2px; background: currentColor; border-radius: 2px; }
+
+    /* ── Drawer ── */
+    .drawer-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,.55); opacity: 0; pointer-events: none; transition: opacity .25s;
+    }
+    .drawer-overlay.open { opacity: 1; pointer-events: all; }
+    .drawer {
+      position: fixed; top: 0; left: 0; bottom: 0; z-index: 201; width: 270px;
+      background: #1a1a1a; border-right: 1px solid #2e2e2e;
+      display: flex; flex-direction: column;
+      transform: translateX(-100%); transition: transform .28s cubic-bezier(.4,0,.2,1);
+    }
+    .drawer.open { transform: translateX(0); }
+    .drawer-header { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid #2e2e2e; }
+    .drawer-logo-name { font-size: 16px; font-weight: 800; color: #f1f1f1; letter-spacing: -.3px; }
+    .drawer-logo-name span { color: #E63946; }
+    .drawer-nav { flex: 1; padding: 10px 0; overflow-y: auto; }
+    .drawer-link {
+      display: flex; align-items: center; gap: 12px; padding: 13px 20px;
+      font-size: 15px; font-weight: 600; color: #777; text-decoration: none;
+      transition: color .15s, background .15s; border-left: 3px solid transparent;
+    }
+    .drawer-link:hover { color: #f1f1f1; background: #222; }
+    .drawer-link.active { color: var(--gold); background: var(--gold-dim); border-left-color: var(--gold); }
+    .drawer-link-icon { font-size: 18px; }
+    .drawer-footer { padding: 16px 18px; border-top: 1px solid #2e2e2e; }
+    .drawer-user { font-size: 12px; color: #777; margin-bottom: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .drawer-signout { width: 100%; background: none; border: 1px solid #2e2e2e; color: #777; border-radius: 8px; padding: 10px; font-size: 13px; font-weight: 600; cursor: pointer; transition: border-color .15s, color .15s; }
+    .drawer-signout:hover { border-color: #E63946; color: #E63946; }
+    .drawer-section-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #555; padding: 14px 20px 6px; }
+    .drawer-divider { border: none; border-top: 1px solid #2e2e2e; margin: 6px 0; }
+    .drawer-link-line { background: #22c55e; color: #fff; border-radius: 8px; margin: 6px 12px; padding: 11px 14px; justify-content: center; font-size: 14px; border-left: none; }
+    .drawer-link-line:hover { background: #16a34a; color: #fff; }
+    .drawer-link-line svg { width: 18px; height: 18px; fill: #fff; flex-shrink: 0; }
+    .drawer-accordion { border-left: 3px solid transparent; }
+    .drawer-accordion-btn {
+      display: flex; align-items: center; gap: 12px; width: 100%;
+      padding: 13px 20px; font-size: 15px; font-weight: 600;
+      color: #777; background: none; border: none; cursor: pointer;
+      transition: color .15s, background .15s; text-align: left;
+    }
+    .drawer-accordion-btn:hover { color: #f1f1f1; background: #222; }
+    .drawer-accordion-btn .acc-arrow { margin-left: auto; font-size: 12px; transition: transform .22s; }
+    .drawer-accordion.open .acc-arrow { transform: rotate(180deg); }
+    .drawer-accordion-body { display: none; }
+    .drawer-accordion.open .drawer-accordion-body { display: block; }
+    .drawer-sub-link {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 20px 10px 52px; font-size: 14px; font-weight: 500;
+      color: #777; text-decoration: none;
+      transition: color .15s, background .15s; border-left: 3px solid transparent;
+    }
+    .drawer-sub-link:hover { color: #f1f1f1; background: #222; }
+    .drawer-sub-icon { font-size: 15px; }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(160deg, #050505 0%, #0e0a00 50%, #120c00 100%);
+      border-bottom: 1px solid var(--border2);
+      padding: 36px 16px 32px; position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; top: -80px; right: -60px; width: 280px; height: 280px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(212,175,55,.10) 0%, transparent 70%); pointer-events: none;
+    }
+    .hero::after {
+      content: '👑'; position: absolute; bottom: -16px; right: 8px;
+      font-size: 100px; opacity: .05; pointer-events: none; line-height: 1;
+    }
+    .hero-inner { max-width: 640px; margin: 0 auto; position: relative; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--gold-dim); border: 1px solid var(--gold-mid);
+      border-radius: 20px; padding: 4px 12px; margin-bottom: 14px;
+      font-size: 11px; font-weight: 700; color: var(--gold);
+      letter-spacing: .05em; text-transform: uppercase;
+    }
+    .hero-title {
+      font-size: 30px; font-weight: 900; letter-spacing: -.5px; line-height: 1.15; margin-bottom: 6px;
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 60%, var(--gold) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .hero-sub { font-size: 13px; color: var(--text-muted); line-height: 1.8; max-width: 500px; margin-bottom: 18px; }
+    .hero-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+    .hero-pill {
+      background: var(--surface2); border: 1px solid var(--border2);
+      border-radius: 20px; padding: 5px 12px;
+      font-size: 11px; font-weight: 700; color: var(--text-muted);
+    }
+    .hero-pill span { color: var(--gold); }
+
+    /* ── Gen pricing strip ── */
+    .gen-strip {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border2);
+      padding: 12px 16px;
+    }
+    .gen-inner { max-width: 640px; margin: 0 auto; }
+    .gen-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-sub); margin-bottom: 8px; }
+    .gen-row { display: flex; gap: 8px; }
+    .gen-item {
+      flex: 1; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 10px 12px; text-align: center;
+    }
+    .gen-item.active { border-color: var(--gold-border); background: var(--gold-dim); }
+    .gen-name { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-sub); margin-bottom: 3px; }
+    .gen-item.active .gen-name { color: var(--gold); }
+    .gen-price { font-size: 15px; font-weight: 900; color: var(--text-muted); }
+    .gen-item.active .gen-price { color: var(--gold); }
+    .gen-open { font-size: 9px; color: var(--green); font-weight: 700; margin-top: 2px; }
+
+    /* ── Page main ── */
+    .page-main { max-width: 640px; margin: 0 auto; padding: 20px 16px 100px; display: flex; flex-direction: column; gap: 16px; }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden; position: relative;
+    }
+    .card.accent {
+      border-color: var(--gold-border);
+      background: linear-gradient(135deg, var(--gold-dim) 0%, var(--surface) 60%);
+    }
+    .card.accent::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+    .card-header {
+      padding: 14px 16px 12px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .card-header-icon {
+      width: 30px; height: 30px; border-radius: 8px;
+      background: var(--gold-dim); display: flex; align-items: center; justify-content: center;
+      font-size: 15px; flex-shrink: 0; border: 1px solid var(--border2);
+    }
+    .card-header-title { font-size: 14px; font-weight: 700; color: var(--text); }
+    .card-body { padding: 16px; }
+
+    /* ── Bullet lists ── */
+    .bullet-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .bullet-list li { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+    .bullet-list li::before { content: '•'; color: var(--gold); font-size: 16px; line-height: 1.4; flex-shrink: 0; }
+    .bullet-list li strong { color: var(--text); }
+    .check-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .check-list li { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+    .check-list li::before { content: '✓'; color: var(--green); font-size: 13px; font-weight: 800; line-height: 1.5; flex-shrink: 0; }
+
+    /* ── Revenue example ── */
+    .revenue-example {
+      background: var(--surface2); border: 1px solid var(--border2);
+      border-radius: var(--radius-sm); padding: 14px; margin-top: 14px;
+    }
+    .rev-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; font-size: 13px; border-bottom: 1px solid var(--border); }
+    .rev-row:last-child { border-bottom: none; }
+    .rev-label { color: var(--text-muted); }
+    .rev-val { font-weight: 700; color: var(--text); }
+    .rev-row.total { margin-top: 4px; }
+    .rev-row.total .rev-label { color: var(--gold); font-weight: 700; }
+    .rev-row.total .rev-val { color: var(--gold); font-size: 16px; font-weight: 900; }
+
+    /* ── Flow arrows ── */
+    .flow-chain { display: flex; flex-direction: column; gap: 6px; }
+    .flow-item { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-muted); }
+    .flow-arrow { color: var(--gold); font-size: 16px; font-weight: 900; margin-left: 8px; }
+
+    /* ── Benefit grid ── */
+    .benefit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .benefit-item {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 14px 12px;
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .benefit-icon { font-size: 20px; margin-bottom: 4px; }
+    .benefit-name { font-size: 12px; font-weight: 800; color: var(--gold); }
+    .benefit-desc { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+
+    /* ── Scarcity bar ── */
+    .scarcity-bar-wrap { margin: 14px 0 8px; }
+    .scarcity-bar-track { height: 8px; background: var(--surface3); border-radius: 4px; overflow: hidden; }
+    .scarcity-bar-fill { height: 100%; width: 100%; background: linear-gradient(90deg, var(--gold), var(--gold-light)); border-radius: 4px; }
+    .scarcity-meta { display: flex; justify-content: space-between; font-size: 11px; margin-top: 6px; }
+    .scarcity-used { color: var(--gold); font-weight: 700; }
+    .scarcity-label { color: var(--text-sub); }
+
+    /* ── Quote ── */
+    .quote-block {
+      border-left: 3px solid var(--gold); padding: 14px 16px;
+      background: var(--gold-dim); border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      font-size: 14px; font-weight: 600; color: var(--text); font-style: italic; line-height: 1.7;
+    }
+
+    /* ── Gen compare ── */
+    .gen-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .gen-table th { text-align: left; padding: 8px 10px; color: var(--text-sub); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border); }
+    .gen-table td { padding: 10px; border-bottom: 1px solid var(--border); color: var(--text-muted); }
+    .gen-table tr:last-child td { border-bottom: none; }
+    .gen-table .hl { color: var(--gold); font-weight: 800; }
+    .gen-badge { display: inline-block; background: var(--gold-dim); border: 1px solid var(--gold-border); color: var(--gold); font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; }
+
+    /* ── Member list ── */
+    .member-search-wrap { margin-bottom: 12px; position: relative; }
+    .member-search {
+      width: 100%; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 10px 14px 10px 36px;
+      font-size: 14px; color: var(--text); outline: none;
+      transition: border-color .15s;
+    }
+    .member-search:focus { border-color: var(--gold-border); }
+    .member-search::placeholder { color: var(--text-sub); }
+    .member-search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-sub); font-size: 14px; pointer-events: none; }
+    .member-table-wrap { overflow-x: auto; }
+    .member-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .member-table th { text-align: left; padding: 8px 10px; color: var(--text-sub); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--surface); }
+    .member-table td { padding: 9px 10px; border-bottom: 1px solid rgba(255,255,255,.04); color: var(--text-muted); vertical-align: middle; }
+    .member-table tr:hover td { background: var(--surface2); }
+    .member-num { color: var(--text-sub); font-size: 11px; width: 28px; }
+    .member-port { font-family: monospace; font-size: 11px; color: var(--text-sub); }
+    .member-name { color: var(--text); font-weight: 600; }
+    .member-nick { color: var(--gold); font-size: 11px; }
+    .member-table tr.hidden { display: none; }
+
+    /* ── Reserve list ── */
+    .reserve-list { display: flex; flex-direction: column; gap: 6px; }
+    .reserve-item {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 10px 14px; font-size: 13px;
+    }
+    .reserve-num { color: var(--gold); font-weight: 800; width: 20px; flex-shrink: 0; }
+    .reserve-port { font-family: monospace; color: var(--text-muted); }
+
+    /* ── Vision grid ── */
+    .vision-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .vision-item {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 14px 12px;
+      text-align: center;
+    }
+    .vision-icon { font-size: 22px; margin-bottom: 6px; }
+    .vision-name { font-size: 12px; font-weight: 700; color: var(--text-muted); }
+
+    /* ── Disclaimer ── */
+    .disclaimer {
+      background: rgba(220,38,38,.06); border: 1px solid rgba(220,38,38,.2);
+      border-radius: var(--radius-sm); padding: 14px; font-size: 12px;
+      color: var(--text-muted); line-height: 1.7;
+    }
+    .disclaimer strong { color: #f87171; display: block; margin-bottom: 6px; font-size: 13px; }
+
+    /* ── CTA card ── */
+    .cta-card {
+      background: linear-gradient(135deg, rgba(212,175,55,.08) 0%, var(--surface) 70%);
+      border: 1px solid var(--gold-border); border-radius: var(--radius);
+      padding: 22px 18px; text-align: center; position: relative; overflow: hidden;
+    }
+    .cta-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+    .cta-title { font-size: 18px; font-weight: 900; color: var(--gold); margin-bottom: 6px; }
+    .cta-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 18px; line-height: 1.6; }
+    .cta-btn {
+      display: inline-flex; align-items: center; gap: 8px; justify-content: center;
+      background: #06c755; color: #fff; border-radius: 10px;
+      padding: 13px 28px; font-size: 15px; font-weight: 700;
+      text-decoration: none; width: 100%; transition: opacity .15s;
+    }
+    .cta-btn:hover { opacity: .88; }
+    .cta-btn svg { width: 18px; height: 18px; fill: #fff; flex-shrink: 0; }
+
+    /* ── LINE CTA ── */
+    .line-cta {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 90;
+      padding: 12px 16px 20px;
+      background: linear-gradient(to top, rgba(8,8,8,1) 70%, transparent);
+    }
+    .line-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: #06c755; color: #fff; border-radius: 12px; padding: 14px;
+      font-size: 15px; font-weight: 700; text-decoration: none;
+      width: 100%; max-width: 640px; margin: 0 auto; transition: opacity .15s;
+    }
+    .line-btn:hover { opacity: .88; }
+    .line-btn svg { width: 20px; height: 20px; fill: #fff; flex-shrink: 0; }
+
+    @media (max-width: 380px) {
+      .benefit-grid, .vision-grid { grid-template-columns: 1fr; }
+      .gen-row { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Nav ── -->
+<nav class="top-nav">
+  <a class="nav-back" href="/" id="navBackBtn">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    Back
+  </a>
+  <button class="hamburger" id="navHamburgerBtn" onclick="toggleDrawer()" aria-label="Menu" style="display:none">
+    <span></span><span></span><span></span>
+  </button>
+  <span class="nav-title">World Champions 100</span>
+  <button class="nav-share" onclick="sharePage()" aria-label="แชร์">
+    <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+  </button>
+</nav>
+
+<!-- ── Drawer overlay ── -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+
+<!-- ── Drawer ── -->
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <img src="/logo.png.png" alt="HQ" style="width:34px;height:34px;object-fit:contain;" />
+    <span class="drawer-logo-name">HQ <span>STRIKEPRO</span></span>
+  </div>
+  <nav class="drawer-nav">
+    <a class="drawer-link" href="/dashboard.html">
+      <span class="drawer-link-icon">📊</span> Dashboard
+    </a>
+    <a class="drawer-link" href="/clients.html">
+      <span class="drawer-link-icon">👥</span> My Clients
+    </a>
+    <a class="drawer-link" href="/products.html">
+      <span class="drawer-link-icon">📦</span> Products
+    </a>
+    <a class="drawer-link" href="/planner.html">
+      <span class="drawer-link-icon">📈</span> Investment Planner
+    </a>
+    <a class="drawer-link" href="/reviews-admin">
+      <span class="drawer-link-icon">⭐</span> Reviews
+    </a>
+    <hr class="drawer-divider" />
+    <div class="drawer-section-label">ข้อมูลเพิ่มเติม</div>
+    <div class="drawer-accordion" id="acc-events">
+      <button class="drawer-accordion-btn" onclick="toggleAcc('acc-events')">
+        <span class="drawer-link-icon">🎟️</span> Upcoming Events
+        <span class="acc-arrow">▾</span>
+      </button>
+      <div class="drawer-accordion-body">
+        <a class="drawer-sub-link" href="/events/unlock-your-wealth">
+          <span class="drawer-sub-icon">👑</span> Unlock Your Wealth
+        </a>
+        <a class="drawer-sub-link" href="/events/sbc">
+          <span class="drawer-sub-icon">🔥</span> SBC
+        </a>
+      </div>
+    </div>
+    <div class="drawer-accordion open" id="acc-community">
+      <button class="drawer-accordion-btn" onclick="toggleAcc('acc-community')">
+        <span class="drawer-link-icon">🌐</span> Community
+        <span class="acc-arrow">▾</span>
+      </button>
+      <div class="drawer-accordion-body">
+        <a class="drawer-sub-link" href="/ecosystem/stp-coin.html">
+          <span class="drawer-sub-icon">🪙</span> STP Coin
+        </a>
+        <a class="drawer-sub-link" href="/ecosystem/free-education.html">
+          <span class="drawer-sub-icon">📚</span> Free Education
+        </a>
+        <a class="drawer-sub-link" href="/ecosystem/trade-challenge.html">
+          <span class="drawer-sub-icon">⚔️</span> Valhalla Dungeon
+        </a>
+        <a class="drawer-sub-link" href="/ecosystem/charity-project.html">
+          <span class="drawer-sub-icon">❤️</span> Charity Project
+        </a>
+        <a class="drawer-sub-link" href="/ecosystem/world-champions.html" style="color:var(--gold);">
+          <span class="drawer-sub-icon">👑</span> World Champions 100
+        </a>
+      </div>
+    </div>
+    <a class="drawer-link drawer-link-line" href="https://lin.ee/8WkoRmL" target="_blank">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.07 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+      สอบถาม / ติดต่อ Admin
+    </a>
+  </nav>
+  <div class="drawer-footer">
+    <div class="drawer-user" id="drawerUser"></div>
+    <button class="drawer-signout" onclick="drawerSignOut()">ออกจากระบบ</button>
+  </div>
+</div>
+
+<!-- ── Hero ── -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge">👑 Bussay Founding Partner Program</div>
+    <div class="hero-title">World Champions 100</div>
+    <div class="hero-sub">โครงการ Partner ระดับ Founder Member ของ Bussay<br>เปิดรับเพียง 100 คนเท่านั้น เพื่อเป็นหุ้นส่วนเชิงระบบของบริษัท</div>
+    <div class="hero-pills">
+      <div class="hero-pill">จำกัด <span>100 สิทธิ์</span></div>
+      <div class="hero-pill">ปันผล <span>รายเดือน</span></div>
+      <div class="hero-pill">No Risk Model</div>
+      <div class="hero-pill">Passive Income</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Gen Pricing Strip ── -->
+<div class="gen-strip">
+  <div class="gen-inner">
+    <div class="gen-label">ราคาตามรุ่น (Generation)</div>
+    <div class="gen-row">
+      <div class="gen-item">
+        <div class="gen-name">Gen 1</div>
+        <div class="gen-price">$3,333</div>
+        <div class="gen-open" style="color:var(--text-sub);">ปิดรับแล้ว</div>
+      </div>
+      <div class="gen-item active">
+        <div class="gen-name">Gen 2</div>
+        <div class="gen-price">$4,444</div>
+        <div class="gen-open">● เปิดรับอยู่</div>
+      </div>
+      <div class="gen-item">
+        <div class="gen-name">Gen 3</div>
+        <div class="gen-price">$5,555</div>
+        <div class="gen-open" style="color:var(--text-sub);">เร็วๆ นี้</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<main class="page-main">
+
+  <!-- What is it -->
+  <div class="card accent">
+    <div class="card-header">
+      <div class="card-header-icon">👑</div>
+      <div class="card-header-title">World Champions 100 คืออะไร</div>
+    </div>
+    <div class="card-body">
+      <div class="quote-block">
+        Champion100 คือโอกาสของคน 100 คนแรก ที่ไม่ได้เข้ามาเป็นเพียงลูกค้า
+        แต่เข้ามาเป็น "Partner รุ่นบุกเบิก" ของ Bussay
+      </div>
+      <ul class="bullet-list" style="margin-top:14px;">
+        <li>โครงการ Partner ระดับ <strong>Founder Member</strong> ของ Bussay</li>
+        <li>เปิดรับเพียง <strong>100 คนเท่านั้น</strong> เพื่อเข้ามาเป็นหุ้นส่วนเชิงระบบของบริษัท</li>
+        <li>ถือสิทธิ์จากการวางทุน Gen1: <strong>$3,333</strong> / Gen2: <strong>$4,444</strong> / Gen3: <strong>$5,555</strong> ต่อ 1 สิทธิ์</li>
+        <li>รับ <strong>ปันผลรายเดือน</strong> จากการเติบโตของฐานลูกค้า Bussay</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Revenue model -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">💰</div>
+      <div class="card-header-title">โมเดลรายได้ของ Champion100</div>
+    </div>
+    <div class="card-body">
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px;font-weight:600;">Champion100 <span style="color:#f87171;">ไม่ได้รับรายได้จากการเทรด</span> — รายได้มาจากกิจกรรมของลูกค้า</p>
+      <ul class="bullet-list" style="margin-bottom:14px;">
+        <li>ลูกค้าใหม่สมัครกับ StrikePro ผ่านลิงก์ Referral ของ Bussay</li>
+        <li>ลูกค้ามีการเทรดจริง — Total Clients <strong>2,581 คน</strong> (อัพเดท พ.ค. 2569)</li>
+        <li>Project ของ Bussay เช่น GoldenBoy, HQ Ultimate, หมู่บ้านหลินอัน</li>
+        <li>ระบบเกิดค่าธรรมเนียมจาก Lot การเทรด <strong>3 USD ต่อ 1 Lot</strong></li>
+        <li>นำส่วนแบ่งมากระจายเป็นปันผลให้ Champion100 <strong>ทุกคนเท่ากัน</strong></li>
+      </ul>
+      <div class="flow-chain">
+        <div class="flow-item">ลูกค้าเทรดมาก <span class="flow-arrow">→</span></div>
+        <div class="flow-item">Volume มาก <span class="flow-arrow">→</span></div>
+        <div class="flow-item" style="color:var(--gold);font-weight:700;">รายได้ Champion100 มากขึ้น 📈</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- No Risk Model -->
+  <div class="card accent">
+    <div class="card-header">
+      <div class="card-header-icon">🛡️</div>
+      <div class="card-header-title">จุดแข็งสำคัญ — No Risk Model</div>
+    </div>
+    <div class="card-body">
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px;line-height:1.7;">
+        Champion100 <strong style="color:var(--text);">ไม่พึ่งผลลัพธ์การเทรด</strong> แต่พึ่ง "กิจกรรมของลูกค้า"<br>
+        ดังนั้นไม่ใช่กำไร/ขาดทุนของตลาดโดยตรง
+      </p>
+      <ul class="check-list">
+        <li>รายได้มาจาก <strong>จำนวนลูกค้า</strong></li>
+        <li>รายได้มาจาก <strong>ปริมาณการเทรด (Volume)</strong></li>
+        <li>รายได้มาจาก <strong>การเติบโตของแบรนด์ Bussay</strong></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Revenue example -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">🧮</div>
+      <div class="card-header-title">ตัวอย่างการคำนวณรายได้</div>
+    </div>
+    <div class="card-body">
+      <p style="font-size:12px;color:var(--text-sub);margin-bottom:10px;">สูตร: Volume (Lots) × $3 = รายได้ รวม Pool ÷ 100</p>
+      <div class="revenue-example">
+        <div class="rev-row">
+          <span class="rev-label">🟢 Golden Boy PAMM — 1,000 Lots</span>
+          <span class="rev-val">$3,000</span>
+        </div>
+        <div class="rev-row">
+          <span class="rev-label">🟡 HQ Ultimate Fund — 2,000 Lots</span>
+          <span class="rev-val">$6,000</span>
+        </div>
+        <div class="rev-row total">
+          <span class="rev-label">รวม Pool ÷ Champion 100 คน</span>
+          <span class="rev-val">$90 / คน</span>
+        </div>
+      </div>
+      <p style="font-size:12px;color:var(--text-sub);margin-top:10px;line-height:1.6;">
+        ยิ่ง Ecosystem โต → ลูกค้าเพิ่ม → Volume เพิ่ม → Product เพิ่ม<br>
+        <span style="color:var(--gold);font-weight:700;">→ รายได้ Champion100 โตแบบ Passive และ Scale ตามธุรกิจ</span>
+      </p>
+    </div>
+  </div>
+
+  <!-- Benefits -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">🎁</div>
+      <div class="card-header-title">สิทธิประโยชน์ของ Champion100</div>
+    </div>
+    <div class="card-body">
+      <div class="benefit-grid">
+        <div class="benefit-item">
+          <div class="benefit-icon">💵</div>
+          <div class="benefit-name">Monthly Profit Share</div>
+          <div class="benefit-desc">รับปันผลรายเดือนจากระบบรายได้บริษัท</div>
+        </div>
+        <div class="benefit-item">
+          <div class="benefit-icon">🌐</div>
+          <div class="benefit-name">Revenue Share</div>
+          <div class="benefit-desc">ส่วนแบ่งจากทุก Product/Project ใน Bussay Ecosystem</div>
+        </div>
+        <div class="benefit-item">
+          <div class="benefit-icon">🚀</div>
+          <div class="benefit-name">Priority Access</div>
+          <div class="benefit-desc">เข้าถึงโปรเจกต์ใหม่ก่อนใคร แคมเปญพิเศษ Partner Program ใหม่</div>
+        </div>
+        <div class="benefit-item">
+          <div class="benefit-icon">🔒</div>
+          <div class="benefit-name">Close Beta Access</div>
+          <div class="benefit-desc">ทดลองระบบก่อนเปิดจริง รับเหรียญก่อนใคร สิทธิ Early Access</div>
+        </div>
+        <div class="benefit-item" style="grid-column: span 2;">
+          <div class="benefit-icon">🗣️</div>
+          <div class="benefit-name">Advisory Voice</div>
+          <div class="benefit-desc">มีสิทธิ Feedback และเสนอแนะ Bug, Feature ใหม่, Product Direction, User Experience</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scarcity -->
+  <div class="card accent">
+    <div class="card-header">
+      <div class="card-header-icon">⚡</div>
+      <div class="card-header-title">จำนวนจำกัด — Scarcity Model</div>
+    </div>
+    <div class="card-body">
+      <div class="scarcity-bar-wrap">
+        <div class="scarcity-bar-track">
+          <div class="scarcity-bar-fill"></div>
+        </div>
+        <div class="scarcity-meta">
+          <span class="scarcity-used">100 / 100 สิทธิ์ (Gen1 เต็มแล้ว)</span>
+          <span class="scarcity-label">Gen2 กำลังเปิดรับ</span>
+        </div>
+      </div>
+      <ul class="bullet-list" style="margin-top:4px;">
+        <li>เปิดรับเพียง <strong>100 คนเท่านั้น</strong> — เมื่อครบปิดรับทันที</li>
+        <li>หากสมาชิกถอนทุนออก — สิทธิ Champion100 สิ้นสุดทันที</li>
+        <li>เปิด Slot ใหม่ให้คนถัดไปสมัครแทน</li>
+        <li>เพื่อรักษาสถานะ ต้องคงเงิน <strong>3,333 USD</strong> ขั้นต่ำ</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Who it's for -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">🎯</div>
+      <div class="card-header-title">เหมาะกับใคร</div>
+    </div>
+    <div class="card-body">
+      <ul class="check-list">
+        <li>คนที่ <strong>เชื่อในวิสัยทัศน์ Bussay</strong> และอยากเติบโตไปพร้อมกัน</li>
+        <li>คนอยากมี <strong>รายได้ Passive จาก Ecosystem</strong> ระยะยาว</li>
+        <li>คนต้องการ <strong>Privilege ระดับพิเศษ</strong> — Founder Circle, VIP Partner</li>
+        <li>คนอยาก <strong>เข้าถึงโปรเจกต์ใหม่ก่อนใคร</strong></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Positioning -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">💎</div>
+      <div class="card-header-title">Positioning ของ Champion100</div>
+    </div>
+    <div class="card-body">
+      <div class="quote-block" style="margin-bottom:14px;">
+        Champion100 ไม่ใช่ลูกค้าทั่วไป แต่คือ "ผู้ร่วมสร้างระบบ Bussay"
+      </div>
+      <ul class="bullet-list">
+        <li><strong>Founder Circle</strong> — กลุ่มผู้ก่อตั้งระบบ</li>
+        <li><strong>VIP Partner Group</strong> — สถานะ Partner สูงสุด</li>
+        <li><strong>Inner Circle</strong> ของบริษัท — เข้าถึงข้อมูลภายใน</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Long-term vision -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">🔭</div>
+      <div class="card-header-title">วิสัยทัศน์ระยะยาว</div>
+    </div>
+    <div class="card-body">
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px;line-height:1.7;">
+        Champion100 รุ่นแรก มีโอกาสเป็นกลุ่มที่ได้เปรียบสูงสุด หาก Bussay เติบโตเป็น Ecosystem เต็มรูปแบบ
+      </p>
+      <div class="vision-grid">
+        <div class="vision-item">
+          <div class="vision-icon">🎓</div>
+          <div class="vision-name">Education Platform</div>
+        </div>
+        <div class="vision-item">
+          <div class="vision-icon">🪙</div>
+          <div class="vision-name">Coin / Token Utility</div>
+        </div>
+        <div class="vision-item">
+          <div class="vision-icon">🌏</div>
+          <div class="vision-name">Global Community</div>
+        </div>
+        <div class="vision-item">
+          <div class="vision-icon">📊</div>
+          <div class="vision-name">New Financial Products</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Member list -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">👑</div>
+      <div class="card-header-title">รายชื่อ Champion100 — Founder Members</div>
+    </div>
+    <div class="card-body" style="padding:12px;">
+      <div class="member-search-wrap">
+        <span class="member-search-icon">🔍</span>
+        <input class="member-search" type="text" id="memberSearch" placeholder="ค้นหาชื่อ, ชื่อเล่น หรือรหัสพอร์ต..." oninput="filterMembers()" />
+      </div>
+      <div class="member-table-wrap">
+        <table class="member-table" id="memberTable">
+          <thead>
+            <tr>
+              <th class="member-num">#</th>
+              <th>ชื่อ (ชื่อเล่น)</th>
+              <th>รหัสพอร์ต</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="member-num">1</td><td><span class="member-name">กิตตินนท์</span> <span class="member-nick">(นนท์)</span></td><td class="member-port">2121982665</td></tr>
+            <tr><td class="member-num">2</td><td><span class="member-name">สุวรรณี</span> <span class="member-nick">(เล็ก)</span></td><td class="member-port">2121982666</td></tr>
+            <tr><td class="member-num">3</td><td><span class="member-name">สุธน</span> <span class="member-nick">(ต็อก)</span></td><td class="member-port">2121982667</td></tr>
+            <tr><td class="member-num">4</td><td><span class="member-name">พันธุ์ทิพย์</span> <span class="member-nick">(นุช)</span></td><td class="member-port">2121982669</td></tr>
+            <tr><td class="member-num">5</td><td><span class="member-name">พีรวัส</span> <span class="member-nick">(ไบรท์)</span></td><td class="member-port">2121982670</td></tr>
+            <tr><td class="member-num">6</td><td><span class="member-name">ศิวกร</span> <span class="member-nick">(พี)</span></td><td class="member-port">2121982671</td></tr>
+            <tr><td class="member-num">7</td><td><span class="member-name">วรรณฤทธิ์</span> <span class="member-nick">(เก็ตโซลีน)</span></td><td class="member-port">2121982673</td></tr>
+            <tr><td class="member-num">8</td><td><span class="member-name">ณัฎฐณิชา</span> <span class="member-nick">(แบม)</span></td><td class="member-port">2121982674</td></tr>
+            <tr><td class="member-num">9</td><td><span class="member-name">ศาศวัต</span> <span class="member-nick">(เกรท)</span></td><td class="member-port">2121982677</td></tr>
+            <tr><td class="member-num">10</td><td><span class="member-name">เทจัสวี</span> <span class="member-nick">(ทีเจ)</span></td><td class="member-port">2121982679</td></tr>
+            <tr><td class="member-num">11</td><td><span class="member-name">พุฒินัทน์</span> <span class="member-nick">(เอ้ก)</span></td><td class="member-port">2121982681</td></tr>
+            <tr><td class="member-num">12</td><td><span class="member-name">ศิรินญา</span> <span class="member-nick">(โบว์)</span></td><td class="member-port">2121982682</td></tr>
+            <tr><td class="member-num">13</td><td><span class="member-name">สมมาตร</span> <span class="member-nick">(ตอง)</span></td><td class="member-port">2121982683</td></tr>
+            <tr><td class="member-num">14</td><td><span class="member-name">ธนานันต์</span> <span class="member-nick">(ต๊ะ)</span></td><td class="member-port">2121982685</td></tr>
+            <tr><td class="member-num">15</td><td><span class="member-name">ปวริศร</span> <span class="member-nick">(ปอนด์)</span></td><td class="member-port">2121982688</td></tr>
+            <tr><td class="member-num">16</td><td><span class="member-name">นพวรรณ</span> <span class="member-nick">(ฝน)</span></td><td class="member-port">2121982523</td></tr>
+            <tr><td class="member-num">17</td><td><span class="member-name">ภัทรพล</span> <span class="member-nick">(หนึ่ง)</span></td><td class="member-port">2121988655</td></tr>
+            <tr><td class="member-num">18</td><td><span class="member-name">พงศ์ภีระ</span> <span class="member-nick">(ลูกชิ้น)</span></td><td class="member-port">2121982690</td></tr>
+            <tr><td class="member-num">19</td><td><span class="member-name">พรพิมล</span> <span class="member-nick">(จุ๋ม)</span></td><td class="member-port">2121982692</td></tr>
+            <tr><td class="member-num">20</td><td><span class="member-name">กัญญาภัค</span> <span class="member-nick">(โบว์)</span></td><td class="member-port">2121989130</td></tr>
+            <tr><td class="member-num">21</td><td><span class="member-name">ทรัสตรี</span> <span class="member-nick">(บิว)</span></td><td class="member-port">2121982695</td></tr>
+            <tr><td class="member-num">22</td><td><span class="member-name">ศิริลักษณ์</span> <span class="member-nick">(แต้ว)</span></td><td class="member-port">2121982697</td></tr>
+            <tr><td class="member-num">23</td><td><span class="member-name">ณัชพล</span> <span class="member-nick">(ฟลุ๊ค)</span></td><td class="member-port">2121990645</td></tr>
+            <tr><td class="member-num">24</td><td><span class="member-name">นธี</span> <span class="member-nick">(บี)</span></td><td class="member-port">2121982699</td></tr>
+            <tr><td class="member-num">25</td><td><span class="member-name">สิรินทิพย์</span> <span class="member-nick">(หญิง)</span></td><td class="member-port">2121988774</td></tr>
+            <tr><td class="member-num">26</td><td><span class="member-name">ชวินวัตร</span> <span class="member-nick">(ดิว)</span></td><td class="member-port">2121982702</td></tr>
+            <tr><td class="member-num">27</td><td><span class="member-name">นิลวรรณ</span> <span class="member-nick">(นิน)</span></td><td class="member-port">2121988617</td></tr>
+            <tr><td class="member-num">28</td><td><span class="member-name">พีระพงศ์</span> <span class="member-nick">(บูม)</span></td><td class="member-port">2121982704</td></tr>
+            <tr><td class="member-num">29</td><td><span class="member-name">ศิวกร</span> <span class="member-nick">(อาร์ม)</span></td><td class="member-port">2121982705</td></tr>
+            <tr><td class="member-num">30</td><td><span class="member-name">อวิกา</span> <span class="member-nick">(อ๋อมแอ๋ม)</span></td><td class="member-port">2121982708</td></tr>
+            <tr><td class="member-num">31</td><td><span class="member-name">พรระพี</span> <span class="member-nick">(เก๋)</span></td><td class="member-port">2121982709</td></tr>
+            <tr><td class="member-num">32</td><td><span class="member-name">สุรีแสงทิพย์</span> <span class="member-nick">(หนิง)</span></td><td class="member-port">2121988814</td></tr>
+            <tr><td class="member-num">33</td><td><span class="member-name">ชัชวาล</span> <span class="member-nick">(หนุ่ม)</span></td><td class="member-port">2121982711</td></tr>
+            <tr><td class="member-num">34</td><td><span class="member-name">จีรพร</span> <span class="member-nick">(ฮันนี่)</span></td><td class="member-port">2121982717</td></tr>
+            <tr><td class="member-num">35</td><td><span class="member-name">ณัฐธนฤทธ์</span> <span class="member-nick">(โอ๊ะเอ๊ะ)</span></td><td class="member-port">2121982718</td></tr>
+            <tr><td class="member-num">36</td><td><span class="member-name">มัณฑนากร</span> <span class="member-nick">(ไนซ์)</span></td><td class="member-port">2121982720</td></tr>
+            <tr><td class="member-num">37</td><td><span class="member-name">วิชุลดา</span> <span class="member-nick">(เม)</span></td><td class="member-port">2121990646</td></tr>
+            <tr><td class="member-num">38</td><td><span class="member-name">อัจฉรา</span> <span class="member-nick">(จ๋า)</span></td><td class="member-port">2121990647</td></tr>
+            <tr><td class="member-num">39</td><td><span class="member-name">คุณานนท์</span> <span class="member-nick">(นิว)</span></td><td class="member-port">2121982725</td></tr>
+            <tr><td class="member-num">40</td><td><span class="member-name">สมศักดิ์</span> <span class="member-nick">(ตี๋)</span></td><td class="member-port">2121990649</td></tr>
+            <tr><td class="member-num">41</td><td><span class="member-name">ภาสกร</span> <span class="member-nick">(ปู่)</span></td><td class="member-port">2121982728</td></tr>
+            <tr><td class="member-num">42</td><td><span class="member-name">โศธิดา</span> <span class="member-nick">(ออม)</span></td><td class="member-port">2121982740</td></tr>
+            <tr><td class="member-num">43</td><td><span class="member-name">ชิตพล</span> <span class="member-nick">(ปิง)</span></td><td class="member-port">2121982741</td></tr>
+            <tr><td class="member-num">44</td><td><span class="member-name">อัญประพัชร์</span> <span class="member-nick">(แคท)</span></td><td class="member-port">2121982744</td></tr>
+            <tr><td class="member-num">45</td><td><span class="member-name">สุนันทา</span> <span class="member-nick">(ตุ๊ก)</span></td><td class="member-port">2121982745</td></tr>
+            <tr><td class="member-num">46</td><td><span class="member-name">วัชรพันธุ์</span> <span class="member-nick">(ปุ้ม)</span></td><td class="member-port">2121982761</td></tr>
+            <tr><td class="member-num">47</td><td><span class="member-name">พรพรรณ</span> <span class="member-nick">(พร)</span></td><td class="member-port">2121990653</td></tr>
+            <tr><td class="member-num">48</td><td><span class="member-name">ภัทรพร</span> <span class="member-nick">(แนท)</span></td><td class="member-port">2121982764</td></tr>
+            <tr><td class="member-num">49</td><td><span class="member-name">บัญชา</span> <span class="member-nick">(กุ่ย)</span></td><td class="member-port">2121982766</td></tr>
+            <tr><td class="member-num">50</td><td><span class="member-name">สาธิต</span> <span class="member-nick">(บอส)</span></td><td class="member-port">2121990654</td></tr>
+            <tr><td class="member-num">51</td><td><span class="member-name">ธวัชชัย</span> <span class="member-nick">(ปาล์ม)</span></td><td class="member-port">2121982786</td></tr>
+            <tr><td class="member-num">52</td><td><span class="member-name">กัลยรัตน์</span> <span class="member-nick">(เรือง)</span></td><td class="member-port">2121982791</td></tr>
+            <tr><td class="member-num">53</td><td><span class="member-name">จตุรินทร์</span> <span class="member-nick">(โด้)</span></td><td class="member-port">2121982795</td></tr>
+            <tr><td class="member-num">54</td><td><span class="member-name">อาติฟ</span> <span class="member-nick">(อธิป)</span></td><td class="member-port">2121982776</td></tr>
+            <tr><td class="member-num">55</td><td><span class="member-name">อมเรศ</span> <span class="member-nick">(ท๊อป)</span></td><td class="member-port">2121982803</td></tr>
+            <tr><td class="member-num">56</td><td><span class="member-name">ฉัตมณีศ์</span> <span class="member-nick">(เก๋)</span></td><td class="member-port">2121982811</td></tr>
+            <tr><td class="member-num">57</td><td><span class="member-name">วุฒิพร</span> <span class="member-nick">(แมงป่อง)</span></td><td class="member-port">2121982828</td></tr>
+            <tr><td class="member-num">58</td><td><span class="member-name">กิตติภพ</span> <span class="member-nick">(แบงค์)</span></td><td class="member-port">2121990663</td></tr>
+            <tr><td class="member-num">59</td><td><span class="member-name">พิรุณ</span> <span class="member-nick">(หนึ่ง)</span></td><td class="member-port">2121990664</td></tr>
+            <tr><td class="member-num">60</td><td><span class="member-name">พัชรีวรรณ</span> <span class="member-nick">(เฟิร์น)</span></td><td class="member-port">2121982881</td></tr>
+            <tr><td class="member-num">61</td><td><span class="member-name">ปุณชรัสมิ์</span> <span class="member-nick">(นุ่น)</span></td><td class="member-port">2121982900</td></tr>
+            <tr><td class="member-num">62</td><td><span class="member-name">ชีวพัฒน์</span> <span class="member-nick">(ตง)</span></td><td class="member-port">2121982923</td></tr>
+            <tr><td class="member-num">63</td><td><span class="member-name">ศรัณย์พงศ์</span> <span class="member-nick">(เอิร์ธ)</span></td><td class="member-port">2121982924</td></tr>
+            <tr><td class="member-num">64</td><td><span class="member-name">ปิยะวัฒน์</span> <span class="member-nick">(วัฒน์)</span></td><td class="member-port">2121982927</td></tr>
+            <tr><td class="member-num">65</td><td><span class="member-name">จักรกฤช</span> <span class="member-nick">(แชมป์)</span></td><td class="member-port">2121982929</td></tr>
+            <tr><td class="member-num">66</td><td><span class="member-name">ทศพร</span> <span class="member-nick">(ต่อ)</span></td><td class="member-port">2121982933</td></tr>
+            <tr><td class="member-num">67</td><td><span class="member-name">ธราพัชร์</span> <span class="member-nick">(เก๋)</span></td><td class="member-port">2121982937</td></tr>
+            <tr><td class="member-num">68</td><td><span class="member-name">อรญา</span> <span class="member-nick">(เบล)</span></td><td class="member-port">2121982940</td></tr>
+            <tr><td class="member-num">69</td><td><span class="member-name">รุดดีน</span> <span class="member-nick">(ซิน)</span></td><td class="member-port">2121982942</td></tr>
+            <tr><td class="member-num">70</td><td><span class="member-name">ณิชชาวีณ์</span> <span class="member-nick">(ตวง)</span></td><td class="member-port">2121982949</td></tr>
+            <tr><td class="member-num">71</td><td><span class="member-name">จุฑามาศ</span> <span class="member-nick">(J.MAS)</span></td><td class="member-port">2121990665</td></tr>
+            <tr><td class="member-num">72</td><td><span class="member-name">พงษ์ศิริ</span> <span class="member-nick">(พงษ์)</span></td><td class="member-port">2121982960</td></tr>
+            <tr><td class="member-num">73</td><td><span class="member-name">พัทธดนย์</span> <span class="member-nick">(ฟาร์ม)</span></td><td class="member-port">2121982965</td></tr>
+            <tr><td class="member-num">74</td><td><span class="member-name">Prasit</span> <span class="member-nick">(Roy)</span></td><td class="member-port">2121982793</td></tr>
+            <tr><td class="member-num">75</td><td><span class="member-name">จรัญ</span> <span class="member-nick">(ตูมตาม)</span></td><td class="member-port">2121982975</td></tr>
+            <tr><td class="member-num">76</td><td><span class="member-name">กวิน</span> <span class="member-nick">(วิน)</span></td><td class="member-port">2121982242</td></tr>
+            <tr><td class="member-num">77</td><td><span class="member-name">Irinraya</span> <span class="member-nick">(Pui)</span></td><td class="member-port">2121990667</td></tr>
+            <tr><td class="member-num">78</td><td><span class="member-name">เสาวลักษณ์</span> <span class="member-nick">(หญิง)</span></td><td class="member-port">2121983002</td></tr>
+            <tr><td class="member-num">79</td><td><span class="member-name">ภัควุฒ</span> <span class="member-nick">(นิว)</span></td><td class="member-port">2121983004</td></tr>
+            <tr><td class="member-num">80</td><td><span class="member-name">พีรภัทร์</span> <span class="member-nick">(เบิร์ด)</span></td><td class="member-port">2121990670</td></tr>
+            <tr><td class="member-num">81</td><td><span class="member-name">ภาณุพงศ์</span> <span class="member-nick">(แชมป์)</span></td><td class="member-port">2121983016</td></tr>
+            <tr><td class="member-num">82</td><td><span class="member-name">ทัศนียา</span> <span class="member-nick">(กุล)</span></td><td class="member-port">2121983018</td></tr>
+            <tr><td class="member-num">83</td><td><span class="member-name">พิสิทธิ์</span> <span class="member-nick">(เกอร์)</span></td><td class="member-port">2121983022</td></tr>
+            <tr><td class="member-num">84</td><td><span class="member-name">ปูริดา</span> <span class="member-nick">(ยิ้ม)</span></td><td class="member-port">2121990671</td></tr>
+            <tr><td class="member-num">85</td><td><span class="member-name">ภัสวรินทร์</span> <span class="member-nick">(ภัส)</span></td><td class="member-port">2121983024</td></tr>
+            <tr><td class="member-num">86</td><td><span class="member-name">สุณี</span> <span class="member-nick">(ณี)</span></td><td class="member-port">2121983025</td></tr>
+            <tr><td class="member-num">87</td><td><span class="member-name">อานนท์</span> <span class="member-nick">(อ๋า)</span></td><td class="member-port">2121983026</td></tr>
+            <tr><td class="member-num">88</td><td><span class="member-name">วรวีร์</span> <span class="member-nick">(ป้าริชชี่)</span></td><td class="member-port">2121983027</td></tr>
+            <tr><td class="member-num">89</td><td><span class="member-name">สุชาติ</span> <span class="member-nick">(Chart)</span></td><td class="member-port">2121990673</td></tr>
+            <tr><td class="member-num">90</td><td><span class="member-name">ณัฏฐาชิดา</span> <span class="member-nick">(นัท)</span></td><td class="member-port">2121983042</td></tr>
+            <tr><td class="member-num">91</td><td><span class="member-name">Anchalee</span> <span class="member-nick">(แอมแปร์)</span></td><td class="member-port">2121983060</td></tr>
+            <tr><td class="member-num">92</td><td><span class="member-name">ภัทรวุฒิ</span> <span class="member-nick">(เต้ย)</span></td><td class="member-port">2121990676</td></tr>
+            <tr><td class="member-num">93</td><td><span class="member-name">อนุกูล</span> <span class="member-nick">(นนท์)</span></td><td class="member-port">2121983176</td></tr>
+            <tr><td class="member-num">94</td><td><span class="member-name">จินตนา</span> <span class="member-nick">(เรย์)</span></td><td class="member-port">2121983452</td></tr>
+            <tr><td class="member-num">95</td><td><span class="member-name">ธัญธารีย์</span> <span class="member-nick">(สีฟ้า)</span></td><td class="member-port">2121984258</td></tr>
+            <tr><td class="member-num">96</td><td><span class="member-name">ชาตกานต์</span> <span class="member-nick">(เอส)</span></td><td class="member-port">2121985281</td></tr>
+            <tr><td class="member-num">97</td><td><span class="member-name">บุณฑริกา</span> <span class="member-nick">(น้ำเกลือ)</span></td><td class="member-port">2121985298</td></tr>
+            <tr><td class="member-num">98</td><td><span class="member-name">วรัญญา</span> <span class="member-nick">(สื่อสาร)</span></td><td class="member-port">2121990680</td></tr>
+            <tr><td class="member-num">99</td><td><span class="member-name">นัฐจิตต์</span> <span class="member-nick">(แอม)</span></td><td class="member-port">2121990684</td></tr>
+            <tr><td class="member-num">100</td><td><span class="member-name">ศุภณัฐ</span> <span class="member-nick">(ดิว)</span></td><td class="member-port">2121990686</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Founder Reserve -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">🔖</div>
+      <div class="card-header-title">รายชื่อ Champion100 — Founder Reserve</div>
+    </div>
+    <div class="card-body">
+      <div class="reserve-list">
+        <div class="reserve-item"><span class="reserve-num">1</span><span class="reserve-port">2121990681</span></div>
+        <div class="reserve-item"><span class="reserve-num">2</span><span class="reserve-port">2121990688</span></div>
+        <div class="reserve-item"><span class="reserve-num">3</span><span class="reserve-port">2121990693</span></div>
+        <div class="reserve-item"><span class="reserve-num">4</span><span class="reserve-port">2121990697</span></div>
+        <div class="reserve-item"><span class="reserve-num">5</span><span class="reserve-port">2121990699</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Disclaimer -->
+  <div class="disclaimer">
+    <strong>⚠️ เงื่อนไขและข้อกำหนด (Disclaimer)</strong>
+    เอกสารนี้จัดทำขึ้นเพื่ออธิบายรายละเอียดของโครงการ Champion100 ภายใต้ Bussay เพื่อให้ผู้เข้าร่วมเข้าใจรูปแบบ สิทธิประโยชน์ และกลไกของระบบอย่างชัดเจน<br><br>
+    <strong style="color:#f87171;display:inline;">เงื่อนไข สิทธิประโยชน์ รูปแบบรายได้</strong> รวมถึงรายละเอียดต่างๆ อาจมีการเปลี่ยนแปลง ปรับปรุง หรือแก้ไขได้ตามความเหมาะสมของบริษัท โดยไม่จำเป็นต้องแจ้งให้ทราบล่วงหน้า การตัดสินใจของบริษัทถือเป็นที่สิ้นสุด ผู้เข้าร่วมควรศึกษาข้อมูลและทำความเข้าใจความเสี่ยงและเงื่อนไขทั้งหมดก่อนเข้าร่วมโครงการ
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-card">
+    <div class="cta-title">👑 สนใจสมัคร Champion100?</div>
+    <div class="cta-sub">Gen2 เปิดรับอยู่ — ราคา $4,444 ต่อ 1 สิทธิ์<br>ติดต่อ Admin เพื่อสอบถามรายละเอียดและขั้นตอนการสมัคร</div>
+    <a class="cta-btn" href="https://lin.ee/8WkoRmL" target="_blank">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.07 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+      สอบถาม / ติดต่อ Admin
+    </a>
+  </div>
+
+</main>
+
+<div class="line-cta">
+  <a class="line-btn" href="https://lin.ee/8WkoRmL" target="_blank">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.07 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+    สอบถาม / ติดต่อ Admin
+  </a>
+</div>
+
+<script>
+  const TOKEN_KEY = 'sp_token';
+
+  // ── Auth-aware nav ──────────────────────────────────────────────────────────
+  (async () => {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) return;
+    try {
+      const r = await fetch('/api/auth/me', { headers: { Authorization: 'Bearer ' + token } });
+      if (!r.ok) return;
+      const { user } = await r.json();
+      document.getElementById('navBackBtn').style.display   = 'none';
+      document.getElementById('navHamburgerBtn').style.display = 'flex';
+      document.getElementById('drawerUser').textContent = user.email;
+    } catch {}
+  })();
+
+  // ── Drawer ──────────────────────────────────────────────────────────────────
+  function toggleDrawer() {
+    document.getElementById('drawer').classList.toggle('open');
+    document.getElementById('drawerOverlay').classList.toggle('open');
+  }
+  function closeDrawer() {
+    document.getElementById('drawer').classList.remove('open');
+    document.getElementById('drawerOverlay').classList.remove('open');
+  }
+  function toggleAcc(id) { document.getElementById(id).classList.toggle('open'); }
+  function drawerSignOut() {
+    const token = localStorage.getItem(TOKEN_KEY);
+    fetch('/api/auth/logout', { method: 'POST', headers: { Authorization: 'Bearer ' + token } }).catch(() => {});
+    localStorage.removeItem(TOKEN_KEY);
+    window.location.href = '/login';
+  }
+
+  // ── Member search ────────────────────────────────────────────────────────────
+  function filterMembers() {
+    const q = document.getElementById('memberSearch').value.toLowerCase().trim();
+    document.querySelectorAll('#memberTable tbody tr').forEach(function(row) {
+      row.classList.toggle('hidden', q && !row.textContent.toLowerCase().includes(q));
+    });
+  }
+
+  // ── Share ────────────────────────────────────────────────────────────────────
+  async function sharePage() {
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: document.title, url: location.href });
+      } else {
+        await navigator.clipboard.writeText(location.href);
+        const t = document.createElement('div');
+        t.textContent = 'คัดลอกลิงก์แล้ว ✓';
+        t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#222;border:1px solid rgba(255,255,255,.12);color:#f0f0f0;padding:9px 18px;border-radius:10px;font-size:13px;font-weight:600;z-index:9999;pointer-events:none;';
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 2000);
+      }
+    } catch {}
+  }
+</script>
+</body>
+</html>

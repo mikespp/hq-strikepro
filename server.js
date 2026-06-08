@@ -81,6 +81,11 @@ app.get('/reviews-admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'reviews-admin.html'));
 });
 
+// /ecosystem/world-champions → serve World Champions 100 page
+app.get('/ecosystem/world-champions', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'ecosystem', 'world-champions.html'));
+});
+
 // Serve index.html for all non-API routes (SPA fallback)
 app.get('*', (req, res) => {
   if (!req.path.startsWith('/api')) {
