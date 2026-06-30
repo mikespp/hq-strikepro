@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#d4af37" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>บ้านหลังสุดท้าย — The Last Account</title>
+  <meta name="description" content="เริ่มต้นใหม่อย่างมีความรู้ มีคนดูแล และมีเครื่องมือรองรับความเสี่ยง เพื่อให้พอร์ตนี้เป็นพอร์ตสุดท้ายของคุณ" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold:        #d4af37;
+      --gold-light:  #f5d96b;
+      --gold-pale:   #ffe99a;
+      --gold-dim:    rgba(212,175,55,.12);
+      --gold-border: rgba(212,175,55,.22);
+      --bg:          #060606;
+      --bg2:         #0d0d0d;
+      --card:        #0f0f0f;
+      --card2:       #131313;
+      --border:      rgba(255,255,255,.06);
+      --text:        #f0f0f0;
+      --muted:       #7a7a7a;
+      --radius:      18px;
+      --radius-sm:   12px;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── Canvas particles ─── */
+    #particles { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+    /* ─── Ambient glows ─── */
+    .glow-top {
+      position: fixed; top: -200px; left: 50%; transform: translateX(-50%);
+      width: 1000px; height: 700px; pointer-events: none; z-index: 0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(212,175,55,.09) 0%, transparent 65%);
+    }
+
+    /* ─── Nav ─── */
+    nav {
+      position: sticky; top: 0; z-index: 200;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px;
+      background: rgba(6,6,6,.80); backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-back {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 14px; font-weight: 600; color: var(--muted);
+      text-decoration: none; transition: color .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .nav-back:hover { color: var(--text); }
+    .nav-back svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* ─── Page wrapper ─── */
+    .page { position: relative; z-index: 1; }
+
+    /* ─── HERO ─── */
+    .hero {
+      min-height: 92vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center; padding: 80px 24px 64px;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+      width: 2px; height: 55%;
+      background: linear-gradient(to bottom, transparent, rgba(212,175,55,.5), transparent);
+      filter: blur(1px);
+    }
+    .hero::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0; right: 0; height: 200px;
+      background: linear-gradient(to bottom, transparent, var(--bg));
+      pointer-events: none;
+    }
+    .streak {
+      position: absolute; height: 1px; pointer-events: none;
+      background: linear-gradient(90deg, transparent, rgba(212,175,55,.25), transparent);
+    }
+    .streak-1 { width: 60%; top: 30%; left: 20%; }
+    .streak-2 { width: 40%; top: 60%; left: 30%; opacity: .5; }
+
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 10px;
+      font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
+      color: var(--gold); border: 1px solid var(--gold-border); background: var(--gold-dim);
+      padding: 7px 18px; border-radius: 50px; margin-bottom: 40px;
+      position: relative; z-index: 1;
+    }
+    .hero-eyebrow .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--gold); box-shadow: 0 0 10px var(--gold);
+      animation: blink 2.2s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:.3;} }
+
+    .hero-label {
+      font-size: clamp(13px, 2.5vw, 16px); font-weight: 500; letter-spacing: 4px;
+      text-transform: uppercase; color: rgba(212,175,55,.6);
+      margin-bottom: 16px; position: relative; z-index: 1;
+    }
+    .hero-title {
+      font-size: clamp(34px, 8vw, 72px); font-weight: 900;
+      letter-spacing: -1px; line-height: 1.05;
+      background: linear-gradient(160deg, #ffffff 20%, var(--gold-pale) 55%, var(--gold) 85%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 24px; position: relative; z-index: 1;
+    }
+    .hero-sub {
+      font-size: clamp(16px, 3.2vw, 22px); font-weight: 300;
+      color: rgba(240,240,240,.75); letter-spacing: .5px;
+      margin-bottom: 36px; position: relative; z-index: 1; max-width: 520px;
+    }
+    .hero-duration {
+      display: inline-flex; align-items: center; gap: 12px;
+      background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1);
+      border-radius: 50px; padding: 10px 24px;
+      font-size: 15px; font-weight: 700; color: var(--text);
+      letter-spacing: .5px; position: relative; z-index: 1;
+    }
+    .hero-duration .dur-icon { font-size: 18px; }
+    .hero-duration .dur-gold { color: var(--gold); }
+
+    /* ─── Content wrapper ─── */
+    .content { max-width: 780px; margin: 0 auto; padding: 0 20px 160px; }
+
+    /* ─── Gold divider ─── */
+    .divider { display: flex; align-items: center; gap: 16px; margin: 56px 0 48px; }
+    .divider-line { flex: 1; height: 1px; background: var(--gold-border); }
+    .divider-diamond {
+      width: 8px; height: 8px; background: var(--gold);
+      transform: rotate(45deg); flex-shrink: 0;
+      box-shadow: 0 0 12px rgba(212,175,55,.5);
+    }
+
+    /* ─── Section label ─── */
+    .s-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 3px;
+      text-transform: uppercase; color: var(--gold);
+      margin-bottom: 16px; display: flex; align-items: center; gap: 10px;
+    }
+    .s-label::after { content: ''; flex: 1; height: 1px; background: var(--gold-border); }
+
+    /* ─── Description block ─── */
+    .desc-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 36px 28px;
+      position: relative; overflow: hidden; margin-bottom: 14px;
+    }
+    .desc-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(212,175,55,.35), transparent);
+    }
+    .desc-card p { font-size: 16px; line-height: 1.9; color: rgba(240,240,240,.82); font-weight: 400; }
+    .desc-card p + p { margin-top: 18px; }
+    .desc-card .highlight {
+      font-size: 17px; font-weight: 600; color: var(--text);
+      border-left: 3px solid var(--gold); padding-left: 16px;
+      margin-top: 22px; line-height: 1.7;
+    }
+
+    /* ─── Experience / list grid ─── */
+    .exp-grid { display: flex; flex-direction: column; gap: 12px; }
+    .exp-item {
+      display: flex; align-items: flex-start; gap: 16px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 20px;
+      transition: border-color .2s, transform .2s;
+      position: relative; overflow: hidden;
+    }
+    .exp-item::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+      width: 3px; background: linear-gradient(to bottom, var(--gold), rgba(212,175,55,.3));
+      border-radius: 3px 0 0 3px;
+    }
+    .exp-item:hover { border-color: var(--gold-border); transform: translateX(4px); }
+    .exp-num {
+      width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+      background: var(--gold-dim); border: 1px solid var(--gold-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 800; color: var(--gold);
+    }
+    .exp-ico {
+      width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+      background: var(--gold-dim); border: 1px solid var(--gold-border);
+      display: flex; align-items: center; justify-content: center; font-size: 18px;
+    }
+    .exp-body { padding-top: 2px; }
+    .exp-head { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+    .exp-text { font-size: 14px; font-weight: 400; color: rgba(240,240,240,.68); line-height: 1.6; }
+    .exp-item .exp-text-c { font-size: 15px; font-weight: 500; color: var(--text); line-height: 1.5; padding-top: 6px; }
+
+    /* ─── Module cards ─── */
+    .mod-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 520px) { .mod-grid { grid-template-columns: 1fr; } }
+    .mod-card {
+      background: var(--card2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 24px 22px;
+      position: relative; overflow: hidden; transition: border-color .2s, transform .2s;
+    }
+    .mod-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(212,175,55,.3), transparent);
+    }
+    .mod-card:hover { border-color: var(--gold-border); transform: translateY(-3px); }
+    .mod-num { font-size: 12px; font-weight: 800; color: var(--gold); letter-spacing: 1px; margin-bottom: 8px; }
+    .mod-name { font-size: 16px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+    .mod-desc { font-size: 13px; color: rgba(240,240,240,.7); line-height: 1.6; }
+
+    /* ─── Condition / pricing card ─── */
+    .price-main {
+      background: linear-gradient(135deg, #0f0f0f 0%, #111 100%);
+      border: 1px solid var(--gold-border); border-radius: var(--radius);
+      padding: 36px 28px; text-align: center;
+      position: relative; overflow: hidden; margin-bottom: 16px;
+    }
+    .price-main::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+    .price-main::after {
+      content: ''; position: absolute; top: -60px; left: 50%; transform: translateX(-50%);
+      width: 400px; height: 200px;
+      background: radial-gradient(ellipse, rgba(212,175,55,.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .price-tag {
+      display: inline-block;
+      font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--gold); background: var(--gold-dim); border: 1px solid var(--gold-border);
+      padding: 4px 14px; border-radius: 50px; margin-bottom: 18px;
+    }
+    .price-amount {
+      font-size: clamp(48px, 12vw, 72px); font-weight: 900; letter-spacing: -2px;
+      background: linear-gradient(135deg, var(--gold-pale), var(--gold));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; line-height: 1;
+    }
+    .price-unit { font-size: 18px; font-weight: 600; color: rgba(212,175,55,.7); margin-top: 6px; }
+
+    /* ─── Condition rows ─── */
+    .cond-grid { display: flex; flex-direction: column; gap: 10px; }
+    .cond-item {
+      display: flex; align-items: flex-start; gap: 14px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 18px 20px;
+    }
+    .cond-ico { font-size: 18px; flex-shrink: 0; }
+    .cond-label { font-size: 13px; font-weight: 700; color: var(--gold); margin-bottom: 3px; }
+    .cond-val { font-size: 14px; color: rgba(240,240,240,.78); line-height: 1.55; }
+
+    /* ─── FAQ ─── */
+    .faq-grid { display: flex; flex-direction: column; gap: 10px; }
+    .faq-item {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 20px 22px;
+    }
+    .faq-q {
+      font-size: 15px; font-weight: 700; color: var(--text);
+      display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px;
+    }
+    .faq-q::before { content: 'Q'; color: var(--gold); font-weight: 900; flex-shrink: 0; }
+    .faq-a { font-size: 14px; color: rgba(240,240,240,.7); line-height: 1.65; padding-left: 22px; }
+
+    /* ─── Warning / disclaimer ─── */
+    .warn-card {
+      background: rgba(248,113,113,.04); border: 1px solid rgba(248,113,113,.18);
+      border-radius: var(--radius); padding: 26px 24px;
+    }
+    .warn-title { font-size: 13px; font-weight: 800; color: #f87171; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 14px; }
+    .warn-card ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .warn-card li { font-size: 13px; color: rgba(240,240,240,.62); line-height: 1.6; padding-left: 18px; position: relative; }
+    .warn-card li::before { content: '•'; position: absolute; left: 4px; color: rgba(248,113,113,.6); }
+
+    /* ─── CTA ─── */
+    .cta-section {
+      text-align: center; margin-top: 64px;
+      background: var(--card); border: 1px solid var(--gold-border);
+      border-radius: 24px; padding: 56px 28px 48px;
+      position: relative; overflow: hidden;
+    }
+    .cta-section::before {
+      content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+      width: 60%; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+    .cta-section::after {
+      content: ''; position: absolute; top: -80px; left: 50%; transform: translateX(-50%);
+      width: 600px; height: 400px;
+      background: radial-gradient(ellipse, rgba(212,175,55,.07) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .cta-icon { font-size: 48px; margin-bottom: 20px; display: block; filter: drop-shadow(0 0 16px rgba(212,175,55,.5)); }
+    .cta-title { font-size: clamp(22px, 5vw, 32px); font-weight: 900; letter-spacing: -.5px; margin-bottom: 10px; }
+    .cta-sub { font-size: 15px; color: var(--muted); margin-bottom: 36px; line-height: 1.6; }
+
+    .cta-btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%);
+      background-size: 200% 200%;
+      color: #080808; text-decoration: none;
+      font-size: 16px; font-weight: 900; letter-spacing: .3px;
+      padding: 18px 44px; border-radius: 50px;
+      box-shadow: 0 8px 32px rgba(212,175,55,.4), 0 2px 8px rgba(212,175,55,.2);
+      transition: background-position .4s, transform .15s, box-shadow .2s;
+      -webkit-tap-highlight-color: transparent;
+      position: relative; z-index: 1; width: 100%; max-width: 420px;
+    }
+    .cta-btn:hover {
+      background-position: 100% 100%;
+      box-shadow: 0 14px 48px rgba(212,175,55,.55), 0 4px 16px rgba(212,175,55,.3);
+      transform: translateY(-3px);
+    }
+    .cta-btn:active { transform: scale(.97); }
+    .cta-btn svg { width: 20px; height: 20px; fill: #080808; flex-shrink: 0; }
+
+    .line-btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      background: #22c55e; color: #fff; text-decoration: none;
+      font-size: 15px; font-weight: 700; padding: 15px 40px; border-radius: 50px;
+      width: 100%; max-width: 420px; margin-top: 14px;
+      box-shadow: 0 4px 20px rgba(34,197,94,.3);
+      transition: background .15s, transform .1s; -webkit-tap-highlight-color: transparent;
+      position: relative; z-index: 1;
+    }
+    .line-btn:hover { background: #16a34a; }
+    .line-btn:active { transform: scale(.97); }
+    .line-btn svg { width: 20px; height: 20px; fill: #fff; flex-shrink: 0; }
+
+    /* ─── Footer ─── */
+    .page-footer {
+      text-align: center; padding: 28px 20px 32px;
+      font-size: 12px; color: rgba(122,122,122,.5); letter-spacing: .5px;
+    }
+    .page-footer span { color: var(--gold); opacity: .7; }
+
+    /* ─── Scroll fade-up ─── */
+    .fade { opacity: 0; transform: translateY(28px); transition: opacity .65s ease, transform .65s ease; }
+    .fade.in { opacity: 1; transform: translateY(0); }
+    .fade-d1 { transition-delay: .08s; }
+    .fade-d2 { transition-delay: .16s; }
+    .fade-d3 { transition-delay: .24s; }
+
+    /* ── Hamburger ── */
+    .hamburger {
+      background: none; border: none; cursor: pointer; color: var(--text, #f0f0f0);
+      padding: 8px; display: flex; flex-direction: column; gap: 5px;
+      align-items: center; justify-content: center;
+      border-radius: 8px; transition: background .15s; flex-shrink: 0;
+    }
+    .hamburger:hover { background: rgba(255,255,255,.08); }
+    .hamburger span { display: block; width: 22px; height: 2px; background: currentColor; border-radius: 2px; }
+    .drawer-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,.6); opacity: 0; pointer-events: none; transition: opacity .25s;
+    }
+    .drawer-overlay.open { opacity: 1; pointer-events: all; }
+    .drawer {
+      position: fixed; top: 0; left: 0; bottom: 0; z-index: 201; width: 275px;
+      background: #1a1a1a; border-right: 1px solid #2e2e2e;
+      display: flex; flex-direction: column;
+      transform: translateX(-100%); transition: transform .28s cubic-bezier(.4,0,.2,1);
+    }
+    .drawer.open { transform: translateX(0); }
+    .drawer-header { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid #2e2e2e; }
+    .drawer-logo-name { font-size: 16px; font-weight: 800; color: #f1f1f1; letter-spacing: -.3px; }
+    .drawer-logo-name span { color: #E63946; }
+    .drawer-nav { flex: 1; padding: 10px 0; overflow-y: auto; display: block !important; position: static !important; background: transparent !important; border: none !important; backdrop-filter: none !important; }
+    .drawer-link {
+      display: flex; align-items: center; gap: 12px; padding: 13px 20px;
+      font-size: 15px; font-weight: 600; color: #777; text-decoration: none;
+      transition: color .15s, background .15s; border-left: 3px solid transparent;
+    }
+    .drawer-link:hover { color: #f1f1f1; background: #222; }
+    .drawer-link-icon { font-size: 18px; }
+    .drawer-footer { padding: 16px 18px; border-top: 1px solid #2e2e2e; }
+    .drawer-signout {
+      width: 100%; background: none; border: 1px solid #2e2e2e; color: #777;
+      border-radius: 8px; padding: 10px; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: border-color .15s, color .15s; font-family: inherit;
+    }
+    .drawer-signout:hover { border-color: #E63946; color: #E63946; }
+    .drawer-section-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #555; padding: 14px 20px 6px; }
+    .drawer-divider { border: none; border-top: 1px solid #2e2e2e; margin: 6px 0; }
+    .drawer-link-line { background: #22c55e; color: #fff; border-radius: 8px; margin: 6px 12px; padding: 11px 14px; justify-content: center; font-size: 14px; border-left: none; }
+    .drawer-link-line:hover { background: #16a34a; color: #fff; }
+    .drawer-link-line svg { width: 18px; height: 18px; fill: #fff; flex-shrink: 0; }
+    .drawer-accordion { border-left: 3px solid transparent; }
+    .drawer-accordion-btn {
+      display: flex; align-items: center; gap: 12px; width: 100%;
+      padding: 13px 20px; font-size: 15px; font-weight: 600;
+      color: #777; background: none; border: none; cursor: pointer;
+      transition: color .15s, background .15s; text-align: left; font-family: inherit;
+    }
+    .drawer-accordion-btn:hover { color: #f1f1f1; background: #222; }
+    .drawer-accordion-btn .acc-arrow { margin-left: auto; font-size: 12px; transition: transform .22s; }
+    .drawer-accordion.open .acc-arrow { transform: rotate(180deg); }
+    .drawer-accordion-body { display: none; }
+    .drawer-accordion.open .drawer-accordion-body { display: block; }
+    .drawer-sub-link {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 20px 10px 52px; font-size: 14px; font-weight: 500;
+      color: #777; text-decoration: none;
+      transition: color .15s, background .15s; border-left: 3px solid transparent;
+    }
+    .drawer-sub-link:hover { color: #f1f1f1; background: #222; }
+    .drawer-sub-icon { font-size: 15px; }
+
+    .nav-share { background: none; border: none; cursor: pointer; color: var(--muted);
+      padding: 8px; margin-left: auto; margin-right: -8px; display: flex; align-items: center;
+      justify-content: center; border-radius: 8px; transition: color .15s, background .15s; flex-shrink: 0; }
+    .nav-share:hover { color: var(--text); background: rgba(255,255,255,.08); }
+    .nav-share svg { width: 19px; height: 19px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  </style>
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="glow-top"></div>
+
+<!-- Nav -->
+<nav>
+  <a class="nav-back" href="/" id="navBackBtn">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    Back
+  </a>
+  <button class="hamburger" id="navHamburgerBtn" onclick="toggleDrawer()" aria-label="Menu" style="display:none">
+    <span></span><span></span><span></span>
+  </button>
+
+  <button class="nav-share" onclick="sharePage()" aria-label="แชร์">
+    <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+  </button>
+</nav>
+
+<!-- ── Drawer overlay ── -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+
+<!-- ── Drawer ── -->
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <img src="/logo.png.png" alt="HQ" style="width:34px;height:34px;object-fit:contain;" />
+    <span class="drawer-logo-name">HQ <span>STRIKEPRO</span></span>
+  </div>
+  <nav class="drawer-nav">
+    <a class="drawer-link" href="/dashboard.html">
+      <span class="drawer-link-icon">📊</span> Dashboard
+    </a>
+    <a class="drawer-link" href="/clients.html">
+      <span class="drawer-link-icon">👥</span> My Clients
+    </a>
+    <a class="drawer-link" href="/products.html">
+      <span class="drawer-link-icon">📦</span> Products
+    </a>
+    <a class="drawer-link" href="/planner.html">
+      <span class="drawer-link-icon">📈</span> Investment Planner
+    </a>
+    <a class="drawer-link" href="/reviews-admin">
+      <span class="drawer-link-icon">⭐</span> Reviews
+    </a>
+    <hr class="drawer-divider" />
+    <div class="drawer-section-label">ข้อมูลเพิ่มเติม</div>
+    <div class="drawer-accordion open" id="acc-events">
+      <button class="drawer-accordion-btn" onclick="toggleAcc('acc-events')">
+        <span class="drawer-link-icon">🎟️</span> Upcoming Events
+        <span class="acc-arrow">▾</span>
+      </button>
+      <div class="drawer-accordion-body">
+        <a class="drawer-sub-link" href="/events/unlock-your-wealth">
+          <span class="drawer-sub-icon">👑</span> Unlock Your Wealth
+        </a>
+        <a class="drawer-sub-link" href="/events/sbc">
+          <span class="drawer-sub-icon">🔥</span> SBC
+        </a>
+        <a class="drawer-sub-link" href="/events/last-account" style="color:#d4af37;">
+          <span class="drawer-sub-icon">🏠</span> บ้านหลังสุดท้าย
+        </a>
+      </div>
+    </div>
+    <div class="drawer-accordion" id="acc-community">
+      <button class="drawer-accordion-btn" onclick="toggleAcc('acc-community')">
+        <span class="drawer-link-icon">🌐</span> Community
+        <span class="acc-arrow">▾</span>
+      </button>
+      <div class="drawer-accordion-body">
+        <a class="drawer-sub-link" href="/ecosystem/stp-coin.html">
+          <span class="drawer-sub-icon">🪙</span> STP Coin
+        </a>
+        <a class="drawer-sub-link" href="/ecosystem/free-education.html">
+          <span class="drawer-sub-icon">📚</span> Free Education
+        </a>
+        <a class="drawer-sub-link" href="/ecosystem/trade-challenge.html">
+          <span class="drawer-sub-icon">⚔️</span> Valhalla Dungeon
+        </a>
+        <a class="drawer-sub-link" href="/ecosystem/charity-project.html">
+          <span class="drawer-sub-icon">❤️</span> Charity Project
+        </a>
+        <a class="drawer-sub-link" href="/ecosystem/world-champions.html">
+          <span class="drawer-sub-icon">👑</span> World Champions 100
+        </a>
+      </div>
+    </div>
+    <a class="drawer-link drawer-link-line" href="https://lin.ee/8WkoRmL" target="_blank">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.07 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+      สอบถาม / ติดต่อ Admin
+    </a>
+  </nav>
+  <div class="drawer-footer">
+    <div class="drawer-user" id="drawerUser" style="font-size:12px;color:#777;margin-bottom:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+    <button class="drawer-signout" onclick="drawerSignOut()">ออกจากระบบ</button>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="streak streak-1"></div>
+    <div class="streak streak-2"></div>
+
+    <div class="hero-eyebrow"><span class="dot"></span> StrikePro Exclusive Program</div>
+    <p class="hero-label">The Last Account</p>
+    <h1 class="hero-title">บ้านหลังสุดท้าย</h1>
+    <p class="hero-sub">เริ่มต้นใหม่อย่างมีความรู้ มีคนดูแล และมีเครื่องมือรองรับความเสี่ยง เพื่อให้พอร์ตนี้เป็นพอร์ตสุดท้ายของคุณ</p>
+    <div class="hero-duration">
+      <span class="dur-icon">🏠</span>
+      <span>รับเพียง <span class="dur-gold">20 คน</span> / รอบ</span>
+    </div>
+  </section>
+
+  <div class="content">
+
+    <!-- About -->
+    <div class="fade">
+      <p class="s-label">เกี่ยวกับโครงการ</p>
+      <div class="desc-card">
+        <p>“บ้านหลังสุดท้าย (The Last Account)” คือโครงการที่ออกแบบมาเพื่อนักเทรดที่เคยเจ็บมาก่อน — เคยล้างพอร์ต เคยหมดกำลังใจ และกำลังมองหาจุดเริ่มต้นใหม่ที่มั่นคงกว่าเดิม</p>
+        <p>เราเชื่อว่าการอยู่รอดในตลาดไม่ได้มาจากโชค แต่มาจากความรู้ที่ใช้ได้จริง + คนที่คอยดูแล + เครื่องมือบริหารความเสี่ยง โครงการนี้จึงรวมทั้งสามอย่างไว้ในที่เดียว</p>
+        <p class="highlight">เริ่มต้นใหม่อย่างมีความรู้ มีคนดูแล และมีเครื่องมือรองรับความเสี่ยง เพื่อให้พอร์ตนี้เป็นพอร์ตสุดท้ายของคุณ</p>
+      </div>
+    </div>
+
+    <div class="divider"><div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-line"></div></div>
+
+    <!-- Why -->
+    <div class="fade fade-d1">
+      <p class="s-label">ทำไมนักเทรดส่วนใหญ่ “ล้างพอร์ต” ซ้ำ ๆ</p>
+      <div class="exp-grid">
+        <div class="exp-item">
+          <div class="exp-ico">❓</div>
+          <div class="exp-body">
+            <div class="exp-head">เริ่มโดยไม่มีความรู้</div>
+            <div class="exp-text">เข้าตลาดด้วยการฟังคนอื่นบอก ไม่เข้าใจว่าอะไรทำให้ราคาขึ้นหรือลง จึงเทรดตามอารมณ์</div>
+          </div>
+        </div>
+        <div class="exp-item">
+          <div class="exp-ico">📉</div>
+          <div class="exp-body">
+            <div class="exp-head">ไม่มีระบบและวินัย</div>
+            <div class="exp-text">ไม่มีแผนการเข้า–ออก ไม่ตั้งจุดตัดขาดทุน พอกำไรก็รีบปิด พอขาดทุนกลับถือต่อ</div>
+          </div>
+        </div>
+        <div class="exp-item">
+          <div class="exp-ico">⚠️</div>
+          <div class="exp-body">
+            <div class="exp-head">บริหารความเสี่ยงพลาด</div>
+            <div class="exp-text">ใช้ Lot หนักเกินตัว เมื่อผิดทางเพียงครั้งเดียวก็เพียงพอที่จะล้างพอร์ต</div>
+          </div>
+        </div>
+        <div class="exp-item">
+          <div class="exp-ico">🧍</div>
+          <div class="exp-body">
+            <div class="exp-head">เทรดคนเดียวอย่างโดดเดี่ยว</div>
+            <div class="exp-text">ไม่มีใครคอยเตือนเมื่อกำลังจะทำผิดพลาด และไม่มีใครช่วยพยุงเมื่อพอร์ตติดลบหนัก</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"><div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-line"></div></div>
+
+    <!-- 4 Pillars -->
+    <div class="fade fade-d1">
+      <p class="s-label">เสาหลัก 4 ประการของโครงการ</p>
+      <div class="exp-grid">
+        <div class="exp-item">
+          <div class="exp-ico">📚</div>
+          <div class="exp-body">
+            <div class="exp-head">ความรู้ที่ใช้ได้จริง — สอนฟรีอย่างเป็นระบบ</div>
+            <div class="exp-text">เปิดสอนฟรีตั้งแต่พื้นฐานจนถึงขั้นสูง ครอบคลุม 4 ด้านที่นักเทรดต้องมีเพื่ออยู่รอดได้จริง</div>
+          </div>
+        </div>
+        <div class="exp-item">
+          <div class="exp-ico">🧑‍🏫</div>
+          <div class="exp-body">
+            <div class="exp-head">โค้ชที่ดูแลใกล้ชิด</div>
+            <div class="exp-text">มีโค้ชคอยให้คำแนะนำ ตอบคำถาม ช่วยทบทวนการเทรด และเตือนเมื่อคุณกำลังจะหลุดวินัย</div>
+          </div>
+        </div>
+        <div class="exp-item">
+          <div class="exp-ico">🛠️</div>
+          <div class="exp-body">
+            <div class="exp-head">การแก้พอร์ตกับอาจารย์บัส</div>
+            <div class="exp-text">สำหรับผู้ที่พอร์ตติดลบ เข้าร่วมการวางแผนกู้คืนพอร์ตอย่างเป็นขั้นตอน เน้นการฟื้นตัวอย่างยั่งยืน</div>
+          </div>
+        </div>
+        <div class="exp-item">
+          <div class="exp-ico">🪙</div>
+          <div class="exp-body">
+            <div class="exp-head">STP Coin — กลไกรองรับความเสี่ยง</div>
+            <div class="exp-text">เครื่องมือภายในระบบนิเวศ Strike Pro ที่ทำหน้าที่เสมือน “เกราะ” ช่วยพยุงเมื่อพอร์ตเผชิญแรงกระแทก ตามเงื่อนไขที่กำหนด</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"><div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-line"></div></div>
+
+    <!-- Curriculum -->
+    <div class="fade fade-d2">
+      <p class="s-label">หลักสูตรการเรียนรู้ 4 โมดูล</p>
+      <div class="mod-grid">
+        <div class="mod-card">
+          <div class="mod-num">MODULE 01</div>
+          <div class="mod-name">Fundamental</div>
+          <div class="mod-desc">ปัจจัยที่ขับเคลื่อนราคา ข่าวเศรษฐกิจ ดอกเบี้ย ทองคำ และค่าเงิน — เข้าใจว่าอะไรทำให้ราคาเคลื่อน ไม่เทรดตามข่าวลือหรืออารมณ์</div>
+        </div>
+        <div class="mod-card">
+          <div class="mod-num">MODULE 02</div>
+          <div class="mod-name">Technical Basic</div>
+          <div class="mod-desc">กราฟแท่งเทียน แนวรับ–แนวต้าน การดูเทรนด์ และรูปแบบราคาเบื้องต้น — อ่านกราฟเป็น วางจุดเข้า–ออกได้อย่างมีเหตุผล</div>
+        </div>
+        <div class="mod-card">
+          <div class="mod-num">MODULE 03</div>
+          <div class="mod-name">Technical Advance</div>
+          <div class="mod-desc">Price Action การวิเคราะห์หลายกรอบเวลา และการบริหารหน้าตักอย่างเป็นระบบ — มีกลยุทธ์และกฎการเทรดเป็นของตัวเอง ทำซ้ำได้</div>
+        </div>
+        <div class="mod-card">
+          <div class="mod-num">MODULE 04</div>
+          <div class="mod-name">Mindset &amp; Money Management</div>
+          <div class="mod-desc">จิตวิทยาการเทรด วินัย และการจัดการความเสี่ยงต่อไม้/ต่อพอร์ต — ควบคุมอารมณ์ได้ อยู่รอดระยะยาว ไม่ล้างพอร์ตเพราะใจ</div>
+        </div>
+      </div>
+      <p style="text-align:center;font-size:13px;color:var(--muted);margin-top:16px;">เรียนฟรี เริ่มจากศูนย์ได้ ไม่ต้องมีพื้นฐานมาก่อน หลักสูตรพาคุณไปทีละขั้น</p>
+    </div>
+
+    <div class="divider"><div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-line"></div></div>
+
+    <!-- Journey -->
+    <div class="fade fade-d2">
+      <p class="s-label">เส้นทางของสมาชิก 5 ขั้น</p>
+      <div class="exp-grid">
+        <div class="exp-item">
+          <div class="exp-num">01</div>
+          <div class="exp-body">
+            <div class="exp-head">เริ่มต้น</div>
+            <div class="exp-text">สมัครเข้าโครงการ ทำความรู้จักโค้ชและชุมชน ตั้งเป้าหมายและประเมินจุดยืนพอร์ต</div>
+          </div>
+        </div>
+        <div class="exp-item">
+          <div class="exp-num">02</div>
+          <div class="exp-body">
+            <div class="exp-head">วางรากฐาน</div>
+            <div class="exp-text">เรียน Fundamental และ Technical Basic ฝึกอ่านกราฟและวางแผนการเทรด</div>
+          </div>
+        </div>
+        <div class="exp-item">
+          <div class="exp-num">03</div>
+          <div class="exp-body">
+            <div class="exp-head">สร้างระบบ</div>
+            <div class="exp-text">เรียน Technical Advance สร้างระบบและกฎการเทรดของตัวเอง พร้อมโค้ชช่วยทบทวน</div>
+          </div>
+        </div>
+        <div class="exp-item">
+          <div class="exp-num">04</div>
+          <div class="exp-body">
+            <div class="exp-head">แก้ / ฟื้นพอร์ต</div>
+            <div class="exp-text">ผู้ที่พอร์ตติดลบเข้าแผนแก้พอร์ตกับอาจารย์บัส โดยมี STP Coin ช่วยรองรับ</div>
+          </div>
+        </div>
+        <div class="exp-item">
+          <div class="exp-num">05</div>
+          <div class="exp-body">
+            <div class="exp-head">ยืนด้วยตัวเอง</div>
+            <div class="exp-text">เทรดอย่างมีวินัย รักษาพอร์ตให้เติบโตมั่นคง และต่อยอดในชุมชน</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"><div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-line"></div></div>
+
+    <!-- Who -->
+    <div class="fade fade-d1">
+      <p class="s-label">โครงการนี้เหมาะกับใคร</p>
+      <div class="exp-grid">
+        <div class="exp-item">
+          <div class="exp-ico">🔁</div>
+          <div class="exp-body"><div class="exp-text-c">ผู้ที่เคยล้างพอร์ตและอยากเริ่มต้นใหม่อย่างถูกวิธี ไม่อยากเดินซ้ำทางเดิม</div></div>
+        </div>
+        <div class="exp-item">
+          <div class="exp-ico">🌱</div>
+          <div class="exp-body"><div class="exp-text-c">มือใหม่ที่อยากเริ่มเทรดอย่างมีความรู้ตั้งแต่วันแรก ไม่ใช่ลองผิดลองถูกด้วยเงินจริง</div></div>
+        </div>
+        <div class="exp-item">
+          <div class="exp-ico">📋</div>
+          <div class="exp-body"><div class="exp-text-c">นักเทรดที่มีพอร์ตติดลบและต้องการแผนแก้พอร์ตอย่างเป็นระบบ ไม่ใช่การเดา</div></div>
+        </div>
+        <div class="exp-item">
+          <div class="exp-ico">🤝</div>
+          <div class="exp-body"><div class="exp-text-c">ผู้ที่ต้องการชุมชนและโค้ชคอยดูแล มากกว่าการเทรดอย่างโดดเดี่ยว</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"><div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-line"></div></div>
+
+    <!-- Conditions -->
+    <div class="fade fade-d2">
+      <p class="s-label">เงื่อนไขการเข้าร่วม</p>
+
+      <div class="price-main">
+        <div class="price-tag">🔥 รับสมัครจำนวนจำกัด</div>
+        <div class="price-amount">20</div>
+        <div class="price-unit">คน / รอบ (สำรองเพิ่มอีก 5 สิทธิ์)</div>
+      </div>
+
+      <div class="cond-grid">
+        <div class="cond-item">
+          <span class="cond-ico">👥</span>
+          <div><div class="cond-label">จำนวนรับสมัคร</div><div class="cond-val">รับเพียง 20 คนต่อรอบ และเปิดรับสำรองเพิ่มอีก 5 สิทธิ์</div></div>
+        </div>
+        <div class="cond-item">
+          <span class="cond-ico">💼</span>
+          <div><div class="cond-label">คุณสมบัติพอร์ต</div><div class="cond-val">ต้องมีพอร์ตเทรดมูลค่าตั้งแต่ $1,000 ขึ้นไป</div></div>
+        </div>
+        <div class="cond-item">
+          <span class="cond-ico">⏳</span>
+          <div><div class="cond-label">การสละสิทธิ์</div><div class="cond-val">หากคุณสมบัติไม่ครบตามเงื่อนไข จะถือว่าสละสิทธิ์ และต้องลงทะเบียนใหม่ในรอบถัดไป</div></div>
+        </div>
+        <div class="cond-item">
+          <span class="cond-ico">💡</span>
+          <div><div class="cond-label">เคล็ดลับ</div><div class="cond-val">ที่นั่งมีจำกัดและเต็มเร็วในแต่ละรอบ แนะนำให้เตรียมพอร์ตให้พร้อมก่อนวันเปิดรับสมัคร</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"><div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-line"></div></div>
+
+    <!-- FAQ -->
+    <div class="fade fade-d2">
+      <p class="s-label">คำถามที่พบบ่อย</p>
+      <div class="faq-grid">
+        <div class="faq-item">
+          <div class="faq-q">ต้องมีพื้นฐานการเทรดมาก่อนไหม?</div>
+          <div class="faq-a">ไม่จำเป็น หลักสูตรเริ่มจากศูนย์และพาคุณไปทีละขั้น แม้ไม่เคยเทรดมาก่อนก็เริ่มได้</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">การสอนฟรีจริงหรือไม่?</div>
+          <div class="faq-a">ใช่ เนื้อหาการสอนทั้ง 4 โมดูลเปิดให้เรียนฟรีสำหรับสมาชิกโครงการ</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">STP Coin รับประกันว่าจะไม่ขาดทุนใช่หรือไม่?</div>
+          <div class="faq-a">ไม่ใช่ — STP Coin เป็นกลไกช่วยรองรับ/บรรเทาความเสียหายบางส่วนตามเงื่อนไข ไม่ใช่การรับประกันผลตอบแทนหรือการประกันภัยตามกฎหมาย การเทรดยังมีความเสี่ยงเสมอ</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">แก้พอร์ตกับอาจารย์บัส ทำอย่างไร?</div>
+          <div class="faq-a">เป็นการเข้าแก้พอร์ตกับอาจารย์บัสใน Live โดยอาจารย์จะเป็นคนเทรดแก้พอร์ตที่ติดลบให้ พร้อมดูแลความเสี่ยงให้</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">ทำไมรับแค่ 20 คนต่อรอบ?</div>
+          <div class="faq-a">เพราะหัวใจของโครงการคือการดูแลแบบใกล้ชิด การจำกัดจำนวนช่วยให้โค้ชดูแลสมาชิกแต่ละคนได้อย่างมีคุณภาพ หากรอบนี้เต็ม สามารถลงสำรองหรือรอลงทะเบียนในรอบถัดไปได้</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"><div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-line"></div></div>
+
+    <!-- Disclaimer -->
+    <div class="fade">
+      <div class="warn-card">
+        <div class="warn-title">⚠️ คำเตือนความเสี่ยงและข้อจำกัดความรับผิดชอบ</div>
+        <ul>
+          <li>การลงทุนและการเทรดในตลาดการเงิน รวมถึงตลาดแลกเปลี่ยนเงินตราต่างประเทศ มีความเสี่ยงสูงและอาจทำให้สูญเสียเงินลงทุนทั้งหมดได้ ควรลงทุนเฉพาะเงินที่รับความเสี่ยงได้</li>
+          <li>เอกสารนี้จัดทำขึ้นเพื่อแนะนำโครงการและให้ความรู้เท่านั้น ไม่ถือเป็นการชักชวนให้ลงทุน คำแนะนำการลงทุนเฉพาะบุคคล หรือการรับประกันผลตอบแทนใด ๆ</li>
+          <li>ผลการดำเนินงานในอดีตไม่ได้เป็นเครื่องยืนยันผลในอนาคต</li>
+          <li>STP Coin เป็นกลไกรองรับความเสี่ยงภายในระบบนิเวศที่ทำงานตามเงื่อนไขเฉพาะ ไม่ใช่การประกันภัยตามกฎหมาย และไม่รับประกันว่าจะไม่ขาดทุน</li>
+          <li>การตัดสินใจซื้อขายทั้งหมดเป็นความรับผิดชอบของผู้เข้าร่วมเอง ควรศึกษาเงื่อนไขของโครงการและปรึกษาผู้เชี่ยวชาญก่อนตัดสินใจ</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-section fade fade-d3">
+      <span class="cta-icon">🏠</span>
+      <h2 class="cta-title">พร้อมเริ่มบ้านหลังสุดท้ายของคุณแล้วหรือยัง?</h2>
+      <p class="cta-sub">ที่นั่งมีจำกัดเพียง 20 คนต่อรอบ — สมัครก่อนมีสิทธิ์ก่อน</p>
+      <a class="line-btn" href="https://lin.ee/8WkoRmL" target="_blank">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.07 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+        สมัคร / สอบถามผ่าน LINE
+      </a>
+    </div>
+
+    <p class="page-footer" style="margin-top:28px;">© 2025 <span>StrikePro</span> · บ้านหลังสุดท้าย — The Last Account</p>
+
+  </div>
+</div>
+
+<script>
+  /* ── Particle canvas ── */
+  const canvas = document.getElementById('particles');
+  const ctx    = canvas.getContext('2d');
+  let W, H, pts = [];
+  function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+  function randBetween(a, b) { return a + Math.random() * (b - a); }
+  for (let i = 0; i < 55; i++) {
+    pts.push({ x: Math.random() * 1600 - 400, y: Math.random() * 2400, r: randBetween(.4, 1.4), vy: randBetween(.1, .35), o: randBetween(.1, .45) });
+  }
+  function drawParticles() {
+    ctx.clearRect(0, 0, W, H);
+    pts.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y % H, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(212,175,55,${p.o})`;
+      ctx.fill();
+      p.y += p.vy;
+      if (p.y > H + 10) p.y = -10;
+    });
+    requestAnimationFrame(drawParticles);
+  }
+  drawParticles();
+
+  /* ── Scroll fade-in ── */
+  const fades = document.querySelectorAll('.fade');
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.06 });
+  fades.forEach(el => io.observe(el));
+</script>
+<script>
+  // ── Drawer ──
+  function toggleDrawer() {
+    document.getElementById('drawer').classList.toggle('open');
+    document.getElementById('drawerOverlay').classList.toggle('open');
+  }
+  function closeDrawer() {
+    document.getElementById('drawer').classList.remove('open');
+    document.getElementById('drawerOverlay').classList.remove('open');
+  }
+  function toggleAcc(id) { document.getElementById(id).classList.toggle('open'); }
+  function drawerSignOut() { localStorage.removeItem('sp_token'); window.location.href = '/login'; }
+  // Show hamburger for internal users, back button for public
+  (function() {
+    const token = localStorage.getItem('sp_token');
+    if (!token) return;
+    fetch('/api/auth/me', { headers: { Authorization: 'Bearer ' + token } })
+      .then(r => r.ok ? r.json() : null)
+      .then(user => {
+        if (!user) return;
+        const back = document.getElementById('navBackBtn');
+        const ham  = document.getElementById('navHamburgerBtn');
+        if (back) back.style.display = 'none';
+        if (ham)  ham.style.display  = 'flex';
+        const el = document.getElementById('drawerUser');
+        if (el && user.email) el.textContent = user.email;
+      })
+      .catch(() => {});
+  })();
+</script>
+<script>
+  /* ── Share ── */
+  async function sharePage() {
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: document.title, url: location.href });
+      } else {
+        await navigator.clipboard.writeText(location.href);
+        const t = document.createElement('div');
+        t.textContent = 'คัดลอกลิงก์แล้ว ✓';
+        t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#222;border:1px solid rgba(255,255,255,.12);color:#f0f0f0;padding:9px 18px;border-radius:10px;font-size:13px;font-weight:600;z-index:9999;pointer-events:none;';
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 2000);
+      }
+    } catch {}
+  }
+</script>
+</body>
+</html>

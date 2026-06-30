@@ -71,6 +71,11 @@ app.get('/events/sbc', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'events', 'sbc.html'));
 });
 
+// /events/last-account → serve บ้านหลังสุดท้าย event page
+app.get('/events/last-account', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'events', 'last-account.html'));
+});
+
 // /reviews → serve public reviews page
 app.get('/reviews', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'reviews.html'));
