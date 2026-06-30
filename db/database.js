@@ -99,6 +99,23 @@ async function init() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
+  // บ้านหลังสุดท้าย (The Last Account) — program applications
+  await pool.execute(`
+    CREATE TABLE IF NOT EXISTS last_account_applications (
+      id          INT UNSIGNED  NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      first_name  VARCHAR(120)  NOT NULL,
+      last_name   VARCHAR(120)  NOT NULL,
+      nickname    VARCHAR(120)  NOT NULL DEFAULT '',
+      phone       VARCHAR(50)   NOT NULL DEFAULT '',
+      email       VARCHAR(255)  NOT NULL DEFAULT '',
+      mt5_account VARCHAR(60)   NOT NULL DEFAULT '',
+      line_id     VARCHAR(120)  NOT NULL DEFAULT '',
+      discord_id  VARCHAR(120)  NOT NULL DEFAULT '',
+      seat_type   VARCHAR(10)   NOT NULL DEFAULT 'main',
+      created_at  DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
   // Add role column to users if it doesn't exist yet (idempotent migration)
   try {
     await pool.execute(`ALTER TABLE users ADD COLUMN role VARCHAR(20) NOT NULL DEFAULT 'user'`);
@@ -394,6 +411,55 @@ async function toggleReviewFeatured(id) {
   return rows[0] || null;
 }
 
+// ── Last Account (บ้านหลังสุดท้าย) applications ─────────────────────────────────
+
+async function countLastAccountApplications() {
+  const [rows] = await pool.execute('SELECT COUNT(*) AS c FROM last_account_applications');
+  return Number(rows[0].c);
+}
+
+/**
+ * Insert an application atomically with a capacity check.
+ * Returns { full: true } if main+reserve seats are exhausted,
+ * otherwise { id, seat_type, position }.
+ */
+async function createLastAccountApplication(data, mainSeats, reserveSeats) {
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+    const [rows] = await conn.execute('SELECT COUNT(*) AS c FROM last_account_applications FOR UPDATE');
+    const count = Number(rows[0].c);
+    if (count >= mainSeats + reserveSeats) {
+      await conn.rollback();
+      return { full: true };
+    }
+    const seatType = count < mainSeats ? 'main' : 'reserve';
+    const [result] = await conn.execute(
+      `INSERT INTO last_account_applications
+         (first_name, last_name, nickname, phone, email, mt5_account, line_id, discord_id, seat_type)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [data.first_name, data.last_name, data.nickname, data.phone, data.email,
+       data.mt5_account, data.line_id, data.discord_id, seatType]
+    );
+    await conn.commit();
+    return { id: result.insertId, seat_type: seatType, position: count + 1 };
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally {
+    conn.release();
+  }
+}
+
+async function listLastAccountApplications() {
+  const [rows] = await pool.execute(
+    `SELECT id, first_name, last_name, nickname, phone, email, mt5_account,
+            line_id, discord_id, seat_type, created_at
+     FROM last_account_applications ORDER BY created_at ASC`
+  );
+  return rows;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 module.exports = {
@@ -404,4 +470,5 @@ module.exports = {
   getDashboardStats, refreshUserStats,
   getProductStats, getProductInvestors,
   createReview, listReviews, deleteReview, toggleReviewFeatured,
+  countLastAccountApplications, createLastAccountApplication, listLastAccountApplications,
 };

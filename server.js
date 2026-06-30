@@ -11,6 +11,7 @@ const clientsRouter          = require('./routes/clients');
 const dashboardRouter        = require('./routes/dashboard');
 const productsRouter         = require('./routes/products');
 const reviewsRouter          = require('./routes/reviews');
+const lastAccountRouter      = require('./routes/last-account');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -47,6 +48,7 @@ app.use('/api/clients',   clientsRouter);
 app.use('/api/dashboard', dashboardRouter);
 app.use('/api/products',  productsRouter);
 app.use('/api/reviews',   reviewsRouter);
+app.use('/api/last-account', lastAccountRouter);
 
 // Health check
 app.get('/api/health', (_, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
@@ -74,6 +76,11 @@ app.get('/events/sbc', (req, res) => {
 // /events/last-account → serve บ้านหลังสุดท้าย event page
 app.get('/events/last-account', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'events', 'last-account.html'));
+});
+
+// /events/last-account-apply → serve บ้านหลังสุดท้าย application form
+app.get('/events/last-account-apply', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'events', 'last-account-apply.html'));
 });
 
 // /reviews → serve public reviews page

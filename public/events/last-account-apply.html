@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#d4af37" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>สมัครเข้าร่วม — บ้านหลังสุดท้าย</title>
+  <meta name="description" content="แบบฟอร์มสมัครเข้าร่วมโครงการบ้านหลังสุดท้าย (The Last Account)" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --gold:#d4af37; --gold-light:#f5d96b; --gold-pale:#ffe99a;
+      --gold-dim:rgba(212,175,55,.12); --gold-border:rgba(212,175,55,.22);
+      --bg:#060606; --card:#0f0f0f; --card2:#131313;
+      --border:rgba(255,255,255,.08); --text:#f0f0f0; --muted:#7a7a7a;
+      --green:#22c55e; --red:#f87171;
+      --radius:18px; --radius-sm:12px;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); overflow-x:hidden; -webkit-font-smoothing:antialiased; }
+
+    .glow-top { position:fixed; top:-200px; left:50%; transform:translateX(-50%); width:1000px; height:600px; pointer-events:none; z-index:0;
+      background:radial-gradient(ellipse at 50% 0%, rgba(212,175,55,.09) 0%, transparent 65%); }
+
+    nav { position:sticky; top:0; z-index:200; display:flex; align-items:center; justify-content:space-between; padding:14px 20px;
+      background:rgba(6,6,6,.80); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border-bottom:1px solid var(--border); }
+    .nav-back { display:inline-flex; align-items:center; gap:6px; font-size:14px; font-weight:600; color:var(--muted); text-decoration:none; transition:color .15s; }
+    .nav-back:hover { color:var(--text); }
+    .nav-back svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+    .wrap { position:relative; z-index:1; max-width:560px; margin:0 auto; padding:32px 20px 120px; }
+
+    .head { text-align:center; margin-bottom:28px; }
+    .head-eyebrow { display:inline-flex; align-items:center; gap:8px; font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase;
+      color:var(--gold); border:1px solid var(--gold-border); background:var(--gold-dim); padding:6px 16px; border-radius:50px; margin-bottom:18px; }
+    .head-title { font-size:clamp(24px,6vw,34px); font-weight:900; letter-spacing:-.5px; line-height:1.15;
+      background:linear-gradient(160deg,#fff 20%,var(--gold-pale) 60%,var(--gold) 90%);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom:8px; }
+    .head-sub { font-size:14px; color:var(--muted); }
+
+    /* ── Status card ── */
+    .status-card { background:var(--card); border:1px solid var(--gold-border); border-radius:var(--radius); padding:24px 22px; margin-bottom:18px; position:relative; overflow:hidden; }
+    .status-card::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--gold),transparent); }
+
+    .seat-row { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:12px; }
+    .seat-count { font-size:26px; font-weight:900; letter-spacing:-.5px; }
+    .seat-count .of { font-size:16px; color:var(--muted); font-weight:700; }
+    .seat-left { font-size:13px; font-weight:700; color:var(--gold); }
+
+    .bar { height:12px; border-radius:50px; background:#1c1c1c; border:1px solid var(--border); overflow:hidden; position:relative; }
+    .bar-fill { height:100%; border-radius:50px; width:0%;
+      background:linear-gradient(90deg,var(--gold),var(--gold-light)); transition:width .8s cubic-bezier(.4,0,.2,1); box-shadow:0 0 14px rgba(212,175,55,.5); }
+    .bar-fill.reserve { background:linear-gradient(90deg,#fb923c,#fbbf24); box-shadow:0 0 14px rgba(251,146,60,.5); }
+
+    .banner { margin-top:14px; border-radius:var(--radius-sm); padding:12px 16px; font-size:13px; font-weight:600; line-height:1.5; }
+    .banner.reserve { background:rgba(251,146,60,.10); border:1px solid rgba(251,146,60,.3); color:#fdba74; }
+    .banner.full { background:rgba(248,113,113,.08); border:1px solid rgba(248,113,113,.3); color:#fca5a5; }
+    .banner.closed { background:var(--gold-dim); border:1px solid var(--gold-border); color:var(--gold-pale); }
+
+    /* ── Countdown ── */
+    .countdown { display:flex; gap:10px; justify-content:center; margin-top:18px; }
+    .cd-cell { background:var(--card2); border:1px solid var(--border); border-radius:12px; padding:12px 4px; min-width:64px; text-align:center; flex:1; }
+    .cd-num { font-size:26px; font-weight:900; color:var(--gold); font-variant-numeric:tabular-nums; line-height:1; }
+    .cd-lbl { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-top:6px; }
+    .cd-when { text-align:center; font-size:13px; color:var(--muted); margin-top:14px; }
+    .cd-when b { color:var(--gold); }
+
+    /* ── Form ── */
+    .form-card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:26px 22px; }
+    .form-title { font-size:15px; font-weight:800; color:var(--text); margin-bottom:4px; }
+    .form-note { font-size:12px; color:var(--muted); margin-bottom:20px; }
+    .field { margin-bottom:16px; }
+    .field.row2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    @media (max-width:440px){ .field.row2 { grid-template-columns:1fr; } }
+    label { display:block; font-size:12px; font-weight:700; color:rgba(240,240,240,.8); margin-bottom:7px; letter-spacing:.2px; }
+    label .req { color:var(--gold); }
+    label .opt { color:var(--muted); font-weight:500; }
+    input {
+      width:100%; background:var(--card2); border:1px solid var(--border); border-radius:10px;
+      padding:13px 14px; font-size:15px; color:var(--text); font-family:inherit; transition:border-color .15s, background .15s;
+      -webkit-appearance:none;
+    }
+    input::placeholder { color:#555; }
+    input:focus { outline:none; border-color:var(--gold-border); background:#161616; }
+
+    .submit-btn {
+      width:100%; margin-top:8px; display:inline-flex; align-items:center; justify-content:center; gap:10px;
+      background:linear-gradient(135deg,var(--gold) 0%,var(--gold-light) 50%,var(--gold) 100%); background-size:200% 200%;
+      color:#080808; border:none; cursor:pointer; font-family:inherit;
+      font-size:16px; font-weight:900; letter-spacing:.3px; padding:17px 24px; border-radius:50px;
+      box-shadow:0 8px 28px rgba(212,175,55,.35); transition:background-position .4s, transform .15s, box-shadow .2s, opacity .2s;
+    }
+    .submit-btn:hover:not(:disabled) { background-position:100% 100%; transform:translateY(-2px); box-shadow:0 12px 38px rgba(212,175,55,.5); }
+    .submit-btn:active:not(:disabled) { transform:scale(.98); }
+    .submit-btn:disabled { opacity:.5; cursor:not-allowed; }
+
+    .form-err { font-size:13px; color:var(--red); margin-top:12px; text-align:center; font-weight:600; display:none; }
+
+    /* ── Success ── */
+    .result-card { display:none; background:var(--card); border:1px solid var(--gold-border); border-radius:var(--radius); padding:40px 26px; text-align:center; position:relative; overflow:hidden; }
+    .result-card::before { content:''; position:absolute; top:0; left:50%; transform:translateX(-50%); width:60%; height:1px; background:linear-gradient(90deg,transparent,var(--gold),transparent); }
+    .result-icon { font-size:52px; margin-bottom:18px; display:block; filter:drop-shadow(0 0 16px rgba(212,175,55,.5)); }
+    .result-title { font-size:22px; font-weight:900; margin-bottom:10px; }
+    .result-sub { font-size:14px; color:var(--muted); line-height:1.7; }
+    .result-sub b { color:var(--gold); }
+    .line-btn {
+      display:inline-flex; align-items:center; justify-content:center; gap:8px; margin-top:26px;
+      background:var(--green); color:#fff; text-decoration:none; font-size:15px; font-weight:700; padding:14px 36px; border-radius:50px; width:100%; max-width:360px;
+    }
+    .line-btn:hover { background:#16a34a; }
+    .line-btn svg { width:20px; height:20px; fill:#fff; flex-shrink:0; }
+
+    .skeleton { color:var(--muted); text-align:center; padding:30px; font-size:14px; }
+    .page-footer { text-align:center; padding:32px 20px; font-size:12px; color:rgba(122,122,122,.5); }
+    .page-footer span { color:var(--gold); opacity:.7; }
+  </style>
+</head>
+<body>
+
+<div class="glow-top"></div>
+
+<nav>
+  <a class="nav-back" href="/events/last-account">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    กลับ
+  </a>
+</nav>
+
+<div class="wrap">
+
+  <div class="head">
+    <div class="head-eyebrow">🏠 The Last Account</div>
+    <h1 class="head-title">สมัครเข้าร่วมโครงการ</h1>
+    <p class="head-sub">บ้านหลังสุดท้าย — รับเพียง 20 คน/รอบ (สำรอง 5 สิทธิ์)</p>
+  </div>
+
+  <!-- Status -->
+  <div id="statusWrap">
+    <div class="skeleton" id="statusSkeleton">กำลังโหลดสถานะการรับสมัคร…</div>
+  </div>
+
+  <!-- Form -->
+  <div class="form-card" id="formCard" style="display:none; margin-top:18px;">
+    <div class="form-title">ฟอร์มการรับสมัคร</div>
+    <div class="form-note">กรอกข้อมูลให้ครบถ้วนและถูกต้อง เพื่อใช้ในการติดต่อกลับ</div>
+    <form id="applyForm" autocomplete="off">
+      <div class="field row2">
+        <div>
+          <label>ชื่อจริง (ภาษาอังกฤษ) <span class="req">*</span></label>
+          <input name="first_name" placeholder="First name" required />
+        </div>
+        <div>
+          <label>นามสกุล (ภาษาอังกฤษ) <span class="req">*</span></label>
+          <input name="last_name" placeholder="Last name" required />
+        </div>
+      </div>
+      <div class="field">
+        <label>ชื่อเล่น <span class="req">*</span></label>
+        <input name="nickname" placeholder="ชื่อเล่น" required />
+      </div>
+      <div class="field row2">
+        <div>
+          <label>เบอร์โทรศัพท์ <span class="req">*</span></label>
+          <input name="phone" type="tel" inputmode="tel" placeholder="08x-xxx-xxxx" required />
+        </div>
+        <div>
+          <label>เลขพอร์ต MT5 <span class="req">*</span></label>
+          <input name="mt5_account" inputmode="numeric" placeholder="เช่น 2121xxxxxx" required />
+        </div>
+      </div>
+      <div class="field">
+        <label>Email <span class="req">*</span></label>
+        <input name="email" type="email" inputmode="email" placeholder="you@example.com" required />
+      </div>
+      <div class="field row2">
+        <div>
+          <label>Line ID <span class="opt">(ถ้ามี)</span></label>
+          <input name="line_id" placeholder="Line ID" />
+        </div>
+        <div>
+          <label>Discord ID <span class="opt">(ถ้ามี)</span></label>
+          <input name="discord_id" placeholder="Discord ID" />
+        </div>
+      </div>
+      <button type="submit" class="submit-btn" id="submitBtn">ยืนยันการสมัคร</button>
+      <div class="form-err" id="formErr"></div>
+    </form>
+  </div>
+
+  <!-- Success / result -->
+  <div class="result-card" id="resultCard">
+    <span class="result-icon" id="resultIcon">🎉</span>
+    <div class="result-title" id="resultTitle">สมัครสำเร็จ!</div>
+    <div class="result-sub" id="resultSub"></div>
+    <a class="line-btn" href="https://lin.ee/8WkoRmL" target="_blank">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.07 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+      สอบถามเพิ่มเติม / ติดต่อ Admin
+    </a>
+  </div>
+
+  <p class="page-footer">© 2025 <span>StrikePro</span> · บ้านหลังสุดท้าย — The Last Account</p>
+</div>
+
+<script>
+  var MAIN = 20, RESERVE = 5;
+  var cdTimer = null;
+
+  function el(id){ return document.getElementById(id); }
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]; }); }
+
+  function loadStatus() {
+    fetch('/api/last-account/status')
+      .then(function(r){ return r.json(); })
+      .then(renderStatus)
+      .catch(function(){
+        el('statusWrap').innerHTML = '<div class="banner full" style="margin:0;">โหลดสถานะไม่สำเร็จ กรุณารีเฟรชหน้าใหม่</div>';
+      });
+  }
+
+  function renderStatus(s) {
+    MAIN = s.mainSeats; RESERVE = s.reserveSeats;
+    var count = s.count;
+    var pct = Math.min(100, Math.round((count / MAIN) * 100));
+
+    // ── Not open yet → countdown ──
+    if (s.status === 'closed') {
+      el('statusWrap').innerHTML =
+        '<div class="status-card">' +
+          '<div class="banner closed" style="margin:0 0 4px;">⏳ การรับสมัครจะเปิดในวันที่ <b>6 ก.ค. 2026 เวลา 12:00 น.</b> (เวลาไทย)</div>' +
+          '<div class="countdown" id="cd">' +
+            '<div class="cd-cell"><div class="cd-num" id="cd-d">--</div><div class="cd-lbl">วัน</div></div>' +
+            '<div class="cd-cell"><div class="cd-num" id="cd-h">--</div><div class="cd-lbl">ชม.</div></div>' +
+            '<div class="cd-cell"><div class="cd-num" id="cd-m">--</div><div class="cd-lbl">นาที</div></div>' +
+            '<div class="cd-cell"><div class="cd-num" id="cd-s">--</div><div class="cd-lbl">วินาที</div></div>' +
+          '</div>' +
+          '<div class="cd-when">เตรียมพอร์ต MT5 ($1,000 ขึ้นไป) ให้พร้อมก่อนวันเปิดรับสมัคร</div>' +
+        '</div>';
+      el('formCard').style.display = 'none';
+      startCountdown(new Date(s.opensAt).getTime());
+      return;
+    }
+
+    if (cdTimer) { clearInterval(cdTimer); cdTimer = null; }
+
+    // ── Full ──
+    if (s.status === 'full') {
+      el('statusWrap').innerHTML =
+        '<div class="status-card">' +
+          seatBarHtml(MAIN, MAIN, true) +
+          '<div class="banner full">🚫 เต็มแล้ว ไม่สามารถสมัครได้ — ที่นั่งหลัก 20 และสำรอง 5 เต็มทั้งหมด กรุณารอรอบถัดไป</div>' +
+        '</div>';
+      el('formCard').style.display = 'none';
+      return;
+    }
+
+    // ── Reserve seats open ──
+    if (s.status === 'reserve') {
+      var reserveTaken = count - MAIN;
+      el('statusWrap').innerHTML =
+        '<div class="status-card">' +
+          seatBarHtml(MAIN, MAIN, true) +
+          '<div class="banner reserve">⚠️ ที่นั่งหลัก 20 คนเต็มแล้ว — ขณะนี้เปิดรับ <b>ที่นั่งสำรอง</b> (เหลือ ' + (RESERVE - reserveTaken) + ' / ' + RESERVE + ' สิทธิ์)</div>' +
+        '</div>';
+      el('formCard').style.display = 'block';
+      el('submitBtn').textContent = 'ยืนยันการสมัคร (ที่นั่งสำรอง)';
+      return;
+    }
+
+    // ── Open (main seats) ──
+    el('statusWrap').innerHTML =
+      '<div class="status-card">' +
+        seatBarHtml(count, MAIN, false) +
+        '<div class="banner closed" style="margin-top:14px;">🟢 เปิดรับสมัครแล้ว — เหลือ <b>' + s.seatsLeft + '</b> ที่นั่ง</div>' +
+      '</div>';
+    el('formCard').style.display = 'block';
+    el('submitBtn').textContent = 'ยืนยันการสมัคร';
+
+    // animate bar
+    requestAnimationFrame(function(){ var f = el('barFill'); if (f) f.style.width = Math.min(100,(count/MAIN)*100) + '%'; });
+  }
+
+  function seatBarHtml(count, main, reserveFull) {
+    var pct = Math.min(100, Math.round((count / main) * 100));
+    return '' +
+      '<div class="seat-row">' +
+        '<div class="seat-count">' + count + '<span class="of"> / ' + main + ' ที่นั่ง</span></div>' +
+        '<div class="seat-left">' + (reserveFull ? 'ที่นั่งหลักเต็ม' : (main - count) + ' ที่นั่งเหลือ') + '</div>' +
+      '</div>' +
+      '<div class="bar"><div class="bar-fill' + (reserveFull ? ' reserve' : '') + '" id="barFill" style="width:' + pct + '%"></div></div>';
+  }
+
+  function startCountdown(target) {
+    if (cdTimer) clearInterval(cdTimer);
+    function tick() {
+      var diff = target - Date.now();
+      if (diff <= 0) { clearInterval(cdTimer); cdTimer = null; loadStatus(); return; }
+      var d = Math.floor(diff / 86400000);
+      var h = Math.floor((diff % 86400000) / 3600000);
+      var m = Math.floor((diff % 3600000) / 60000);
+      var sec = Math.floor((diff % 60000) / 1000);
+      var set = function(id, v){ var e = el(id); if (e) e.textContent = (v < 10 ? '0' : '') + v; };
+      set('cd-d', d); set('cd-h', h); set('cd-m', m); set('cd-s', sec);
+    }
+    tick();
+    cdTimer = setInterval(tick, 1000);
+  }
+
+  // ── Submit ──
+  el('applyForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var btn = el('submitBtn'); var err = el('formErr');
+    err.style.display = 'none';
+    var fd = new FormData(e.target);
+    var payload = {};
+    fd.forEach(function(v, k){ payload[k] = String(v).trim(); });
+
+    if (!payload.first_name || !payload.last_name || !payload.nickname || !payload.phone || !payload.email || !payload.mt5_account) {
+      err.textContent = 'กรุณากรอกข้อมูลที่มีเครื่องหมาย * ให้ครบถ้วน'; err.style.display = 'block'; return;
+    }
+
+    btn.disabled = true; var orig = btn.textContent; btn.textContent = 'กำลังส่ง…';
+
+    fetch('/api/last-account/apply', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+      .then(function(r){ return r.json().then(function(j){ return { ok: r.ok, j: j }; }); })
+      .then(function(res){
+        if (!res.ok) {
+          if (res.j && res.j.status === 'full') { loadStatus(); }
+          err.textContent = (res.j && res.j.error) || 'เกิดข้อผิดพลาด กรุณาลองใหม่'; err.style.display = 'block';
+          btn.disabled = false; btn.textContent = orig;
+          return;
+        }
+        showSuccess(res.j, payload);
+      })
+      .catch(function(){
+        err.textContent = 'เชื่อมต่อไม่สำเร็จ กรุณาลองใหม่'; err.style.display = 'block';
+        btn.disabled = false; btn.textContent = orig;
+      });
+  });
+
+  function showSuccess(j, payload) {
+    el('statusWrap').style.display = 'none';
+    el('formCard').style.display = 'none';
+    var isReserve = j.seat_type === 'reserve';
+    el('resultIcon').textContent = isReserve ? '📝' : '🎉';
+    el('resultTitle').textContent = 'สมัครสำเร็จ!';
+    var line;
+    if (isReserve) {
+      var rPos = j.position - MAIN;
+      line = 'คุณได้รับ <b>ที่นั่งสำรอง</b> ลำดับสำรองที่ <b>' + rPos + '</b><br>ทีมงานจะติดต่อกลับหากมีที่นั่งหลักว่าง';
+    } else {
+      line = 'คุณได้รับ <b>ที่นั่งหลัก</b> ลำดับที่ <b>' + j.position + '</b> จาก ' + MAIN + '<br>ทีมงานจะติดต่อกลับเพื่อยืนยันเข้าร่วมโครงการ';
+    }
+    el('resultSub').innerHTML = 'ขอบคุณ ' + esc(payload.nickname || payload.first_name) + ' 🙏<br>' + line;
+    el('resultCard').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  loadStatus();
+</script>
+</body>
+</html>
