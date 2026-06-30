@@ -181,12 +181,12 @@
       </div>
       <div class="field row2">
         <div>
-          <label>Line ID <span class="opt">(ถ้ามี)</span></label>
-          <input name="line_id" placeholder="Line ID" />
+          <label>Line ID <span class="req">*</span></label>
+          <input name="line_id" placeholder="Line ID" required />
         </div>
         <div>
-          <label>Discord ID <span class="opt">(ถ้ามี)</span></label>
-          <input name="discord_id" placeholder="Discord ID" />
+          <label>Discord ID <span class="req">*</span></label>
+          <input name="discord_id" placeholder="Discord ID" required />
         </div>
       </div>
       <button type="submit" class="submit-btn" id="submitBtn">ยืนยันการสมัคร</button>
@@ -321,7 +321,7 @@
     var payload = {};
     fd.forEach(function(v, k){ payload[k] = String(v).trim(); });
 
-    if (!payload.first_name || !payload.last_name || !payload.nickname || !payload.phone || !payload.email || !payload.mt5_account) {
+    if (!payload.first_name || !payload.last_name || !payload.nickname || !payload.phone || !payload.email || !payload.mt5_account || !payload.line_id || !payload.discord_id) {
       err.textContent = 'กรุณากรอกข้อมูลที่มีเครื่องหมาย * ให้ครบถ้วน'; err.style.display = 'block'; return;
     }
 
