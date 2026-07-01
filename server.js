@@ -83,6 +83,11 @@ app.get('/events/last-account-apply', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'events', 'last-account-apply.html'));
 });
 
+// /last-account-admin → serve บ้านหลังสุดท้าย applicants admin page
+app.get('/last-account-admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'last-account-admin.html'));
+});
+
 // /reviews → serve public reviews page
 app.get('/reviews', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'reviews.html'));

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#d4af37" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ผู้สมัคร — บ้านหลังสุดท้าย (Admin)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --gold:#d4af37; --gold-pale:#ffe99a; --gold-dim:rgba(212,175,55,.12); --gold-border:rgba(212,175,55,.22);
+      --bg:#060606; --card:#0f0f0f; --card2:#131313; --border:rgba(255,255,255,.08);
+      --text:#f0f0f0; --muted:#7a7a7a; --green:#4ade80; --orange:#fb923c; --radius:14px;
+    }
+    body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; }
+
+    nav { position:sticky; top:0; z-index:50; display:flex; align-items:center; gap:12px; padding:14px 20px;
+      background:rgba(6,6,6,.85); backdrop-filter:blur(20px); border-bottom:1px solid var(--border); }
+    .nav-back { display:inline-flex; align-items:center; gap:6px; font-size:14px; font-weight:600; color:var(--muted); text-decoration:none; }
+    .nav-back:hover { color:var(--text); }
+    .nav-back svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .nav-title { font-size:15px; font-weight:800; color:var(--gold); }
+    .nav-user { margin-left:auto; font-size:12px; color:var(--muted); }
+
+    .wrap { max-width:1100px; margin:0 auto; padding:24px 20px 80px; }
+
+    .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px; }
+    @media (max-width:640px){ .stats { grid-template-columns:repeat(2,1fr); } }
+    .stat { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:16px 18px; }
+    .stat-num { font-size:26px; font-weight:900; color:var(--gold); letter-spacing:-.5px; }
+    .stat-num.green { color:var(--green); } .stat-num.orange { color:var(--orange); }
+    .stat-lbl { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-top:4px; }
+
+    .toolbar { display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
+    .toolbar input { flex:1; min-width:200px; background:var(--card2); border:1px solid var(--border); border-radius:10px;
+      padding:11px 14px; font-size:14px; color:var(--text); font-family:inherit; }
+    .toolbar input:focus { outline:none; border-color:var(--gold-border); }
+    .btn { display:inline-flex; align-items:center; gap:7px; background:var(--card2); border:1px solid var(--border);
+      border-radius:10px; padding:11px 16px; font-size:14px; font-weight:600; color:var(--text); cursor:pointer; font-family:inherit; transition:border-color .15s, background .15s; }
+    .btn:hover { border-color:var(--gold-border); }
+    .btn.gold { background:var(--gold); color:#080808; border-color:var(--gold); font-weight:800; }
+    .btn svg { width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+    .table-wrap { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; min-width:900px; }
+    th { font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--muted); text-align:left; font-weight:700;
+      padding:14px 14px; border-bottom:1px solid var(--border); white-space:nowrap; background:var(--card2); position:sticky; top:0; }
+    td { font-size:13px; padding:13px 14px; border-bottom:1px solid var(--border); white-space:nowrap; vertical-align:top; }
+    tr:last-child td { border-bottom:none; }
+    tr:hover td { background:rgba(255,255,255,.02); }
+    .seat-badge { font-size:11px; font-weight:800; padding:3px 10px; border-radius:50px; }
+    .seat-badge.main { background:var(--gold-dim); color:var(--gold-pale); border:1px solid var(--gold-border); }
+    .seat-badge.reserve { background:rgba(251,146,60,.12); color:#fdba74; border:1px solid rgba(251,146,60,.3); }
+    .cell-sub { font-size:11px; color:var(--muted); }
+    .copy { cursor:pointer; color:var(--gold); text-decoration:none; }
+    .copy:hover { text-decoration:underline; }
+
+    .state { text-align:center; padding:60px 20px; color:var(--muted); font-size:14px; }
+    .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#222; border:1px solid rgba(255,255,255,.12);
+      color:#f0f0f0; padding:10px 20px; border-radius:10px; font-size:13px; font-weight:600; z-index:999; opacity:0; transition:opacity .2s; pointer-events:none; }
+    .toast.show { opacity:1; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-back" href="/dashboard.html">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg> Dashboard
+  </a>
+  <span class="nav-title">🏠 ผู้สมัคร บ้านหลังสุดท้าย</span>
+  <span class="nav-user" id="navUser"></span>
+</nav>
+
+<div class="wrap">
+  <div class="stats" id="stats"></div>
+
+  <div class="toolbar">
+    <input id="search" placeholder="ค้นหา ชื่อ / เบอร์ / อีเมล / MT5 / Line / Discord…" oninput="renderTable()" />
+    <button class="btn" onclick="load()"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> รีเฟรช</button>
+    <button class="btn gold" onclick="exportCSV()"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export CSV</button>
+  </div>
+
+  <div id="content"><div class="state">กำลังโหลด…</div></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const TOKEN_KEY = 'sp_token';
+  const MAIN = 20, RESERVE = 5, VIP = 5;
+  let rows = [];
+
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];}); }
+  function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1800); }
+
+  (async () => {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) { window.location.href = '/login'; return; }
+    try {
+      const r = await fetch('/api/auth/me', { headers:{ Authorization:'Bearer '+token } });
+      if (!r.ok) { window.location.href = '/login'; return; }
+      const { user } = await r.json();
+      document.getElementById('navUser').textContent = user.email;
+      if (user.role !== 'admin') {
+        document.getElementById('content').innerHTML =
+          '<div class="state">🔒 หน้านี้สำหรับผู้ดูแลระบบ (admin) เท่านั้น<br><br>บัญชีของคุณยังไม่ได้รับสิทธิ์ admin</div>';
+        document.querySelector('.toolbar').style.display = 'none';
+        return;
+      }
+      load();
+    } catch { window.location.href = '/login'; }
+  })();
+
+  async function load() {
+    const token = localStorage.getItem(TOKEN_KEY);
+    document.getElementById('content').innerHTML = '<div class="state">กำลังโหลด…</div>';
+    try {
+      const r = await fetch('/api/last-account/applications', { headers:{ Authorization:'Bearer '+token } });
+      if (!r.ok) throw new Error();
+      rows = await r.json();
+      renderStats();
+      renderTable();
+    } catch {
+      document.getElementById('content').innerHTML = '<div class="state">โหลดข้อมูลไม่สำเร็จ</div>';
+    }
+  }
+
+  function renderStats() {
+    const total = rows.length;
+    const mainCount = rows.filter(r => r.seat_type === 'main').length;
+    const reserveCount = rows.filter(r => r.seat_type === 'reserve').length;
+    const shown = total + VIP; // effective seats incl. VIP hold
+    const left = Math.max(0, (MAIN + RESERVE) - shown);
+    document.getElementById('stats').innerHTML =
+      '<div class="stat"><div class="stat-num">' + total + '</div><div class="stat-lbl">ผู้สมัครจริง</div></div>' +
+      '<div class="stat"><div class="stat-num green">' + mainCount + '</div><div class="stat-lbl">ที่นั่งหลัก (จริง)</div></div>' +
+      '<div class="stat"><div class="stat-num orange">' + reserveCount + '</div><div class="stat-lbl">ที่นั่งสำรอง</div></div>' +
+      '<div class="stat"><div class="stat-num">' + shown + ' / 25</div><div class="stat-lbl">รวม +VIP ' + VIP + ' · เหลือ ' + left + '</div></div>';
+  }
+
+  function fmtDate(s) {
+    if (!s) return '';
+    const d = new Date(s);
+    if (isNaN(d)) return esc(s);
+    const p = n => (n<10?'0':'')+n;
+    return p(d.getDate())+'/'+p(d.getMonth()+1)+'/'+d.getFullYear()+' '+p(d.getHours())+':'+p(d.getMinutes());
+  }
+
+  function renderTable() {
+    const q = (document.getElementById('search').value || '').toLowerCase().trim();
+    let list = rows.slice();
+    if (q) {
+      list = list.filter(r => [r.first_name,r.last_name,r.nickname,r.phone,r.email,r.mt5_account,r.line_id,r.discord_id]
+        .some(v => String(v||'').toLowerCase().includes(q)));
+    }
+    if (!list.length) {
+      document.getElementById('content').innerHTML = '<div class="state">' + (rows.length ? 'ไม่พบข้อมูลที่ค้นหา' : 'ยังไม่มีผู้สมัคร') + '</div>';
+      return;
+    }
+    let html = '<div class="table-wrap"><table><thead><tr>' +
+      '<th>#</th><th>ชื่อ-นามสกุล</th><th>ชื่อเล่น</th><th>เบอร์โทร</th><th>Email</th><th>MT5</th><th>Line ID</th><th>Discord ID</th><th>ที่นั่ง</th><th>วันที่สมัคร</th>' +
+      '</tr></thead><tbody>';
+    list.forEach((r, i) => {
+      const seat = r.seat_type === 'reserve'
+        ? '<span class="seat-badge reserve">สำรอง</span>'
+        : '<span class="seat-badge main">หลัก</span>';
+      html += '<tr>' +
+        '<td>' + (i+1) + '</td>' +
+        '<td>' + esc(r.first_name) + ' ' + esc(r.last_name) + '</td>' +
+        '<td>' + esc(r.nickname) + '</td>' +
+        '<td><a class="copy" onclick="copy(\'' + esc(r.phone) + '\')">' + esc(r.phone) + '</a></td>' +
+        '<td><a class="copy" onclick="copy(\'' + esc(r.email) + '\')">' + esc(r.email) + '</a></td>' +
+        '<td><a class="copy" onclick="copy(\'' + esc(r.mt5_account) + '\')">' + esc(r.mt5_account) + '</a></td>' +
+        '<td>' + esc(r.line_id) + '</td>' +
+        '<td>' + esc(r.discord_id) + '</td>' +
+        '<td>' + seat + '</td>' +
+        '<td class="cell-sub">' + fmtDate(r.created_at) + '</td>' +
+      '</tr>';
+    });
+    html += '</tbody></table></div>';
+    document.getElementById('content').innerHTML = html;
+  }
+
+  function copy(text) {
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => toast('คัดลอกแล้ว ✓')).catch(()=>{});
+  }
+
+  function exportCSV() {
+    if (!rows.length) { toast('ยังไม่มีข้อมูล'); return; }
+    const cols = ['ลำดับ','ชื่อจริง','นามสกุล','ชื่อเล่น','เบอร์โทร','Email','เลขพอร์ต MT5','Line ID','Discord ID','ประเภทที่นั่ง','วันที่สมัคร'];
+    const esc = v => '"' + String(v==null?'':v).replace(/"/g,'""') + '"';
+    const lines = [cols.map(esc).join(',')];
+    rows.forEach((r, i) => {
+      lines.push([i+1, r.first_name, r.last_name, r.nickname, r.phone, r.email, r.mt5_account,
+        r.line_id, r.discord_id, (r.seat_type==='reserve'?'สำรอง':'หลัก'), fmtDate(r.created_at)].map(esc).join(','));
+    });
+    const blob = new Blob(['﻿' + lines.join('\r\n')], { type:'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'last-account-applicants.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    toast('ดาวน์โหลด CSV แล้ว ✓');
+  }
+</script>
+</body>
+</html>
