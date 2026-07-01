@@ -423,12 +423,12 @@ async function countLastAccountApplications() {
  * Returns { full: true } if main+reserve seats are exhausted,
  * otherwise { id, seat_type, position }.
  */
-async function createLastAccountApplication(data, mainSeats, reserveSeats) {
+async function createLastAccountApplication(data, mainSeats, reserveSeats, offset = 0) {
   const conn = await pool.getConnection();
   try {
     await conn.beginTransaction();
     const [rows] = await conn.execute('SELECT COUNT(*) AS c FROM last_account_applications FOR UPDATE');
-    const count = Number(rows[0].c);
+    const count = Number(rows[0].c) + offset; // include VIP-reserved seats
     if (count >= mainSeats + reserveSeats) {
       await conn.rollback();
       return { full: true };

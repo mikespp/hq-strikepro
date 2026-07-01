@@ -7,12 +7,15 @@ const router = express.Router();
 // ── Program config ───────────────────────────────────────────────────────────
 const MAIN_SEATS    = 20;
 const RESERVE_SEATS = 5;
+// Seats pre-reserved for VIP — the public counter starts here (real applicants add on top)
+const VIP_RESERVED  = 5;
 // Registration opens 6 July 2026, 12:00 Thai time (UTC+7)
 const OPENS_AT = new Date('2026-07-06T12:00:00+07:00');
 
-function buildStatus(count) {
+function buildStatus(dbCount) {
   const now    = new Date();
   const isOpen = now >= OPENS_AT;
+  const count  = dbCount + VIP_RESERVED; // effective seats taken (incl. VIP hold)
 
   let status, seatsLeft;
   if (count >= MAIN_SEATS + RESERVE_SEATS) {
@@ -83,7 +86,7 @@ router.post('/apply', async (req, res) => {
   };
 
   try {
-    const result = await db.createLastAccountApplication(data, MAIN_SEATS, RESERVE_SEATS);
+    const result = await db.createLastAccountApplication(data, MAIN_SEATS, RESERVE_SEATS, VIP_RESERVED);
     if (result.full) {
       return res.status(409).json({ error: 'เต็มแล้ว ไม่สามารถสมัครได้ กรุณารอรอบถัดไป', status: 'full' });
     }
