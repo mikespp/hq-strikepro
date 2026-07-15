@@ -98,6 +98,30 @@
     .section-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
     .section-divider { border: none; border-top: 1px solid var(--border); margin: 0; }
 
+    /* ── Strike Pro Calendar ── */
+    .cal-list { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+    .cal-item {
+      display: flex; align-items: center; gap: 14px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-left: 3px solid var(--accent, var(--hq));
+      border-radius: 12px; padding: 12px 14px;
+      text-decoration: none; color: inherit;
+      transition: border-color .15s, transform .15s, background .15s;
+    }
+    a.cal-item:hover { background: var(--surface2); transform: translateX(2px); }
+    .cal-date {
+      flex-shrink: 0; width: 52px; text-align: center;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .cal-day { font-size: 22px; font-weight: 800; line-height: 1; color: var(--accent, var(--hq)); }
+    .cal-mon { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; margin-top: 3px; }
+    .cal-body { flex: 1; min-width: 0; }
+    .cal-title { font-size: 14px; font-weight: 700; line-height: 1.3; }
+    .cal-range { font-size: 12px; color: var(--text-muted); margin-top: 3px; display: flex; align-items: center; gap: 6px; }
+    .cal-live { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em;
+      background: var(--primary-bg); color: var(--primary); padding: 1px 7px; border-radius: 20px; }
+    .cal-arrow { flex-shrink: 0; color: var(--text-sub); font-size: 18px; }
+
     /* ── Product cards (strategy) ── */
     .strategy-list { display: flex; flex-direction: column; gap: 12px; }
     .strategy-card {
@@ -320,6 +344,77 @@
     <h1 class="hero-title">HQ <span>Strikepro</span></h1>
     <p class="hero-sub">FX Trading &nbsp;•&nbsp; Community &nbsp;•&nbsp; Ecosystem</p>
     <p class="hero-desc">Explore managed strategies, STP Coin, education, trade challenges, and community-driven opportunities inside the Strikepro ecosystem.</p>
+  </div>
+</section>
+
+<!-- Strike Pro Calendar -->
+<section class="section" style="padding-bottom: 8px;">
+  <div class="section-label">🗓️ Strike Pro Calendar</div>
+  <div class="section-title">ปฏิทินกิจกรรม</div>
+  <div class="section-sub">กิจกรรมและรุ่นที่กำลังจะมาถึงในระบบนิเวศ Strike Pro</div>
+  <div class="cal-list">
+
+    <a class="cal-item" href="/events/sbc" style="--accent:#fb923c;">
+      <div class="cal-date"><div class="cal-day">10</div><div class="cal-mon">ก.ค.</div></div>
+      <div class="cal-body">
+        <div class="cal-title">SBC 24 : Reunion Party</div>
+        <div class="cal-range">10 ก.ค. 2026</div>
+      </div>
+      <div class="cal-arrow">›</div>
+    </a>
+
+    <a class="cal-item" href="/events/last-account" style="--accent:#d4af37;">
+      <div class="cal-date"><div class="cal-day">12</div><div class="cal-mon">ก.ค.</div></div>
+      <div class="cal-body">
+        <div class="cal-title">บ้านหลังสุดท้าย · The Last Account รุ่น 0</div>
+        <div class="cal-range">12–17 ก.ค. 2026</div>
+      </div>
+      <div class="cal-arrow">›</div>
+    </a>
+
+    <div class="cal-item" style="--accent:#E63946;">
+      <div class="cal-date"><div class="cal-day">13</div><div class="cal-mon">ก.ค.</div></div>
+      <div class="cal-body">
+        <div class="cal-title">ศึกชนช้าง Season 2</div>
+        <div class="cal-range"><span class="cal-live">Live</span> 13–31 ก.ค. 2026</div>
+      </div>
+    </div>
+
+    <a class="cal-item" href="/events/last-account" style="--accent:#d4af37;">
+      <div class="cal-date"><div class="cal-day">19</div><div class="cal-mon">ก.ค.</div></div>
+      <div class="cal-body">
+        <div class="cal-title">บ้านหลังสุดท้าย · The Last Account รุ่น 1</div>
+        <div class="cal-range">19–24 ก.ค. 2026</div>
+      </div>
+      <div class="cal-arrow">›</div>
+    </a>
+
+    <a class="cal-item" href="/events/last-account" style="--accent:#d4af37;">
+      <div class="cal-date"><div class="cal-day">26</div><div class="cal-mon">ก.ค.</div></div>
+      <div class="cal-body">
+        <div class="cal-title">บ้านหลังสุดท้าย · The Last Account รุ่น 2</div>
+        <div class="cal-range">26–31 ก.ค. 2026</div>
+      </div>
+      <div class="cal-arrow">›</div>
+    </a>
+
+    <div class="cal-item" style="--accent:#4ade80;">
+      <div class="cal-date"><div class="cal-day">31</div><div class="cal-mon">ก.ค.</div></div>
+      <div class="cal-body">
+        <div class="cal-title">กินข้าวบ้านจารย์</div>
+        <div class="cal-range">31 ก.ค. 2026</div>
+      </div>
+    </div>
+
+    <a class="cal-item" href="/events/sbc" style="--accent:#fb923c;">
+      <div class="cal-date"><div class="cal-day">1</div><div class="cal-mon">ส.ค.</div></div>
+      <div class="cal-body">
+        <div class="cal-title">SBC 25</div>
+        <div class="cal-range">1–3 ส.ค. 2026</div>
+      </div>
+      <div class="cal-arrow">›</div>
+    </a>
+
   </div>
 </section>
 
