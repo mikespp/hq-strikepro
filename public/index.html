@@ -122,8 +122,21 @@
       background: var(--primary-bg); color: var(--primary); padding: 1px 7px; border-radius: 20px; }
     .cal-arrow { flex-shrink: 0; color: var(--text-sub); font-size: 18px; }
 
+    /* ── Month nav ── */
+    .cal-nav { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 14px; }
+    .cal-navbtn {
+      flex-shrink: 0; width: 40px; height: 40px; border-radius: 10px;
+      background: var(--surface); border: 1px solid var(--border); color: var(--text);
+      font-size: 22px; line-height: 1; cursor: pointer; font-family: inherit;
+      display: flex; align-items: center; justify-content: center;
+      transition: border-color .15s, background .15s;
+    }
+    .cal-navbtn:hover { border-color: var(--hq-mid); background: var(--surface2); }
+    .cal-navbtn:active { transform: scale(.95); }
+    .cal-navtitle { flex: 1; text-align: center; font-size: 16px; font-weight: 800; color: var(--text); }
+
     /* ── Month grid (event bars) ── */
-    .cal-cal { margin-top: 14px; display: flex; flex-direction: column; gap: 22px; }
+    .cal-cal { margin-top: 12px; display: flex; flex-direction: column; gap: 22px; }
     .cal-mhead { font-size: 15px; font-weight: 800; margin-bottom: 8px; text-align: center; color: var(--text); }
     .cal-wdrow { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; padding: 0 7px; margin-bottom: 5px; }
     .cal-wd { text-align: center; font-size: 10px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; letter-spacing: .03em; }
@@ -140,6 +153,7 @@
       display: block; align-self: start; margin-bottom: 1px;
     }
     a.cal-bar:active { opacity: .7; }
+    .cal-empty { text-align: center; color: var(--text-sub); font-size: 13px; padding: 14px 0; }
 
     /* ── Product cards (strategy) ── */
     .strategy-list { display: flex; flex-direction: column; gap: 12px; }
@@ -371,6 +385,11 @@
   <div class="section-label">🗓️ Strike Pro Calendar</div>
   <div class="section-title">ปฏิทินกิจกรรม</div>
   <div class="section-sub">กิจกรรมและรุ่นที่กำลังจะมาถึงในระบบนิเวศ Strike Pro</div>
+  <div class="cal-nav">
+    <button class="cal-navbtn" id="calPrev" aria-label="เดือนก่อนหน้า">‹</button>
+    <div class="cal-navtitle" id="calTitle">—</div>
+    <button class="cal-navbtn" id="calNext" aria-label="เดือนถัดไป">›</button>
+  </div>
   <div class="cal-cal" id="calGrid"></div>
   <div class="cal-list" id="calList"></div>
 </section>
@@ -401,18 +420,13 @@
 
     function esc(s){ return String(s).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];}); }
 
-    // ── Month grids with spanning event bars ──
-    var months = [[2026,7],[2026,8]];
     var today = new Date();
     var tNum = today.getFullYear()*10000 + (today.getMonth()+1)*100 + today.getDate();
-    var gridHtml = '';
 
-    months.forEach(function (ym) {
-      var y = ym[0], m = ym[1];
+    // Build one month's grid (weekday row + week rows with spanning event bars)
+    function monthGridHtml(y, m) {
       var firstDow = new Date(y, m-1, 1).getDay();
       var days = new Date(y, m, 0).getDate();
-
-      // Build weeks: each = 7 slots of {day,dn} or null
       var weeks = [], week = [];
       for (var i = 0; i < firstDow; i++) week.push(null);
       for (var d = 1; d <= days; d++) {
@@ -421,14 +435,12 @@
       }
       if (week.length) { while (week.length < 7) week.push(null); weeks.push(week); }
 
-      gridHtml += '<div class="cal-month"><div class="cal-mhead">' + TH_MON_FULL[m-1] + ' ' + y + '</div>';
-      gridHtml += '<div class="cal-wdrow">' + TH_WD.map(function (w){ return '<div class="cal-wd">' + w + '</div>'; }).join('') + '</div>';
+      var html = '<div class="cal-month"><div class="cal-wdrow">' +
+        TH_WD.map(function (w){ return '<div class="cal-wd">' + w + '</div>'; }).join('') + '</div>';
 
       weeks.forEach(function (wk) {
         var real = wk.filter(Boolean);
         var wkStart = real[0].dn, wkEnd = real[real.length-1].dn;
-
-        // Events overlapping this week → clip to week columns
         var segs = EVENTS.filter(function (ev){ return num(ev.s) <= wkEnd && num(ev.e) >= wkStart; })
           .map(function (ev) {
             var sCol = null, eCol = null;
@@ -441,7 +453,6 @@
           .filter(function (s){ return s.sCol !== null; })
           .sort(function (a, b){ return a.sCol - b.sCol || (b.eCol - b.sCol) - (a.eCol - a.sCol); });
 
-        // Lane assignment (avoid overlap)
         var laneEnd = [];
         segs.forEach(function (s) {
           var lane = 0;
@@ -449,42 +460,81 @@
           laneEnd[lane] = s.eCol; s.lane = lane;
         });
 
-        gridHtml += '<div class="cal-wk">';
+        html += '<div class="cal-wk">';
         for (var col = 0; col < 7; col++) {
           var c = wk[col];
           var cls = 'cal-dn' + (c && c.dn === tNum ? ' today' : '');
-          gridHtml += '<div class="' + cls + '" style="grid-column:' + (col+1) + ';grid-row:1;">' + (c ? c.day : '') + '</div>';
+          html += '<div class="' + cls + '" style="grid-column:' + (col+1) + ';grid-row:1;">' + (c ? c.day : '') + '</div>';
         }
         segs.forEach(function (s) {
           var ev = s.ev;
           var label = (s.cont ? '‹ ' : '') + ev.t;
           var tag = ev.h ? 'a' : 'span';
           var href = ev.h ? (' href="' + ev.h + '"') : '';
-          gridHtml += '<' + tag + href + ' class="cal-bar" title="' + esc(ev.t) + '" style="' +
+          html += '<' + tag + href + ' class="cal-bar" title="' + esc(ev.t) + '" style="' +
             'grid-column:' + (s.sCol+1) + '/' + (s.eCol+2) + ';grid-row:' + (s.lane+2) + ';' +
             'color:' + ev.c + ';background:' + ev.c + '1f;border-left:3px solid ' + ev.c + ';">' +
             esc(label) + '</' + tag + '>';
         });
-        gridHtml += '</div>';
+        html += '</div>';
       });
+      return html + '</div>';
+    }
 
-      gridHtml += '</div>';
-    });
-    document.getElementById('calGrid').innerHTML = gridHtml;
+    // Detail list for the visible month
+    function monthListHtml(y, m) {
+      var mStart = y*10000 + m*100 + 1, mEnd = y*10000 + m*100 + 31;
+      var evs = EVENTS.filter(function (ev){ return num(ev.s) <= mEnd && num(ev.e) >= mStart; });
+      if (!evs.length) return '<div class="cal-empty">ไม่มีกิจกรรมในเดือนนี้</div>';
+      return evs.map(function (ev){
+        var inner =
+          '<div class="cal-body">' +
+            '<div class="cal-title">' + ev.t + '</div>' +
+            '<div class="cal-range">' + (ev.live ? '<span class="cal-live">Live</span>' : '') + fmtRange(ev.s, ev.e) + '</div>' +
+          '</div>' + (ev.h ? '<div class="cal-arrow">›</div>' : '');
+        var style = 'style="--accent:' + ev.c + '"';
+        return ev.h
+          ? '<a class="cal-item" href="' + ev.h + '" ' + style + '>' + inner + '</a>'
+          : '<div class="cal-item" ' + style + '>' + inner + '</div>';
+      }).join('');
+    }
 
-    // ── Detail list ──
-    var listHtml = EVENTS.map(function (ev){
-      var inner =
-        '<div class="cal-body">' +
-          '<div class="cal-title">' + ev.t + '</div>' +
-          '<div class="cal-range">' + (ev.live ? '<span class="cal-live">Live</span>' : '') + fmtRange(ev.s, ev.e) + '</div>' +
-        '</div>' + (ev.h ? '<div class="cal-arrow">›</div>' : '');
-      var style = 'style="--accent:' + ev.c + '"';
-      return ev.h
-        ? '<a class="cal-item" href="' + ev.h + '" ' + style + '>' + inner + '</a>'
-        : '<div class="cal-item" ' + style + '>' + inner + '</div>';
-    }).join('');
-    document.getElementById('calList').innerHTML = listHtml;
+    // Navigable month state, bounded to the range covered by events
+    var minAbs = Math.min.apply(null, EVENTS.map(function (ev){ return ev.s[0]*12 + (ev.s[1]-1); }));
+    var maxAbs = Math.max.apply(null, EVENTS.map(function (ev){ return ev.e[0]*12 + (ev.e[1]-1); }));
+    var cur = minAbs;
+
+    var gridEl  = document.getElementById('calGrid');
+    var listEl  = document.getElementById('calList');
+    var titleEl = document.getElementById('calTitle');
+    var prevBtn = document.getElementById('calPrev');
+    var nextBtn = document.getElementById('calNext');
+
+    function render() {
+      var y = Math.floor(cur/12), m = (cur%12)+1;
+      titleEl.textContent = TH_MON_FULL[m-1] + ' ' + y;
+      gridEl.innerHTML = monthGridHtml(y, m);
+      listEl.innerHTML = monthListHtml(y, m);
+      [[prevBtn, cur <= minAbs], [nextBtn, cur >= maxAbs]].forEach(function (pair) {
+        pair[0].style.opacity = pair[1] ? '.3' : '';
+        pair[0].style.pointerEvents = pair[1] ? 'none' : '';
+      });
+    }
+    prevBtn.addEventListener('click', function(){ if (cur > minAbs) { cur--; render(); } });
+    nextBtn.addEventListener('click', function(){ if (cur < maxAbs) { cur++; render(); } });
+
+    // Touch swipe (mobile)
+    var tx = null;
+    gridEl.addEventListener('touchstart', function (e){ tx = e.changedTouches[0].clientX; }, { passive:true });
+    gridEl.addEventListener('touchend', function (e){
+      if (tx === null) return;
+      var dx = e.changedTouches[0].clientX - tx; tx = null;
+      if (Math.abs(dx) < 50) return;
+      if (dx < 0 && cur < maxAbs) { cur++; render(); }
+      else if (dx > 0 && cur > minAbs) { cur--; render(); }
+    }, { passive:true });
+
+    render();
   })();
 </script>
 
