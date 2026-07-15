@@ -122,6 +122,25 @@
       background: var(--primary-bg); color: var(--primary); padding: 1px 7px; border-radius: 20px; }
     .cal-arrow { flex-shrink: 0; color: var(--text-sub); font-size: 18px; }
 
+    /* ── Month grid ── */
+    .cal-cal { margin-top: 14px; display: flex; flex-direction: column; gap: 18px; }
+    .cal-month { }
+    .cal-mhead { font-size: 15px; font-weight: 800; margin-bottom: 10px; text-align: center; color: var(--text); }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+    .cal-wd { text-align: center; font-size: 10px; font-weight: 700; color: var(--text-sub);
+      text-transform: uppercase; letter-spacing: .03em; padding: 2px 0 4px; }
+    .cal-cell { position: relative; aspect-ratio: 1 / 1; border: 1px solid var(--border);
+      border-radius: 8px; padding: 5px; display: flex; flex-direction: column; background: var(--surface); }
+    .cal-cell.empty { background: transparent; border: none; }
+    .cal-cell.has { border-color: #3a3a3a; }
+    .cal-cell.today { border-color: var(--primary); }
+    .cal-cnum { font-size: 11px; font-weight: 700; color: var(--text-muted); line-height: 1; }
+    .cal-cell.has .cal-cnum { color: var(--text); }
+    .cal-cell.today .cal-cnum { color: var(--primary); }
+    .cal-dots { display: flex; flex-wrap: wrap; gap: 3px; margin-top: auto; }
+    .cal-dot { width: 6px; height: 6px; border-radius: 50%; }
+    @media (max-width: 400px) { .cal-cell { padding: 4px 3px; } .cal-dot { width: 5px; height: 5px; } }
+
     /* ── Product cards (strategy) ── */
     .strategy-list { display: flex; flex-direction: column; gap: 12px; }
     .strategy-card {
@@ -352,71 +371,73 @@
   <div class="section-label">🗓️ Strike Pro Calendar</div>
   <div class="section-title">ปฏิทินกิจกรรม</div>
   <div class="section-sub">กิจกรรมและรุ่นที่กำลังจะมาถึงในระบบนิเวศ Strike Pro</div>
-  <div class="cal-list">
-
-    <a class="cal-item" href="/events/sbc" style="--accent:#fb923c;">
-      <div class="cal-date"><div class="cal-day">10</div><div class="cal-mon">ก.ค.</div></div>
-      <div class="cal-body">
-        <div class="cal-title">SBC 24 : Reunion Party</div>
-        <div class="cal-range">10 ก.ค. 2026</div>
-      </div>
-      <div class="cal-arrow">›</div>
-    </a>
-
-    <a class="cal-item" href="/events/last-account" style="--accent:#d4af37;">
-      <div class="cal-date"><div class="cal-day">12</div><div class="cal-mon">ก.ค.</div></div>
-      <div class="cal-body">
-        <div class="cal-title">บ้านหลังสุดท้าย · The Last Account รุ่น 0</div>
-        <div class="cal-range">12–17 ก.ค. 2026</div>
-      </div>
-      <div class="cal-arrow">›</div>
-    </a>
-
-    <div class="cal-item" style="--accent:#E63946;">
-      <div class="cal-date"><div class="cal-day">13</div><div class="cal-mon">ก.ค.</div></div>
-      <div class="cal-body">
-        <div class="cal-title">ศึกชนช้าง Season 2</div>
-        <div class="cal-range"><span class="cal-live">Live</span> 13–31 ก.ค. 2026</div>
-      </div>
-    </div>
-
-    <a class="cal-item" href="/events/last-account" style="--accent:#d4af37;">
-      <div class="cal-date"><div class="cal-day">19</div><div class="cal-mon">ก.ค.</div></div>
-      <div class="cal-body">
-        <div class="cal-title">บ้านหลังสุดท้าย · The Last Account รุ่น 1</div>
-        <div class="cal-range">19–24 ก.ค. 2026</div>
-      </div>
-      <div class="cal-arrow">›</div>
-    </a>
-
-    <a class="cal-item" href="/events/last-account" style="--accent:#d4af37;">
-      <div class="cal-date"><div class="cal-day">26</div><div class="cal-mon">ก.ค.</div></div>
-      <div class="cal-body">
-        <div class="cal-title">บ้านหลังสุดท้าย · The Last Account รุ่น 2</div>
-        <div class="cal-range">26–31 ก.ค. 2026</div>
-      </div>
-      <div class="cal-arrow">›</div>
-    </a>
-
-    <div class="cal-item" style="--accent:#4ade80;">
-      <div class="cal-date"><div class="cal-day">31</div><div class="cal-mon">ก.ค.</div></div>
-      <div class="cal-body">
-        <div class="cal-title">กินข้าวบ้านจารย์</div>
-        <div class="cal-range">31 ก.ค. 2026</div>
-      </div>
-    </div>
-
-    <a class="cal-item" href="/events/sbc" style="--accent:#fb923c;">
-      <div class="cal-date"><div class="cal-day">1</div><div class="cal-mon">ส.ค.</div></div>
-      <div class="cal-body">
-        <div class="cal-title">SBC 25</div>
-        <div class="cal-range">1–3 ส.ค. 2026</div>
-      </div>
-      <div class="cal-arrow">›</div>
-    </a>
-
-  </div>
+  <div class="cal-cal" id="calGrid"></div>
+  <div class="cal-list" id="calList"></div>
 </section>
+
+<script>
+  (function () {
+    var TH_MON = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    var TH_MON_FULL = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+    var TH_WD = ['อา','จ','อ','พ','พฤ','ศ','ส'];
+
+    // start/end are [year, month(1-12), day]
+    var EVENTS = [
+      { s:[2026,7,10], e:[2026,7,10], t:'SBC 24 : Reunion Party',              c:'#fb923c', h:'/events/sbc',           live:false },
+      { s:[2026,7,12], e:[2026,7,17], t:'บ้านหลังสุดท้าย · The Last Account รุ่น 0', c:'#d4af37', h:'/events/last-account', live:false },
+      { s:[2026,7,13], e:[2026,7,31], t:'ศึกชนช้าง Season 2',                  c:'#E63946', h:null,                    live:true  },
+      { s:[2026,7,19], e:[2026,7,24], t:'บ้านหลังสุดท้าย · The Last Account รุ่น 1', c:'#d4af37', h:'/events/last-account', live:false },
+      { s:[2026,7,26], e:[2026,7,31], t:'บ้านหลังสุดท้าย · The Last Account รุ่น 2', c:'#d4af37', h:'/events/last-account', live:false },
+      { s:[2026,7,31], e:[2026,7,31], t:'กินข้าวบ้านจารย์',                    c:'#4ade80', h:null,                    live:false },
+      { s:[2026,8,1],  e:[2026,8,3],  t:'SBC 25',                              c:'#fb923c', h:'/events/sbc',           live:false },
+    ];
+
+    function num(a){ return a[0]*10000 + a[1]*100 + a[2]; }
+    function fmtRange(s, e){
+      if (num(s) === num(e)) return s[2] + ' ' + TH_MON[s[1]-1] + ' ' + s[0];
+      if (s[1] === e[1])     return s[2] + '–' + e[2] + ' ' + TH_MON[s[1]-1] + ' ' + s[0];
+      return s[2] + ' ' + TH_MON[s[1]-1] + ' – ' + e[2] + ' ' + TH_MON[e[1]-1] + ' ' + s[0];
+    }
+
+    // ── Month grids ──
+    var months = [[2026,7],[2026,8]];
+    var today = new Date();
+    var tNum = today.getFullYear()*10000 + (today.getMonth()+1)*100 + today.getDate();
+    var gridHtml = '';
+
+    months.forEach(function (ym) {
+      var y = ym[0], m = ym[1];
+      var firstDow = new Date(y, m-1, 1).getDay();
+      var days = new Date(y, m, 0).getDate();
+      gridHtml += '<div class="cal-month"><div class="cal-mhead">' + TH_MON_FULL[m-1] + ' ' + y + '</div><div class="cal-grid">';
+      TH_WD.forEach(function (w){ gridHtml += '<div class="cal-wd">' + w + '</div>'; });
+      for (var i = 0; i < firstDow; i++) gridHtml += '<div class="cal-cell empty"></div>';
+      for (var d = 1; d <= days; d++) {
+        var dn = y*10000 + m*100 + d;
+        var dots = EVENTS.filter(function (ev){ return dn >= num(ev.s) && dn <= num(ev.e); });
+        var cls = 'cal-cell' + (dots.length ? ' has' : '') + (dn === tNum ? ' today' : '');
+        var dotsHtml = dots.slice(0,4).map(function (ev){ return '<span class="cal-dot" style="background:' + ev.c + '"></span>'; }).join('');
+        gridHtml += '<div class="' + cls + '"><div class="cal-cnum">' + d + '</div><div class="cal-dots">' + dotsHtml + '</div></div>';
+      }
+      gridHtml += '</div></div>';
+    });
+    document.getElementById('calGrid').innerHTML = gridHtml;
+
+    // ── Detail list ──
+    var listHtml = EVENTS.map(function (ev){
+      var inner =
+        '<div class="cal-body">' +
+          '<div class="cal-title">' + ev.t + '</div>' +
+          '<div class="cal-range">' + (ev.live ? '<span class="cal-live">Live</span>' : '') + fmtRange(ev.s, ev.e) + '</div>' +
+        '</div>' + (ev.h ? '<div class="cal-arrow">›</div>' : '');
+      var style = 'style="--accent:' + ev.c + '"';
+      return ev.h
+        ? '<a class="cal-item" href="' + ev.h + '" ' + style + '>' + inner + '</a>'
+        : '<div class="cal-item" ' + style + '>' + inner + '</div>';
+    }).join('');
+    document.getElementById('calList').innerHTML = listHtml;
+  })();
+</script>
 
 <!-- Event Banner -->
 <hr class="section-divider" />
