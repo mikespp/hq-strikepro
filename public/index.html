@@ -122,24 +122,24 @@
       background: var(--primary-bg); color: var(--primary); padding: 1px 7px; border-radius: 20px; }
     .cal-arrow { flex-shrink: 0; color: var(--text-sub); font-size: 18px; }
 
-    /* ── Month grid ── */
-    .cal-cal { margin-top: 14px; display: flex; flex-direction: column; gap: 18px; }
-    .cal-month { }
-    .cal-mhead { font-size: 15px; font-weight: 800; margin-bottom: 10px; text-align: center; color: var(--text); }
-    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-    .cal-wd { text-align: center; font-size: 10px; font-weight: 700; color: var(--text-sub);
-      text-transform: uppercase; letter-spacing: .03em; padding: 2px 0 4px; }
-    .cal-cell { position: relative; aspect-ratio: 1 / 1; border: 1px solid var(--border);
-      border-radius: 8px; padding: 5px; display: flex; flex-direction: column; background: var(--surface); }
-    .cal-cell.empty { background: transparent; border: none; }
-    .cal-cell.has { border-color: #3a3a3a; }
-    .cal-cell.today { border-color: var(--primary); }
-    .cal-cnum { font-size: 11px; font-weight: 700; color: var(--text-muted); line-height: 1; }
-    .cal-cell.has .cal-cnum { color: var(--text); }
-    .cal-cell.today .cal-cnum { color: var(--primary); }
-    .cal-dots { display: flex; flex-wrap: wrap; gap: 3px; margin-top: auto; }
-    .cal-dot { width: 6px; height: 6px; border-radius: 50%; }
-    @media (max-width: 400px) { .cal-cell { padding: 4px 3px; } .cal-dot { width: 5px; height: 5px; } }
+    /* ── Month grid (event bars) ── */
+    .cal-cal { margin-top: 14px; display: flex; flex-direction: column; gap: 22px; }
+    .cal-mhead { font-size: 15px; font-weight: 800; margin-bottom: 8px; text-align: center; color: var(--text); }
+    .cal-wdrow { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; padding: 0 7px; margin-bottom: 5px; }
+    .cal-wd { text-align: center; font-size: 10px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; letter-spacing: .03em; }
+    .cal-wk {
+      display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px 3px; grid-auto-rows: minmax(0, auto);
+      border: 1px solid var(--border); border-radius: 10px; background: var(--surface);
+      padding: 6px; margin-bottom: 6px;
+    }
+    .cal-dn { grid-row: 1; font-size: 11px; font-weight: 700; color: var(--text-muted); text-align: center; padding: 1px 0 4px; }
+    .cal-dn.today { color: var(--primary); background: var(--primary-bg); border-radius: 5px; }
+    .cal-bar {
+      font-size: 10px; font-weight: 700; line-height: 1.5; padding: 2px 6px; border-radius: 4px;
+      overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-decoration: none;
+      display: block; align-self: start; margin-bottom: 1px;
+    }
+    a.cal-bar:active { opacity: .7; }
 
     /* ── Product cards (strategy) ── */
     .strategy-list { display: flex; flex-direction: column; gap: 12px; }
@@ -399,7 +399,9 @@
       return s[2] + ' ' + TH_MON[s[1]-1] + ' – ' + e[2] + ' ' + TH_MON[e[1]-1] + ' ' + s[0];
     }
 
-    // ── Month grids ──
+    function esc(s){ return String(s).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];}); }
+
+    // ── Month grids with spanning event bars ──
     var months = [[2026,7],[2026,8]];
     var today = new Date();
     var tNum = today.getFullYear()*10000 + (today.getMonth()+1)*100 + today.getDate();
@@ -409,17 +411,64 @@
       var y = ym[0], m = ym[1];
       var firstDow = new Date(y, m-1, 1).getDay();
       var days = new Date(y, m, 0).getDate();
-      gridHtml += '<div class="cal-month"><div class="cal-mhead">' + TH_MON_FULL[m-1] + ' ' + y + '</div><div class="cal-grid">';
-      TH_WD.forEach(function (w){ gridHtml += '<div class="cal-wd">' + w + '</div>'; });
-      for (var i = 0; i < firstDow; i++) gridHtml += '<div class="cal-cell empty"></div>';
+
+      // Build weeks: each = 7 slots of {day,dn} or null
+      var weeks = [], week = [];
+      for (var i = 0; i < firstDow; i++) week.push(null);
       for (var d = 1; d <= days; d++) {
-        var dn = y*10000 + m*100 + d;
-        var dots = EVENTS.filter(function (ev){ return dn >= num(ev.s) && dn <= num(ev.e); });
-        var cls = 'cal-cell' + (dots.length ? ' has' : '') + (dn === tNum ? ' today' : '');
-        var dotsHtml = dots.slice(0,4).map(function (ev){ return '<span class="cal-dot" style="background:' + ev.c + '"></span>'; }).join('');
-        gridHtml += '<div class="' + cls + '"><div class="cal-cnum">' + d + '</div><div class="cal-dots">' + dotsHtml + '</div></div>';
+        week.push({ day:d, dn:y*10000 + m*100 + d });
+        if (week.length === 7) { weeks.push(week); week = []; }
       }
-      gridHtml += '</div></div>';
+      if (week.length) { while (week.length < 7) week.push(null); weeks.push(week); }
+
+      gridHtml += '<div class="cal-month"><div class="cal-mhead">' + TH_MON_FULL[m-1] + ' ' + y + '</div>';
+      gridHtml += '<div class="cal-wdrow">' + TH_WD.map(function (w){ return '<div class="cal-wd">' + w + '</div>'; }).join('') + '</div>';
+
+      weeks.forEach(function (wk) {
+        var real = wk.filter(Boolean);
+        var wkStart = real[0].dn, wkEnd = real[real.length-1].dn;
+
+        // Events overlapping this week → clip to week columns
+        var segs = EVENTS.filter(function (ev){ return num(ev.s) <= wkEnd && num(ev.e) >= wkStart; })
+          .map(function (ev) {
+            var sCol = null, eCol = null;
+            wk.forEach(function (c, idx) {
+              if (!c) return;
+              if (c.dn >= num(ev.s) && c.dn <= num(ev.e)) { if (sCol === null) sCol = idx; eCol = idx; }
+            });
+            return { ev:ev, sCol:sCol, eCol:eCol, cont: num(ev.s) < wkStart };
+          })
+          .filter(function (s){ return s.sCol !== null; })
+          .sort(function (a, b){ return a.sCol - b.sCol || (b.eCol - b.sCol) - (a.eCol - a.sCol); });
+
+        // Lane assignment (avoid overlap)
+        var laneEnd = [];
+        segs.forEach(function (s) {
+          var lane = 0;
+          while (lane < laneEnd.length && laneEnd[lane] >= s.sCol) lane++;
+          laneEnd[lane] = s.eCol; s.lane = lane;
+        });
+
+        gridHtml += '<div class="cal-wk">';
+        for (var col = 0; col < 7; col++) {
+          var c = wk[col];
+          var cls = 'cal-dn' + (c && c.dn === tNum ? ' today' : '');
+          gridHtml += '<div class="' + cls + '" style="grid-column:' + (col+1) + ';grid-row:1;">' + (c ? c.day : '') + '</div>';
+        }
+        segs.forEach(function (s) {
+          var ev = s.ev;
+          var label = (s.cont ? '‹ ' : '') + ev.t;
+          var tag = ev.h ? 'a' : 'span';
+          var href = ev.h ? (' href="' + ev.h + '"') : '';
+          gridHtml += '<' + tag + href + ' class="cal-bar" title="' + esc(ev.t) + '" style="' +
+            'grid-column:' + (s.sCol+1) + '/' + (s.eCol+2) + ';grid-row:' + (s.lane+2) + ';' +
+            'color:' + ev.c + ';background:' + ev.c + '1f;border-left:3px solid ' + ev.c + ';">' +
+            esc(label) + '</' + tag + '>';
+        });
+        gridHtml += '</div>';
+      });
+
+      gridHtml += '</div>';
     });
     document.getElementById('calGrid').innerHTML = gridHtml;
 
