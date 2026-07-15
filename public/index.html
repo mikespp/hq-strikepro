@@ -148,9 +148,9 @@
     .cal-dn { grid-row: 1; font-size: 11px; font-weight: 700; color: var(--text-muted); text-align: center; padding: 1px 0 4px; }
     .cal-dn.today { color: var(--primary); background: var(--primary-bg); border-radius: 5px; }
     .cal-bar {
-      font-size: 10px; font-weight: 700; line-height: 1.5; padding: 2px 6px; border-radius: 4px;
+      font-size: 10px; font-weight: 700; padding: 0 6px; border-radius: 4px;
       overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-decoration: none;
-      display: block; align-self: start; margin-bottom: 1px;
+      display: flex; align-items: center; align-self: stretch; min-width: 0;
     }
     a.cal-bar:active { opacity: .7; }
     .cal-empty { text-align: center; color: var(--text-sub); font-size: 13px; padding: 14px 0; }
@@ -435,10 +435,8 @@
       }
       if (week.length) { while (week.length < 7) week.push(null); weeks.push(week); }
 
-      var html = '<div class="cal-month"><div class="cal-wdrow">' +
-        TH_WD.map(function (w){ return '<div class="cal-wd">' + w + '</div>'; }).join('') + '</div>';
-
-      weeks.forEach(function (wk) {
+      // First pass: assign event lanes per week, track the busiest week
+      var perWeek = weeks.map(function (wk) {
         var real = wk.filter(Boolean);
         var wkStart = real[0].dn, wkEnd = real[real.length-1].dn;
         var segs = EVENTS.filter(function (ev){ return num(ev.s) <= wkEnd && num(ev.e) >= wkStart; })
@@ -452,21 +450,31 @@
           })
           .filter(function (s){ return s.sCol !== null; })
           .sort(function (a, b){ return a.sCol - b.sCol || (b.eCol - b.sCol) - (a.eCol - a.sCol); });
-
         var laneEnd = [];
         segs.forEach(function (s) {
           var lane = 0;
           while (lane < laneEnd.length && laneEnd[lane] >= s.sCol) lane++;
           laneEnd[lane] = s.eCol; s.lane = lane;
         });
+        return { wk:wk, segs:segs, lanes:laneEnd.length };
+      });
 
-        html += '<div class="cal-wk">';
+      // Every week reserves the same number of lane rows → equal height
+      var maxLanes = perWeek.reduce(function (mx, w){ return Math.max(mx, w.lanes); }, 0);
+      var rowsStyle = 'grid-template-rows:auto' + (maxLanes > 0 ? ' repeat(' + maxLanes + ',20px)' : '') + ';';
+
+      var html = '<div class="cal-month"><div class="cal-wdrow">' +
+        TH_WD.map(function (w){ return '<div class="cal-wd">' + w + '</div>'; }).join('') + '</div>';
+
+      perWeek.forEach(function (pw) {
+        var wk = pw.wk;
+        html += '<div class="cal-wk" style="' + rowsStyle + '">';
         for (var col = 0; col < 7; col++) {
           var c = wk[col];
           var cls = 'cal-dn' + (c && c.dn === tNum ? ' today' : '');
           html += '<div class="' + cls + '" style="grid-column:' + (col+1) + ';grid-row:1;">' + (c ? c.day : '') + '</div>';
         }
-        segs.forEach(function (s) {
+        pw.segs.forEach(function (s) {
           var ev = s.ev;
           var label = (s.cont ? '‹ ' : '') + ev.t;
           var tag = ev.h ? 'a' : 'span';
