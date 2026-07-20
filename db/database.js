@@ -123,6 +123,19 @@ async function init() {
     if (err.errno !== 1060) throw err; // 1060 = duplicate column — already exists, ignore
   }
 
+  // Promote any emails listed in ADMIN_EMAILS (comma-separated) to admin on startup.
+  // Idempotent; only affects users that already exist. Set the env var on the host.
+  const adminEmails = (process.env.ADMIN_EMAILS || '')
+    .split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+  if (adminEmails.length) {
+    const placeholders = adminEmails.map(() => '?').join(', ');
+    const [res] = await pool.execute(
+      `UPDATE users SET role = 'admin' WHERE LOWER(email) IN (${placeholders}) AND role <> 'admin'`,
+      adminEmails
+    );
+    if (res.affectedRows) console.log(`  Promoted ${res.affectedRows} user(s) to admin from ADMIN_EMAILS.`);
+  }
+
   // Purge expired sessions on startup
   await pool.execute('DELETE FROM sessions WHERE expires_at <= NOW()');
 
