@@ -123,6 +123,13 @@ async function init() {
     if (err.errno !== 1060) throw err; // 1060 = duplicate column — already exists, ignore
   }
 
+  // Add round column to last_account_applications (idempotent). Legacy rows → round 1.
+  try {
+    await pool.execute(`ALTER TABLE last_account_applications ADD COLUMN round SMALLINT NOT NULL DEFAULT 1`);
+  } catch (err) {
+    if (err.errno !== 1060) throw err;
+  }
+
   // Promote any emails listed in ADMIN_EMAILS (comma-separated) to admin on startup.
   // Idempotent; only affects users that already exist. Set the env var on the host.
   const adminEmails = (process.env.ADMIN_EMAILS || '')
@@ -426,22 +433,28 @@ async function toggleReviewFeatured(id) {
 
 // ── Last Account (บ้านหลังสุดท้าย) applications ─────────────────────────────────
 
-async function countLastAccountApplications() {
-  const [rows] = await pool.execute('SELECT COUNT(*) AS c FROM last_account_applications');
+async function countLastAccountApplications(round) {
+  const [rows] = await pool.execute(
+    'SELECT COUNT(*) AS c FROM last_account_applications WHERE round = ?',
+    [round]
+  );
   return Number(rows[0].c);
 }
 
 /**
- * Insert an application atomically with a capacity check.
- * Returns { full: true } if main+reserve seats are exhausted,
+ * Insert an application atomically with a per-round capacity check.
+ * Returns { full: true } if the round's main+reserve seats are exhausted,
  * otherwise { id, seat_type, position }.
  */
-async function createLastAccountApplication(data, mainSeats, reserveSeats, offset = 0) {
+async function createLastAccountApplication(data, round, mainSeats, reserveSeats) {
   const conn = await pool.getConnection();
   try {
     await conn.beginTransaction();
-    const [rows] = await conn.execute('SELECT COUNT(*) AS c FROM last_account_applications FOR UPDATE');
-    const count = Number(rows[0].c) + offset; // include VIP-reserved seats
+    const [rows] = await conn.execute(
+      'SELECT COUNT(*) AS c FROM last_account_applications WHERE round = ? FOR UPDATE',
+      [round]
+    );
+    const count = Number(rows[0].c);
     if (count >= mainSeats + reserveSeats) {
       await conn.rollback();
       return { full: true };
@@ -449,10 +462,10 @@ async function createLastAccountApplication(data, mainSeats, reserveSeats, offse
     const seatType = count < mainSeats ? 'main' : 'reserve';
     const [result] = await conn.execute(
       `INSERT INTO last_account_applications
-         (first_name, last_name, nickname, phone, email, mt5_account, line_id, discord_id, seat_type)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         (first_name, last_name, nickname, phone, email, mt5_account, line_id, discord_id, seat_type, round)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [data.first_name, data.last_name, data.nickname, data.phone, data.email,
-       data.mt5_account, data.line_id, data.discord_id, seatType]
+       data.mt5_account, data.line_id, data.discord_id, seatType, round]
     );
     await conn.commit();
     return { id: result.insertId, seat_type: seatType, position: count + 1 };
@@ -467,8 +480,8 @@ async function createLastAccountApplication(data, mainSeats, reserveSeats, offse
 async function listLastAccountApplications() {
   const [rows] = await pool.execute(
     `SELECT id, first_name, last_name, nickname, phone, email, mt5_account,
-            line_id, discord_id, seat_type, created_at
-     FROM last_account_applications ORDER BY created_at ASC`
+            line_id, discord_id, seat_type, round, created_at
+     FROM last_account_applications ORDER BY round ASC, created_at ASC`
   );
   return rows;
 }

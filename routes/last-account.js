@@ -4,47 +4,70 @@ const { requireAdmin } = require('./auth');
 
 const router = express.Router();
 
-// ── Program config ───────────────────────────────────────────────────────────
-const MAIN_SEATS    = 20;
-const RESERVE_SEATS = 5;
-// Seats pre-reserved for VIP — the public counter starts here (real applicants add on top)
-const VIP_RESERVED  = 5;
-// Registration opens 6 July 2026, 12:00 Thai time (UTC+7)
-const OPENS_AT = new Date('2026-07-06T12:00:00+07:00');
+// ── Program config — one entry per registration round ────────────────────────
+// No VIP hold; 25 main seats + 5 reserve per round. Applicants stored per round.
+const ROUNDS = {
+  2: { label: 'รุ่นที่ 2', opensAt: new Date('2026-07-22T12:00:00+07:00'), main: 25, reserve: 5 },
+  3: { label: 'รุ่นที่ 3', opensAt: new Date('2026-07-29T12:00:00+07:00'), main: 25, reserve: 5 },
+};
 
-function buildStatus(dbCount) {
+function parseRound(v) {
+  const r = parseInt(v, 10);
+  return ROUNDS[r] ? r : null;
+}
+
+function buildStatus(round, count) {
+  const cfg    = ROUNDS[round];
   const now    = new Date();
-  const isOpen = now >= OPENS_AT;
-  const count  = dbCount + VIP_RESERVED; // effective seats taken (incl. VIP hold)
+  const isOpen = now >= cfg.opensAt;
 
   let status, seatsLeft;
-  if (count >= MAIN_SEATS + RESERVE_SEATS) {
+  if (count >= cfg.main + cfg.reserve) {
     status = 'full'; seatsLeft = 0;
-  } else if (count >= MAIN_SEATS) {
-    status = 'reserve'; seatsLeft = (MAIN_SEATS + RESERVE_SEATS) - count; // remaining reserve seats
+  } else if (count >= cfg.main) {
+    status = 'reserve'; seatsLeft = (cfg.main + cfg.reserve) - count;
   } else {
-    status = 'open'; seatsLeft = MAIN_SEATS - count;
+    status = 'open'; seatsLeft = cfg.main - count;
   }
 
   return {
+    round,
+    label:        cfg.label,
     count,
-    mainSeats:    MAIN_SEATS,
-    reserveSeats: RESERVE_SEATS,
-    opensAt:      OPENS_AT.toISOString(),
+    mainSeats:    cfg.main,
+    reserveSeats: cfg.reserve,
+    opensAt:      cfg.opensAt.toISOString(),
     now:          now.toISOString(),
     isOpen,
-    // 'closed' (not open yet) takes precedence over capacity status
-    status: isOpen ? status : 'closed',
+    status: isOpen ? status : 'closed', // 'closed' (not open yet) wins over capacity
     capacityStatus: status,
     seatsLeft,
   };
 }
 
-// ── GET /api/last-account/status  (public) ───────────────────────────────────
-router.get('/status', async (req, res) => {
+// ── GET /api/last-account/rounds  (public) — all rounds' status ──────────────
+router.get('/rounds', async (req, res) => {
   try {
-    const count = await db.countLastAccountApplications();
-    res.json(buildStatus(count));
+    const out = [];
+    for (const r of Object.keys(ROUNDS)) {
+      const round = parseInt(r, 10);
+      const count = await db.countLastAccountApplications(round);
+      out.push(buildStatus(round, count));
+    }
+    res.json(out);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
+  }
+});
+
+// ── GET /api/last-account/status?round=N  (public) ───────────────────────────
+router.get('/status', async (req, res) => {
+  const round = parseRound(req.query.round);
+  if (!round) return res.status(400).json({ error: 'รุ่นไม่ถูกต้อง' });
+  try {
+    const count = await db.countLastAccountApplications(round);
+    res.json(buildStatus(round, count));
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
@@ -54,18 +77,23 @@ router.get('/status', async (req, res) => {
 // ── POST /api/last-account/apply  (public) ───────────────────────────────────
 router.post('/apply', async (req, res) => {
   const {
+    round: roundRaw,
     first_name, last_name, nickname,
     phone, email, mt5_account, line_id, discord_id,
   } = req.body;
 
+  const round = parseRound(roundRaw);
+  if (!round) return res.status(400).json({ error: 'กรุณาเลือกรุ่นที่ต้องการสมัคร' });
+  const cfg = ROUNDS[round];
+
   // Registration window
-  if (new Date() < OPENS_AT) {
-    return res.status(403).json({ error: 'ยังไม่เปิดรับสมัคร กรุณารอวันที่ 6 ก.ค. 2026 เวลา 12:00 น.' });
+  if (new Date() < cfg.opensAt) {
+    return res.status(403).json({ error: 'ยังไม่เปิดรับสมัครรุ่นนี้ กรุณารอถึงเวลาเปิดรับสมัคร' });
   }
 
-  // Validation
+  // Validation — all fields required
   const required = { first_name, last_name, nickname, phone, email, mt5_account, line_id, discord_id };
-  for (const [key, val] of Object.entries(required)) {
+  for (const [, val] of Object.entries(required)) {
     if (!val || !String(val).trim()) {
       return res.status(400).json({ error: 'กรุณากรอกข้อมูลให้ครบถ้วน' });
     }
@@ -77,22 +105,23 @@ router.post('/apply', async (req, res) => {
   const data = {
     first_name:  String(first_name).trim().slice(0, 120),
     last_name:   String(last_name).trim().slice(0, 120),
-    nickname:    String(nickname  || '').trim().slice(0, 120),
+    nickname:    String(nickname).trim().slice(0, 120),
     phone:       String(phone).trim().slice(0, 50),
     email:       String(email).trim().slice(0, 255),
     mt5_account: String(mt5_account).trim().slice(0, 60),
-    line_id:     String(line_id    || '').trim().slice(0, 120),
-    discord_id:  String(discord_id || '').trim().slice(0, 120),
+    line_id:     String(line_id).trim().slice(0, 120),
+    discord_id:  String(discord_id).trim().slice(0, 120),
   };
 
   try {
-    const result = await db.createLastAccountApplication(data, MAIN_SEATS, RESERVE_SEATS, VIP_RESERVED);
+    const result = await db.createLastAccountApplication(data, round, cfg.main, cfg.reserve);
     if (result.full) {
       return res.status(409).json({ error: 'เต็มแล้ว ไม่สามารถสมัครได้ กรุณารอรอบถัดไป', status: 'full' });
     }
     res.status(201).json({
       success:   true,
-      seat_type: result.seat_type,        // 'main' | 'reserve'
+      round,
+      seat_type: result.seat_type, // 'main' | 'reserve'
       position:  result.position,
     });
   } catch (err) {

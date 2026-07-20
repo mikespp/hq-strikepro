@@ -45,6 +45,16 @@
       -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom:8px; }
     .head-sub { font-size:14px; color:var(--muted); }
 
+    /* ── Round selector ── */
+    .round-sel { display:flex; gap:10px; margin-bottom:18px; }
+    .round-btn { flex:1; background:var(--card); border:1px solid var(--border); border-radius:14px; padding:12px 10px; cursor:pointer; font-family:inherit; text-align:center; transition:border-color .15s, background .15s; }
+    .round-btn:hover { border-color:var(--gold-border); }
+    .round-btn.active { border-color:var(--gold-border); background:var(--gold-dim); }
+    .round-btn .r-name { font-size:14px; font-weight:800; color:var(--text); }
+    .round-btn.active .r-name { color:var(--gold-pale); }
+    .round-btn .r-sub { font-size:11px; color:var(--muted); margin-top:3px; }
+    .round-btn .r-badge { display:inline-block; font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; padding:2px 8px; border-radius:20px; margin-top:6px; }
+
     /* ── Status card ── */
     .status-card { background:var(--card); border:1px solid var(--gold-border); border-radius:var(--radius); padding:24px 22px; margin-bottom:18px; position:relative; overflow:hidden; }
     .status-card::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--gold),transparent); }
@@ -138,8 +148,11 @@
   <div class="head">
     <div class="head-eyebrow">🏠 The Last Account</div>
     <h1 class="head-title">สมัครเข้าร่วมโครงการ</h1>
-    <p class="head-sub">บ้านหลังสุดท้าย — รับเพียง 20 คน/รอบ (สำรอง 5 สิทธิ์)</p>
+    <p class="head-sub">บ้านหลังสุดท้าย — รับรอบละ 25 คน (สำรอง 5 สิทธิ์)</p>
   </div>
+
+  <!-- Round selector -->
+  <div class="round-sel" id="roundSel"></div>
 
   <!-- Status -->
   <div id="statusWrap">
@@ -209,31 +222,63 @@
 </div>
 
 <script>
-  var MAIN = 20, RESERVE = 5;
   var cdTimer = null;
+  var ROUNDS = [];        // status objects from /api/last-account/rounds
+  var current = null;     // currently selected round's status object
+  var currentRound = null;
+  var TH_MON = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 
   function el(id){ return document.getElementById(id); }
   function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]; }); }
+  function fmtOpen(iso){
+    var d = new Date(iso);
+    var hh = (d.getHours()<10?'0':'') + d.getHours();
+    var mm = (d.getMinutes()<10?'0':'') + d.getMinutes();
+    return d.getDate() + ' ' + TH_MON[d.getMonth()] + ' ' + d.getFullYear() + ' เวลา ' + hh + ':' + mm + ' น.';
+  }
+  function fmtShort(iso){ var d = new Date(iso); return d.getDate() + ' ' + TH_MON[d.getMonth()]; }
 
-  function loadStatus() {
-    fetch('/api/last-account/status')
+  function loadRounds(cb) {
+    fetch('/api/last-account/rounds')
       .then(function(r){ return r.json(); })
-      .then(renderStatus)
+      .then(function(list){ ROUNDS = list; if (cb) cb(); })
       .catch(function(){
         el('statusWrap').innerHTML = '<div class="banner full" style="margin:0;">โหลดสถานะไม่สำเร็จ กรุณารีเฟรชหน้าใหม่</div>';
       });
   }
 
+  function renderSelector() {
+    el('roundSel').innerHTML = ROUNDS.map(function(s){
+      var badge;
+      if (s.status === 'closed')       badge = '<span class="r-badge" style="background:var(--gold-dim);color:var(--gold-pale)">เร็วๆ นี้</span>';
+      else if (s.status === 'full')    badge = '<span class="r-badge" style="background:rgba(248,113,113,.12);color:#fca5a5">เต็ม</span>';
+      else if (s.status === 'reserve') badge = '<span class="r-badge" style="background:rgba(251,146,60,.12);color:#fdba74">ที่นั่งสำรอง</span>';
+      else                             badge = '<span class="r-badge" style="background:rgba(74,222,128,.14);color:#86efac">เปิดรับ</span>';
+      return '<div class="round-btn' + (s.round === currentRound ? ' active' : '') + '" onclick="selectRound(' + s.round + ')">' +
+        '<div class="r-name">' + esc(s.label) + '</div>' +
+        '<div class="r-sub">เปิด ' + fmtShort(s.opensAt) + '</div>' +
+        badge +
+      '</div>';
+    }).join('');
+  }
+
+  function selectRound(r) {
+    currentRound = r;
+    current = ROUNDS.filter(function(x){ return x.round === r; })[0];
+    el('resultCard').style.display = 'none';
+    el('statusWrap').style.display = '';
+    renderSelector();
+    renderStatus(current);
+  }
+
   function renderStatus(s) {
-    MAIN = s.mainSeats; RESERVE = s.reserveSeats;
-    var count = s.count;
-    var pct = Math.min(100, Math.round((count / MAIN) * 100));
+    var MAIN = s.mainSeats, RESERVE = s.reserveSeats, count = s.count;
 
     // ── Not open yet → countdown ──
     if (s.status === 'closed') {
       el('statusWrap').innerHTML =
         '<div class="status-card">' +
-          '<div class="banner closed" style="margin:0 0 4px;">⏳ การรับสมัครจะเปิดในวันที่ <b>6 ก.ค. 2026 เวลา 12:00 น.</b> (เวลาไทย)</div>' +
+          '<div class="banner closed" style="margin:0 0 4px;">⏳ ' + esc(s.label) + ' จะเปิดรับสมัครวันที่ <b>' + fmtOpen(s.opensAt) + '</b> (เวลาไทย)</div>' +
           '<div class="countdown" id="cd">' +
             '<div class="cd-cell"><div class="cd-num" id="cd-d">--</div><div class="cd-lbl">วัน</div></div>' +
             '<div class="cd-cell"><div class="cd-num" id="cd-h">--</div><div class="cd-lbl">ชม.</div></div>' +
@@ -254,7 +299,7 @@
       el('statusWrap').innerHTML =
         '<div class="status-card">' +
           seatBarHtml(MAIN, MAIN, true) +
-          '<div class="banner full">🚫 เต็มแล้ว ไม่สามารถสมัครได้ — ที่นั่งหลัก 20 และสำรอง 5 เต็มทั้งหมด กรุณารอรอบถัดไป</div>' +
+          '<div class="banner full">🚫 ' + esc(s.label) + ' เต็มแล้ว — ที่นั่งหลัก ' + MAIN + ' และสำรอง ' + RESERVE + ' เต็มทั้งหมด กรุณาเลือกรุ่นถัดไป</div>' +
         '</div>';
       el('formCard').style.display = 'none';
       return;
@@ -266,10 +311,11 @@
       el('statusWrap').innerHTML =
         '<div class="status-card">' +
           seatBarHtml(MAIN, MAIN, true) +
-          '<div class="banner reserve">⚠️ ที่นั่งหลัก 20 คนเต็มแล้ว — ขณะนี้เปิดรับ <b>ที่นั่งสำรอง</b> (เหลือ ' + (RESERVE - reserveTaken) + ' / ' + RESERVE + ' สิทธิ์)</div>' +
+          '<div class="banner reserve">⚠️ ที่นั่งหลัก ' + MAIN + ' คนเต็มแล้ว — ขณะนี้เปิดรับ <b>ที่นั่งสำรอง</b> (เหลือ ' + (RESERVE - reserveTaken) + ' / ' + RESERVE + ' สิทธิ์)</div>' +
         '</div>';
       el('formCard').style.display = 'block';
       el('submitBtn').textContent = 'ยืนยันการสมัคร (ที่นั่งสำรอง)';
+      requestAnimationFrame(function(){ var f = el('barFill'); if (f) f.style.width = '100%'; });
       return;
     }
 
@@ -277,12 +323,10 @@
     el('statusWrap').innerHTML =
       '<div class="status-card">' +
         seatBarHtml(count, MAIN, false) +
-        '<div class="banner closed" style="margin-top:14px;">🟢 เปิดรับสมัครแล้ว — เหลือ <b>' + s.seatsLeft + '</b> ที่นั่ง</div>' +
+        '<div class="banner closed" style="margin-top:14px;">🟢 ' + esc(s.label) + ' เปิดรับสมัครแล้ว — เหลือ <b>' + s.seatsLeft + '</b> ที่นั่ง</div>' +
       '</div>';
     el('formCard').style.display = 'block';
     el('submitBtn').textContent = 'ยืนยันการสมัคร';
-
-    // animate bar
     requestAnimationFrame(function(){ var f = el('barFill'); if (f) f.style.width = Math.min(100,(count/MAIN)*100) + '%'; });
   }
 
@@ -293,14 +337,14 @@
         '<div class="seat-count">' + count + '<span class="of"> / ' + main + ' ที่นั่ง</span></div>' +
         '<div class="seat-left">' + (reserveFull ? 'ที่นั่งหลักเต็ม' : (main - count) + ' ที่นั่งเหลือ') + '</div>' +
       '</div>' +
-      '<div class="bar"><div class="bar-fill' + (reserveFull ? ' reserve' : '') + '" id="barFill" style="width:' + pct + '%"></div></div>';
+      '<div class="bar"><div class="bar-fill' + (reserveFull ? ' reserve' : '') + '" id="barFill" style="width:0%"></div></div>';
   }
 
   function startCountdown(target) {
     if (cdTimer) clearInterval(cdTimer);
     function tick() {
       var diff = target - Date.now();
-      if (diff <= 0) { clearInterval(cdTimer); cdTimer = null; loadStatus(); return; }
+      if (diff <= 0) { clearInterval(cdTimer); cdTimer = null; loadRounds(function(){ selectRound(currentRound); }); return; }
       var d = Math.floor(diff / 86400000);
       var h = Math.floor((diff % 86400000) / 3600000);
       var m = Math.floor((diff % 3600000) / 60000);
@@ -318,7 +362,7 @@
     var btn = el('submitBtn'); var err = el('formErr');
     err.style.display = 'none';
     var fd = new FormData(e.target);
-    var payload = {};
+    var payload = { round: currentRound };
     fd.forEach(function(v, k){ payload[k] = String(v).trim(); });
 
     if (!payload.first_name || !payload.last_name || !payload.nickname || !payload.phone || !payload.email || !payload.mt5_account || !payload.line_id || !payload.discord_id) {
@@ -335,7 +379,7 @@
       .then(function(r){ return r.json().then(function(j){ return { ok: r.ok, j: j }; }); })
       .then(function(res){
         if (!res.ok) {
-          if (res.j && res.j.status === 'full') { loadStatus(); }
+          if (res.j && res.j.status === 'full') { loadRounds(function(){ selectRound(currentRound); }); }
           err.textContent = (res.j && res.j.error) || 'เกิดข้อผิดพลาด กรุณาลองใหม่'; err.style.display = 'block';
           btn.disabled = false; btn.textContent = orig;
           return;
@@ -351,22 +395,33 @@
   function showSuccess(j, payload) {
     el('statusWrap').style.display = 'none';
     el('formCard').style.display = 'none';
+    var MAIN = current ? current.mainSeats : 25;
+    var label = current ? current.label : ('รุ่นที่ ' + j.round);
     var isReserve = j.seat_type === 'reserve';
     el('resultIcon').textContent = isReserve ? '📝' : '🎉';
-    el('resultTitle').textContent = 'สมัครสำเร็จ!';
+    el('resultTitle').textContent = 'สมัคร' + label + 'สำเร็จ!';
     var line;
     if (isReserve) {
       var rPos = j.position - MAIN;
-      line = 'คุณได้รับ <b>ที่นั่งสำรอง</b> ลำดับสำรองที่ <b>' + rPos + '</b><br>ทีมงานจะติดต่อกลับหากมีที่นั่งหลักว่าง';
+      line = 'คุณได้รับ <b>ที่นั่งสำรอง</b> ของ ' + esc(label) + ' ลำดับสำรองที่ <b>' + rPos + '</b><br>ทีมงานจะติดต่อกลับหากมีที่นั่งหลักว่าง';
     } else {
-      line = 'คุณได้รับ <b>ที่นั่งหลัก</b> ลำดับที่ <b>' + j.position + '</b> จาก ' + MAIN + '<br>ทีมงานจะติดต่อกลับเพื่อยืนยันเข้าร่วมโครงการ';
+      line = 'คุณได้รับ <b>ที่นั่งหลัก</b> ของ ' + esc(label) + ' ลำดับที่ <b>' + j.position + '</b> จาก ' + MAIN + '<br>ทีมงานจะติดต่อกลับเพื่อยืนยันเข้าร่วมโครงการ';
     }
     el('resultSub').innerHTML = 'ขอบคุณ ' + esc(payload.nickname || payload.first_name) + ' 🙏<br>' + line;
     el('resultCard').style.display = 'block';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  loadStatus();
+  // Boot: load all rounds, then pick initial (?round=, else first open, else first not-full, else first)
+  loadRounds(function(){
+    renderSelector();
+    var q = parseInt(new URLSearchParams(location.search).get('round'), 10);
+    var pick = ROUNDS.filter(function(x){ return x.round === q; })[0]
+            || ROUNDS.filter(function(x){ return x.isOpen && x.status !== 'full'; })[0]
+            || ROUNDS.filter(function(x){ return x.status !== 'full'; })[0]
+            || ROUNDS[0];
+    if (pick) selectRound(pick.round);
+  });
 </script>
 </body>
 </html>
