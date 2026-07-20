@@ -8,9 +8,17 @@ const router = express.Router();
 // No VIP hold; 25 main seats + 5 reserve per round. Applicants stored per round.
 const ROUNDS = {
   2: { label: 'รุ่นที่ 2', opensAt: new Date('2026-07-22T12:00:00+07:00'), main: 25, reserve: 5 },
-  // hidden: not shown in the public round selector yet (still valid if accessed directly)
-  3: { label: 'รุ่นที่ 3', opensAt: new Date('2026-07-29T12:00:00+07:00'), main: 25, reserve: 5, hidden: true },
+  // showAfter: only opens once round 2 is full (main + reserve)
+  3: { label: 'รุ่นที่ 3', opensAt: new Date('2026-07-29T12:00:00+07:00'), main: 25, reserve: 5, showAfter: 2 },
 };
+
+// True once the given round has filled all main + reserve seats.
+async function isRoundFull(round) {
+  const cfg = ROUNDS[round];
+  if (!cfg) return false;
+  const count = await db.countLastAccountApplications(round);
+  return count >= cfg.main + cfg.reserve;
+}
 
 function parseRound(v) {
   const r = parseInt(v, 10);
@@ -51,7 +59,9 @@ router.get('/rounds', async (req, res) => {
   try {
     const out = [];
     for (const r of Object.keys(ROUNDS)) {
-      if (ROUNDS[r].hidden) continue; // not shown in the public selector yet
+      const cfg = ROUNDS[r];
+      // Gated rounds appear only once the round they depend on is full
+      if (cfg.showAfter && !(await isRoundFull(cfg.showAfter))) continue;
       const round = parseInt(r, 10);
       const count = await db.countLastAccountApplications(round);
       out.push(buildStatus(round, count));
@@ -87,6 +97,11 @@ router.post('/apply', async (req, res) => {
   const round = parseRound(roundRaw);
   if (!round) return res.status(400).json({ error: 'กรุณาเลือกรุ่นที่ต้องการสมัคร' });
   const cfg = ROUNDS[round];
+
+  // Gated round — must wait until the prerequisite round is full
+  if (cfg.showAfter && !(await isRoundFull(cfg.showAfter))) {
+    return res.status(403).json({ error: 'ยังไม่เปิดรับสมัครรุ่นนี้ กรุณารอให้รุ่นก่อนหน้าเต็มก่อน' });
+  }
 
   // Registration window
   if (new Date() < cfg.opensAt) {
