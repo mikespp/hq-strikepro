@@ -8,7 +8,8 @@ const router = express.Router();
 // No VIP hold; 25 main seats + 5 reserve per round. Applicants stored per round.
 const ROUNDS = {
   2: { label: 'รุ่นที่ 2', opensAt: new Date('2026-07-22T12:00:00+07:00'), main: 25, reserve: 5 },
-  3: { label: 'รุ่นที่ 3', opensAt: new Date('2026-07-29T12:00:00+07:00'), main: 25, reserve: 5 },
+  // hidden: not shown in the public round selector yet (still valid if accessed directly)
+  3: { label: 'รุ่นที่ 3', opensAt: new Date('2026-07-29T12:00:00+07:00'), main: 25, reserve: 5, hidden: true },
 };
 
 function parseRound(v) {
@@ -50,6 +51,7 @@ router.get('/rounds', async (req, res) => {
   try {
     const out = [];
     for (const r of Object.keys(ROUNDS)) {
+      if (ROUNDS[r].hidden) continue; // not shown in the public selector yet
       const round = parseInt(r, 10);
       const count = await db.countLastAccountApplications(round);
       out.push(buildStatus(round, count));
