@@ -180,6 +180,16 @@
       </div>
       <div class="field row2">
         <div>
+          <label>วัน/เดือน/ปี เกิด <span class="req">*</span></label>
+          <input name="birth_date" id="birthDate" type="date" max="2026-12-31" required />
+        </div>
+        <div>
+          <label>อายุ <span class="opt">(คำนวณอัตโนมัติ)</span></label>
+          <input name="age" id="ageField" inputmode="numeric" placeholder="—" readonly />
+        </div>
+      </div>
+      <div class="field row2">
+        <div>
           <label>เบอร์โทรศัพท์ <span class="req">*</span></label>
           <input name="phone" type="tel" inputmode="tel" placeholder="08x-xxx-xxxx" required />
         </div>
@@ -356,6 +366,17 @@
     cdTimer = setInterval(tick, 1000);
   }
 
+  // ── Auto-calculate age from date of birth ──
+  el('birthDate').addEventListener('change', function () {
+    var v = this.value;
+    if (!v) { el('ageField').value = ''; return; }
+    var b = new Date(v), now = new Date();
+    var a = now.getFullYear() - b.getFullYear();
+    var m = now.getMonth() - b.getMonth();
+    if (m < 0 || (m === 0 && now.getDate() < b.getDate())) a--;
+    el('ageField').value = (a >= 0 && a <= 120) ? a : '';
+  });
+
   // ── Submit ──
   el('applyForm').addEventListener('submit', function(e) {
     e.preventDefault();
@@ -365,8 +386,11 @@
     var payload = { round: currentRound };
     fd.forEach(function(v, k){ payload[k] = String(v).trim(); });
 
-    if (!payload.first_name || !payload.last_name || !payload.nickname || !payload.phone || !payload.email || !payload.mt5_account || !payload.line_id || !payload.discord_id) {
+    if (!payload.first_name || !payload.last_name || !payload.nickname || !payload.birth_date || !payload.phone || !payload.email || !payload.mt5_account || !payload.line_id || !payload.discord_id) {
       err.textContent = 'กรุณากรอกข้อมูลที่มีเครื่องหมาย * ให้ครบถ้วน'; err.style.display = 'block'; return;
+    }
+    if (!payload.age) {
+      err.textContent = 'กรุณาเลือกวันเกิดให้ถูกต้อง'; err.style.display = 'block'; return;
     }
 
     btn.disabled = true; var orig = btn.textContent; btn.textContent = 'กำลังส่ง…';

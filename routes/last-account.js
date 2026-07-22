@@ -90,7 +90,7 @@ router.get('/status', async (req, res) => {
 router.post('/apply', async (req, res) => {
   const {
     round: roundRaw,
-    first_name, last_name, nickname,
+    first_name, last_name, nickname, birth_date, age,
     phone, email, mt5_account, line_id, discord_id,
   } = req.body;
 
@@ -109,7 +109,7 @@ router.post('/apply', async (req, res) => {
   }
 
   // Validation — all fields required
-  const required = { first_name, last_name, nickname, phone, email, mt5_account, line_id, discord_id };
+  const required = { first_name, last_name, nickname, birth_date, phone, email, mt5_account, line_id, discord_id };
   for (const [, val] of Object.entries(required)) {
     if (!val || !String(val).trim()) {
       return res.status(400).json({ error: 'กรุณากรอกข้อมูลให้ครบถ้วน' });
@@ -118,11 +118,20 @@ router.post('/apply', async (req, res) => {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).trim())) {
     return res.status(400).json({ error: 'รูปแบบอีเมลไม่ถูกต้อง' });
   }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(birth_date).trim())) {
+    return res.status(400).json({ error: 'รูปแบบวันเกิดไม่ถูกต้อง' });
+  }
+  const ageNum = parseInt(age, 10);
+  if (!Number.isFinite(ageNum) || ageNum < 1 || ageNum > 120) {
+    return res.status(400).json({ error: 'อายุไม่ถูกต้อง' });
+  }
 
   const data = {
     first_name:  String(first_name).trim().slice(0, 120),
     last_name:   String(last_name).trim().slice(0, 120),
     nickname:    String(nickname).trim().slice(0, 120),
+    birth_date:  String(birth_date).trim(),
+    age:         ageNum,
     phone:       String(phone).trim().slice(0, 50),
     email:       String(email).trim().slice(0, 255),
     mt5_account: String(mt5_account).trim().slice(0, 60),

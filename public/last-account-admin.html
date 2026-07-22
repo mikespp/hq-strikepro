@@ -171,6 +171,14 @@
     return p(d.getDate())+'/'+p(d.getMonth()+1)+'/'+d.getFullYear()+' '+p(d.getHours())+':'+p(d.getMinutes());
   }
 
+  function fmtDOB(s) {
+    if (!s) return '';
+    const d = new Date(s);
+    if (isNaN(d)) return esc(s);
+    const p = n => (n<10?'0':'')+n;
+    return p(d.getDate())+'/'+p(d.getMonth()+1)+'/'+d.getFullYear();
+  }
+
   function getFiltered() {
     const q = (document.getElementById('search').value || '').toLowerCase().trim();
     let list = rows.slice();
@@ -189,7 +197,7 @@
       return;
     }
     let html = '<div class="table-wrap"><table><thead><tr>' +
-      '<th>#</th><th>รุ่น</th><th>ชื่อ-นามสกุล</th><th>ชื่อเล่น</th><th>เบอร์โทร</th><th>Email</th><th>MT5</th><th>Line ID</th><th>Discord ID</th><th>ที่นั่ง</th><th>วันที่สมัคร</th>' +
+      '<th>#</th><th>รุ่น</th><th>ชื่อ-นามสกุล</th><th>ชื่อเล่น</th><th>วันเกิด</th><th>อายุ</th><th>เบอร์โทร</th><th>Email</th><th>MT5</th><th>Line ID</th><th>Discord ID</th><th>ที่นั่ง</th><th>วันที่สมัคร</th>' +
       '</tr></thead><tbody>';
     list.forEach((r, i) => {
       const seat = r.seat_type === 'reserve'
@@ -200,6 +208,8 @@
         '<td><span class="seat-badge round">รุ่น ' + roundOf(r) + '</span></td>' +
         '<td>' + esc(r.first_name) + ' ' + esc(r.last_name) + '</td>' +
         '<td>' + esc(r.nickname) + '</td>' +
+        '<td class="cell-sub">' + fmtDOB(r.birth_date) + '</td>' +
+        '<td>' + esc(r.age == null ? '' : r.age) + '</td>' +
         '<td><a class="copy" onclick="copy(\'' + esc(r.phone) + '\')">' + esc(r.phone) + '</a></td>' +
         '<td><a class="copy" onclick="copy(\'' + esc(r.email) + '\')">' + esc(r.email) + '</a></td>' +
         '<td><a class="copy" onclick="copy(\'' + esc(r.mt5_account) + '\')">' + esc(r.mt5_account) + '</a></td>' +
@@ -221,11 +231,12 @@
   function exportCSV() {
     const list = getFiltered();
     if (!list.length) { toast('ไม่มีข้อมูลให้ส่งออก'); return; }
-    const cols = ['ลำดับ','รุ่น','ชื่อจริง','นามสกุล','ชื่อเล่น','เบอร์โทร','Email','เลขพอร์ต MT5','Line ID','Discord ID','ประเภทที่นั่ง','วันที่สมัคร'];
+    const cols = ['ลำดับ','รุ่น','ชื่อจริง','นามสกุล','ชื่อเล่น','วันเกิด','อายุ','เบอร์โทร','Email','เลขพอร์ต MT5','Line ID','Discord ID','ประเภทที่นั่ง','วันที่สมัคร'];
     const q = v => '"' + String(v==null?'':v).replace(/"/g,'""') + '"';
     const lines = [cols.map(q).join(',')];
     list.forEach((r, i) => {
-      lines.push([i+1, roundOf(r), r.first_name, r.last_name, r.nickname, r.phone, r.email, r.mt5_account,
+      lines.push([i+1, roundOf(r), r.first_name, r.last_name, r.nickname, fmtDOB(r.birth_date), r.age,
+        r.phone, r.email, r.mt5_account,
         r.line_id, r.discord_id, (r.seat_type==='reserve'?'สำรอง':'หลัก'), fmtDate(r.created_at)].map(q).join(','));
     });
     const blob = new Blob(['﻿' + lines.join('\r\n')], { type:'text/csv;charset=utf-8;' });

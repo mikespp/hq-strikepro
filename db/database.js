@@ -130,6 +130,18 @@ async function init() {
     if (err.errno !== 1060) throw err;
   }
 
+  // Add birth date / age columns (idempotent)
+  for (const ddl of [
+    `ALTER TABLE last_account_applications ADD COLUMN birth_date DATE NULL`,
+    `ALTER TABLE last_account_applications ADD COLUMN age SMALLINT NULL`,
+  ]) {
+    try {
+      await pool.execute(ddl);
+    } catch (err) {
+      if (err.errno !== 1060) throw err;
+    }
+  }
+
   // Promote any emails listed in ADMIN_EMAILS (comma-separated) to admin on startup.
   // Idempotent; only affects users that already exist. Set the env var on the host.
   const adminEmails = (process.env.ADMIN_EMAILS || '')
@@ -462,10 +474,10 @@ async function createLastAccountApplication(data, round, mainSeats, reserveSeats
     const seatType = count < mainSeats ? 'main' : 'reserve';
     const [result] = await conn.execute(
       `INSERT INTO last_account_applications
-         (first_name, last_name, nickname, phone, email, mt5_account, line_id, discord_id, seat_type, round)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [data.first_name, data.last_name, data.nickname, data.phone, data.email,
-       data.mt5_account, data.line_id, data.discord_id, seatType, round]
+         (first_name, last_name, nickname, birth_date, age, phone, email, mt5_account, line_id, discord_id, seat_type, round)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [data.first_name, data.last_name, data.nickname, data.birth_date, data.age,
+       data.phone, data.email, data.mt5_account, data.line_id, data.discord_id, seatType, round]
     );
     await conn.commit();
     return { id: result.insertId, seat_type: seatType, position: count + 1 };
@@ -479,7 +491,7 @@ async function createLastAccountApplication(data, round, mainSeats, reserveSeats
 
 async function listLastAccountApplications() {
   const [rows] = await pool.execute(
-    `SELECT id, first_name, last_name, nickname, phone, email, mt5_account,
+    `SELECT id, first_name, last_name, nickname, birth_date, age, phone, email, mt5_account,
             line_id, discord_id, seat_type, round, created_at
      FROM last_account_applications ORDER BY round ASC, created_at ASC`
   );
