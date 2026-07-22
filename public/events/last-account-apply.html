@@ -204,13 +204,9 @@
           <input name="phone" type="tel" inputmode="tel" placeholder="08x-xxx-xxxx" required />
         </div>
         <div>
-          <label>เลขพอร์ต MT5 <span class="req">*</span></label>
-          <input name="mt5_account" inputmode="numeric" placeholder="เช่น 2121xxxxxx" required />
+          <label>Email <span class="req">*</span></label>
+          <input name="email" type="email" inputmode="email" placeholder="you@example.com" required />
         </div>
-      </div>
-      <div class="field">
-        <label>Email <span class="req">*</span></label>
-        <input name="email" type="email" inputmode="email" placeholder="you@example.com" required />
       </div>
       <div class="field row2">
         <div>
@@ -406,7 +402,7 @@
     var payload = { round: currentRound };
     fd.forEach(function(v, k){ payload[k] = String(v).trim(); });
 
-    if (!payload.first_name || !payload.last_name || !payload.nickname || !payload.birth_date || !payload.phone || !payload.email || !payload.mt5_account || !payload.line_id || !payload.discord_id) {
+    if (!payload.first_name || !payload.last_name || !payload.nickname || !payload.birth_date || !payload.phone || !payload.email || !payload.line_id || !payload.discord_id) {
       err.textContent = 'กรุณากรอกข้อมูลที่มีเครื่องหมาย * ให้ครบถ้วน'; err.style.display = 'block'; return;
     }
     if (!payload.age) {

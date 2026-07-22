@@ -109,7 +109,7 @@ router.post('/apply', async (req, res) => {
   }
 
   // Validation — all fields required
-  const required = { first_name, last_name, nickname, birth_date, phone, email, mt5_account, line_id, discord_id };
+  const required = { first_name, last_name, nickname, birth_date, phone, email, line_id, discord_id };
   for (const [, val] of Object.entries(required)) {
     if (!val || !String(val).trim()) {
       return res.status(400).json({ error: 'กรุณากรอกข้อมูลให้ครบถ้วน' });
@@ -134,7 +134,7 @@ router.post('/apply', async (req, res) => {
     age:         ageNum,
     phone:       String(phone).trim().slice(0, 50),
     email:       String(email).trim().slice(0, 255),
-    mt5_account: String(mt5_account).trim().slice(0, 60),
+    mt5_account: String(mt5_account || '').trim().slice(0, 60), // no longer collected; kept for existing records
     line_id:     String(line_id).trim().slice(0, 120),
     discord_id:  String(discord_id).trim().slice(0, 120),
   };
