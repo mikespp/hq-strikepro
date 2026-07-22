@@ -99,6 +99,16 @@
     }
     input::placeholder { color:#555; }
     input:focus { outline:none; border-color:var(--gold-border); background:#161616; }
+    input:read-only { cursor:default; }
+
+    /* Native date input: dim the mm/dd/yyyy hint like other placeholders, and make it fully clickable */
+    input[type="date"] { cursor:pointer; }
+    input[type="date"]::-webkit-datetime-edit { color:#555; }
+    input[type="date"].filled::-webkit-datetime-edit { color:var(--text); }
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      filter:invert(.55); opacity:.65; cursor:pointer; transition:opacity .15s;
+    }
+    input[type="date"]:hover::-webkit-calendar-picker-indicator { opacity:1; }
 
     .submit-btn {
       width:100%; margin-top:8px; display:inline-flex; align-items:center; justify-content:center; gap:10px;
@@ -366,16 +376,26 @@
     cdTimer = setInterval(tick, 1000);
   }
 
-  // ── Auto-calculate age from date of birth ──
-  el('birthDate').addEventListener('change', function () {
-    var v = this.value;
-    if (!v) { el('ageField').value = ''; return; }
-    var b = new Date(v), now = new Date();
-    var a = now.getFullYear() - b.getFullYear();
-    var m = now.getMonth() - b.getMonth();
-    if (m < 0 || (m === 0 && now.getDate() < b.getDate())) a--;
-    el('ageField').value = (a >= 0 && a <= 120) ? a : '';
-  });
+  // ── Date of birth: auto-calculate age + open picker on click ──
+  (function () {
+    var dob = el('birthDate');
+
+    dob.addEventListener('change', function () {
+      var v = this.value;
+      this.classList.toggle('filled', !!v);
+      if (!v) { el('ageField').value = ''; return; }
+      var b = new Date(v), now = new Date();
+      var a = now.getFullYear() - b.getFullYear();
+      var m = now.getMonth() - b.getMonth();
+      if (m < 0 || (m === 0 && now.getDate() < b.getDate())) a--;
+      el('ageField').value = (a >= 0 && a <= 120) ? a : '';
+    });
+
+    // Clicking anywhere in the field opens the date picker (not just the icon)
+    dob.addEventListener('click', function () {
+      if (this.showPicker) { try { this.showPicker(); } catch (e) {} }
+    });
+  })();
 
   // ── Submit ──
   el('applyForm').addEventListener('submit', function(e) {
