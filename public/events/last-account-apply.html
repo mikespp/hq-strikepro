@@ -97,8 +97,12 @@
       padding:13px 14px; font-size:15px; color:var(--text); font-family:inherit; transition:border-color .15s, background .15s;
       -webkit-appearance:none;
     }
-    input::placeholder { color:#555; }
+    input::placeholder { color:#555; text-transform:none; }
     input:focus { outline:none; border-color:var(--gold-border); background:#161616; }
+
+    /* Live case formatting while typing (value is normalised in JS + on the server too) */
+    input[name="first_name"], input[name="last_name"] { text-transform:uppercase; }
+    input[name="email"] { text-transform:lowercase; }
     input:read-only { cursor:default; }
 
     /* Native date input: dim the mm/dd/yyyy hint like other placeholders, and make it fully clickable */
@@ -201,7 +205,7 @@
       <div class="field row2">
         <div>
           <label>เบอร์โทรศัพท์ <span class="req">*</span></label>
-          <input name="phone" type="tel" inputmode="tel" placeholder="08x-xxx-xxxx" required />
+          <input name="phone" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="15" placeholder="0812345678" required />
         </div>
         <div>
           <label>Email <span class="req">*</span></label>
@@ -372,6 +376,28 @@
     cdTimer = setInterval(tick, 1000);
   }
 
+  // ── Input formatting: digits-only phone, UPPERCASE names, lowercase email ──
+  (function () {
+    function field(n){ return document.querySelector('input[name="' + n + '"]'); }
+
+    // Phone: strip anything that isn't a digit, keeping the caret in place
+    var phone = field('phone');
+    phone.addEventListener('input', function () {
+      var before = this.value, after = before.replace(/\D/g, '');
+      if (after === before) return;
+      var caret = this.selectionStart;
+      var kept  = before.slice(0, caret).replace(/\D/g, '').length;
+      this.value = after;
+      try { this.setSelectionRange(kept, kept); } catch (e) {}
+    });
+
+    // Case is shown live via CSS; normalise the actual value on blur
+    ['first_name','last_name'].forEach(function (n) {
+      field(n).addEventListener('blur', function () { this.value = this.value.toUpperCase(); });
+    });
+    field('email').addEventListener('blur', function () { this.value = this.value.toLowerCase(); });
+  })();
+
   // ── Date of birth: auto-calculate age + open picker on click ──
   (function () {
     var dob = el('birthDate');
@@ -401,6 +427,12 @@
     var fd = new FormData(e.target);
     var payload = { round: currentRound };
     fd.forEach(function(v, k){ payload[k] = String(v).trim(); });
+
+    // Normalise regardless of whether the field was blurred
+    payload.first_name = (payload.first_name || '').toUpperCase();
+    payload.last_name  = (payload.last_name  || '').toUpperCase();
+    payload.email      = (payload.email      || '').toLowerCase();
+    payload.phone      = (payload.phone      || '').replace(/\D/g, '');
 
     if (!payload.first_name || !payload.last_name || !payload.nickname || !payload.birth_date || !payload.phone || !payload.email || !payload.line_id || !payload.discord_id) {
       err.textContent = 'กรุณากรอกข้อมูลที่มีเครื่องหมาย * ให้ครบถ้วน'; err.style.display = 'block'; return;

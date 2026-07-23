@@ -125,15 +125,20 @@ router.post('/apply', async (req, res) => {
   if (!Number.isFinite(ageNum) || ageNum < 1 || ageNum > 120) {
     return res.status(400).json({ error: 'อายุไม่ถูกต้อง' });
   }
+  // Phone is stored digits-only; reject if nothing is left after stripping
+  const phoneDigits = String(phone).replace(/\D/g, '');
+  if (!phoneDigits) {
+    return res.status(400).json({ error: 'เบอร์โทรศัพท์ต้องเป็นตัวเลขเท่านั้น' });
+  }
 
   const data = {
-    first_name:  String(first_name).trim().slice(0, 120),
-    last_name:   String(last_name).trim().slice(0, 120),
+    first_name:  String(first_name).trim().toUpperCase().slice(0, 120),
+    last_name:   String(last_name).trim().toUpperCase().slice(0, 120),
     nickname:    String(nickname).trim().slice(0, 120),
     birth_date:  String(birth_date).trim(),
     age:         ageNum,
-    phone:       String(phone).trim().slice(0, 50),
-    email:       String(email).trim().slice(0, 255),
+    phone:       phoneDigits.slice(0, 50),
+    email:       String(email).trim().toLowerCase().slice(0, 255),
     mt5_account: String(mt5_account || '').trim().slice(0, 60), // no longer collected; kept for existing records
     line_id:     String(line_id).trim().slice(0, 120),
     discord_id:  String(discord_id).trim().slice(0, 120),
