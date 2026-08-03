@@ -160,6 +160,7 @@
     @keyframes cal-scroll { 0%, 12% { transform: translateX(0); } 88%, 100% { transform: translateX(var(--scroll, 0)); } }
     @media (prefers-reduced-motion: reduce) { .cal-bar-tx.scrolling { animation: none; } }
     .cal-empty { text-align: center; color: var(--text-sub); font-size: 13px; padding: 14px 0; }
+    .cal-uplabel { font-size: 11px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; letter-spacing: .08em; margin: 20px 0 8px; }
 
     /* ── Product cards (strategy) ── */
     .strategy-list { display: flex; flex-direction: column; gap: 12px; }
@@ -397,6 +398,7 @@
     <button class="cal-navbtn" id="calNext" aria-label="เดือนถัดไป">›</button>
   </div>
   <div class="cal-cal" id="calGrid"></div>
+  <div class="cal-uplabel">🔜 กำลังจะมาถึง</div>
   <div class="cal-list" id="calList"></div>
 </section>
 
@@ -529,10 +531,12 @@
     }
 
     // Detail list for the visible month
-    function monthListHtml(y, m) {
-      var mStart = y*10000 + m*100 + 1, mEnd = y*10000 + m*100 + 31;
-      var evs = EVENTS.filter(function (ev){ return num(ev.s) <= mEnd && num(ev.e) >= mStart; });
-      if (!evs.length) return '<div class="cal-empty">ไม่มีกิจกรรมในเดือนนี้</div>';
+    // The next 5 upcoming events (ongoing or future), soonest first
+    function upcomingListHtml() {
+      var evs = EVENTS.filter(function (ev){ return num(ev.e) >= tNum; })
+        .sort(function (a, b){ return num(a.s) - num(b.s); })
+        .slice(0, 5);
+      if (!evs.length) return '<div class="cal-empty">ไม่มีกิจกรรมที่กำลังจะมาถึง</div>';
       return evs.map(function (ev){
         var inner =
           '<div class="cal-body">' +
@@ -579,7 +583,6 @@
       var y = Math.floor(cur/12), m = (cur%12)+1;
       titleEl.textContent = TH_MON_FULL[m-1] + ' ' + y;
       gridEl.innerHTML = monthGridHtml(y, m);
-      listEl.innerHTML = monthListHtml(y, m);
       [[prevBtn, cur <= minAbs], [nextBtn, cur >= maxAbs]].forEach(function (pair) {
         pair[0].style.opacity = pair[1] ? '.3' : '';
         pair[0].style.pointerEvents = pair[1] ? 'none' : '';
@@ -601,6 +604,7 @@
     }, { passive:true });
 
     render();
+    listEl.innerHTML = upcomingListHtml(); // 5 nearest upcoming events, independent of the viewed month
 
     // Recalculate overflow after fonts load and on resize (widths can change)
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(enableBarScroll);
