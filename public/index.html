@@ -146,7 +146,9 @@
       padding: 6px; margin-bottom: 6px;
     }
     .cal-dn { grid-row: 1; font-size: 11px; font-weight: 700; color: var(--text-muted); text-align: center; padding: 1px 0 4px; }
-    .cal-dn.today { color: var(--primary); background: var(--primary-bg); border-radius: 5px; }
+    .cal-dn.today { color: #fff; font-weight: 800; }
+    .cal-dn.today .cal-daynum { display: inline-flex; align-items: center; justify-content: center;
+      min-width: 20px; height: 20px; padding: 0 5px; border-radius: 20px; background: var(--primary); }
     .cal-bar {
       font-size: 10px; font-weight: 700; padding: 0 6px; border-radius: 4px;
       overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-decoration: none;
@@ -474,7 +476,7 @@
         for (var col = 0; col < 7; col++) {
           var c = wk[col];
           var cls = 'cal-dn' + (c && c.dn === tNum ? ' today' : '');
-          html += '<div class="' + cls + '" style="grid-column:' + (col+1) + ';grid-row:1;">' + (c ? c.day : '') + '</div>';
+          html += '<div class="' + cls + '" style="grid-column:' + (col+1) + ';grid-row:1;">' + (c ? '<span class="cal-daynum">' + c.day + '</span>' : '') + '</div>';
         }
         pw.segs.forEach(function (s) {
           var ev = s.ev;
@@ -512,7 +514,9 @@
     // Navigable month state, bounded to the range covered by events
     var minAbs = Math.min.apply(null, EVENTS.map(function (ev){ return ev.s[0]*12 + (ev.s[1]-1); }));
     var maxAbs = Math.max.apply(null, EVENTS.map(function (ev){ return ev.e[0]*12 + (ev.e[1]-1); }));
-    var cur = minAbs;
+    // Open on the current month, clamped to the range that has events
+    var nowAbs = today.getFullYear() * 12 + today.getMonth();
+    var cur = Math.min(maxAbs, Math.max(minAbs, nowAbs));
 
     var gridEl  = document.getElementById('calGrid');
     var listEl  = document.getElementById('calList');
