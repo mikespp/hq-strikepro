@@ -6,19 +6,12 @@ const router = express.Router();
 
 // ── Program config — one entry per registration round ────────────────────────
 // No VIP hold; 25 main seats + 5 reserve per round. Applicants stored per round.
+// closed: true → registration has ended for that round (hidden from the selector, apply rejected)
 const ROUNDS = {
-  2: { label: 'รุ่นที่ 2', opensAt: new Date('2026-07-22T12:00:00+07:00'), main: 25, reserve: 5 },
-  // showAfter: only opens once round 2 is full (main + reserve)
-  3: { label: 'รุ่นที่ 3', opensAt: new Date('2026-07-29T12:00:00+07:00'), main: 25, reserve: 5, showAfter: 2 },
+  2: { label: 'รุ่นที่ 2', opensAt: new Date('2026-07-22T12:00:00+07:00'), main: 25, reserve: 5, closed: true },
+  3: { label: 'รุ่นที่ 3', opensAt: new Date('2026-07-29T12:00:00+07:00'), main: 25, reserve: 5, closed: true },
+  4: { label: 'รุ่นที่ 4', opensAt: new Date('2026-08-05T12:00:00+07:00'), main: 25, reserve: 5 },
 };
-
-// True once the given round has filled all main + reserve seats.
-async function isRoundFull(round) {
-  const cfg = ROUNDS[round];
-  if (!cfg) return false;
-  const count = await db.countLastAccountApplications(round);
-  return count >= cfg.main + cfg.reserve;
-}
 
 function parseRound(v) {
   const r = parseInt(v, 10);
@@ -39,6 +32,9 @@ function buildStatus(round, count) {
     status = 'open'; seatsLeft = cfg.main - count;
   }
 
+  // Manually-closed rounds report 'ended'; otherwise 'closed' (before opensAt) wins over capacity
+  const effective = cfg.closed ? 'ended' : (isOpen ? status : 'closed');
+
   return {
     round,
     label:        cfg.label,
@@ -47,8 +43,9 @@ function buildStatus(round, count) {
     reserveSeats: cfg.reserve,
     opensAt:      cfg.opensAt.toISOString(),
     now:          now.toISOString(),
-    isOpen,
-    status: isOpen ? status : 'closed', // 'closed' (not open yet) wins over capacity
+    isOpen:       isOpen && !cfg.closed,
+    closed:       !!cfg.closed,
+    status:       effective,
     capacityStatus: status,
     seatsLeft,
   };
@@ -59,9 +56,7 @@ router.get('/rounds', async (req, res) => {
   try {
     const out = [];
     for (const r of Object.keys(ROUNDS)) {
-      const cfg = ROUNDS[r];
-      // Gated rounds appear only once the round they depend on is full
-      if (cfg.showAfter && !(await isRoundFull(cfg.showAfter))) continue;
+      if (ROUNDS[r].closed) continue; // ended rounds are hidden from the selector
       const round = parseInt(r, 10);
       const count = await db.countLastAccountApplications(round);
       out.push(buildStatus(round, count));
@@ -98,9 +93,9 @@ router.post('/apply', async (req, res) => {
   if (!round) return res.status(400).json({ error: 'กรุณาเลือกรุ่นที่ต้องการสมัคร' });
   const cfg = ROUNDS[round];
 
-  // Gated round — must wait until the prerequisite round is full
-  if (cfg.showAfter && !(await isRoundFull(cfg.showAfter))) {
-    return res.status(403).json({ error: 'ยังไม่เปิดรับสมัครรุ่นนี้ กรุณารอให้รุ่นก่อนหน้าเต็มก่อน' });
+  // Ended round — no longer accepting applications
+  if (cfg.closed) {
+    return res.status(403).json({ error: 'ปิดรับสมัครรุ่นนี้แล้ว กรุณาสมัครในรอบถัดไป' });
   }
 
   // Registration window
