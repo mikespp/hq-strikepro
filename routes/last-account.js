@@ -10,7 +10,8 @@ const router = express.Router();
 const ROUNDS = {
   2: { label: 'รุ่นที่ 2', opensAt: new Date('2026-07-22T12:00:00+07:00'), main: 25, reserve: 5, closed: true },
   3: { label: 'รุ่นที่ 3', opensAt: new Date('2026-07-29T12:00:00+07:00'), main: 25, reserve: 5, closed: true },
-  4: { label: 'รุ่นที่ 4', opensAt: new Date('2026-08-05T12:00:00+07:00'), main: 25, reserve: 5 },
+  // offset: people already registered via the backend (counted toward the round's total)
+  4: { label: 'รุ่นที่ 4', opensAt: new Date('2026-08-05T12:00:00+07:00'), main: 25, reserve: 5, offset: 15 },
 };
 
 function parseRound(v) {
@@ -18,10 +19,11 @@ function parseRound(v) {
   return ROUNDS[r] ? r : null;
 }
 
-function buildStatus(round, count) {
+function buildStatus(round, dbCount) {
   const cfg    = ROUNDS[round];
   const now    = new Date();
   const isOpen = now >= cfg.opensAt;
+  const count  = dbCount + (cfg.offset || 0); // include backend-registered applicants
 
   let status, seatsLeft;
   if (count >= cfg.main + cfg.reserve) {
@@ -140,7 +142,7 @@ router.post('/apply', async (req, res) => {
   };
 
   try {
-    const result = await db.createLastAccountApplication(data, round, cfg.main, cfg.reserve);
+    const result = await db.createLastAccountApplication(data, round, cfg.main, cfg.reserve, cfg.offset || 0);
     if (result.full) {
       return res.status(409).json({ error: 'เต็มแล้ว ไม่สามารถสมัครได้ กรุณารอรอบถัดไป', status: 'full' });
     }
