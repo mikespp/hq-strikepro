@@ -149,6 +149,31 @@
     .benefit-emoji { font-size: 20px; flex-shrink: 0; }
     .benefit-text { font-size: 12px; font-weight: 600; color: var(--text); line-height: 1.4; }
 
+    /* ── Use-case list ── */
+    .use-list { display: flex; flex-direction: column; gap: 8px; }
+    .use-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 12px 14px;
+    }
+    .use-ico { font-size: 18px; flex-shrink: 0; line-height: 1.4; }
+    .use-name { font-size: 13px; font-weight: 700; color: var(--text); }
+    .use-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; margin-top: 2px; }
+    .use-note { font-size: 11px; color: var(--text-sub); margin-top: 12px; line-height: 1.5; }
+
+    /* ── Past-event list ── */
+    .pe-list { display: flex; flex-direction: column; gap: 8px; }
+    .pe-item {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 12px 14px;
+    }
+    .pe-label { font-size: 12px; font-weight: 600; color: var(--text); line-height: 1.4; }
+    .pe-sub { font-size: 10px; color: var(--text-sub); margin-top: 2px; }
+    .pe-amt { text-align: right; flex-shrink: 0; }
+    .pe-stp { font-size: 13px; font-weight: 800; color: var(--accent); white-space: nowrap; }
+    .pe-usd { font-size: 11px; color: var(--green); font-weight: 700; margin-top: 1px; }
+
     /* ── App feature tabs ── */
     .app-feature { border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; margin-bottom: 10px; }
     .app-feature:last-child { margin-bottom: 0; }
@@ -383,7 +408,7 @@
 
 <div class="hero">
   <div class="hero-inner">
-    <div class="hero-badge">🪙 Community Token · Telegram Mini App</div>
+    <div class="hero-badge">🪙 Internal Utility Token · Telegram Mini App</div>
     <div class="hero-title">STP Coin</div>
     <div class="hero-tagline">🔥 มากกว่าแค่เหรียญ แต่มันคือ "ความได้เปรียบ"</div>
     <div class="hero-sub">เหรียญภายในระบบ StrikePro ที่คุณจะได้รับจาก "การมีส่วนร่วม" — ไม่ใช่เหรียญซื้อขาย แต่คือสิทธิพิเศษและโอกาสก่อนใคร</div>
@@ -407,10 +432,16 @@
         <div class="value-sub">มูลค่าภายในระบบ StrikePro</div>
       </div>
       <ul class="bullet-list">
-        <li>STP Coin คือเหรียญภายในระบบของ StrikePro ที่ได้รับจาก "การมีส่วนร่วม"</li>
-        <li>ไม่ใช่เหรียญซื้อขายในตลาด — แต่คือสิ่งที่ทำให้คุณมั่นใจมากขึ้น</li>
-        <li>ได้สิทธิพิเศษและเข้าถึงโอกาสก่อนใคร</li>
+        <li>Internal Utility Token ที่ทำหน้าที่เป็น "Gamified Confidence Layer" ของระบบ StrikePro</li>
+        <li>ไม่ใช่เหรียญซื้อขายในตลาด — แต่เป็นเหรียญที่ได้รับจาก "การมีส่วนร่วม"</li>
+        <li>ทำให้คุณมั่นใจมากขึ้น · ได้สิทธิพิเศษ · เข้าถึงโอกาสก่อนใคร</li>
       </ul>
+      <div style="font-size:11px;color:var(--text-sub);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin:16px 0 10px;">STP Coin หาได้จากไหน</div>
+      <div class="feature-grid">
+        <div class="feature-item"><div class="feature-icon">📅</div><div class="feature-name">Daily Login</div><div class="feature-desc">เช็คอินสะสมรายวัน</div></div>
+        <div class="feature-item"><div class="feature-icon">🎯</div><div class="feature-name">ร่วมกิจกรรม</div><div class="feature-desc">กิจกรรมที่กำหนด</div></div>
+        <div class="feature-item"><div class="feature-icon">📋</div><div class="feature-name">ระบบ Task</div><div class="feature-desc">ทำภารกิจรับ Coin</div></div>
+      </div>
     </div>
   </div>
 
@@ -453,6 +484,62 @@
         <div class="benefit-item">
           <div class="benefit-emoji">🏆</div>
           <div class="benefit-text">อันดับบน Leaderboard</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Use cases -->
+  <div class="card">
+    <div class="card-header"><div class="card-header-icon">🛡️</div><div class="card-header-title">STP Coin ใช้ทำอะไรได้บ้าง</div></div>
+    <div class="card-body">
+      <div class="quote-block">ความมั่นใจในการลงทุน — ใช้ปกป้องหรือชดเชยพอร์ตในโปรเจกต์ที่เข้าร่วม</div>
+      <div class="use-list">
+        <div class="use-item">
+          <div class="use-ico">🏆</div>
+          <div><div class="use-name">Golden Boy (กุมารทอง)</div><div class="use-desc">ชดเชยเมื่อเกิด Circuit Break</div></div>
+        </div>
+        <div class="use-item">
+          <div class="use-ico">⚔️</div>
+          <div><div class="use-name">การแข่งขันศึกชนช้าง</div><div class="use-desc">ใช้ STP Coin แทนการเติมเงินเพื่อชุบชีวิต</div></div>
+        </div>
+        <div class="use-item">
+          <div class="use-ico">🏠</div>
+          <div><div class="use-name">The Last Account (บ้านหลังสุดท้าย)</div><div class="use-desc">แลกเปลี่ยนเป็น Credit Trade</div></div>
+        </div>
+        <div class="use-item">
+          <div class="use-ico">💼</div>
+          <div><div class="use-name">Money Boy (กุมารเงิน) · HQ Ultimate · โปรเจกต์หลินอัน</div><div class="use-desc">ใช้ปกป้อง / ชดเชยพอร์ตตามเงื่อนไขของแต่ละโปรเจกต์</div></div>
+        </div>
+      </div>
+      <div class="use-note">* สามารถใช้ได้เมื่อมีการประกาศกิจกรรม / โปรโมชั่นจากทางทีมงาน</div>
+    </div>
+  </div>
+
+  <!-- Past events -->
+  <div class="card">
+    <div class="card-header"><div class="card-header-icon">📊</div><div class="card-header-title">Past Events — ที่ใช้จริงไปแล้ว</div></div>
+    <div class="card-body">
+      <div class="value-box">
+        <div class="value-num">307,095 STP</div>
+        <div class="value-sub">รวมมูลค่า ~$30,710 ที่ชดเชย / ใช้จริงให้สมาชิกไปแล้ว</div>
+      </div>
+      <div class="pe-list">
+        <div class="pe-item">
+          <div><div class="pe-label">Golden Boy — ชดเชย Circuit Break</div><div class="pe-sub">มิถุนายน 2026</div></div>
+          <div class="pe-amt"><div class="pe-stp">214,095 STP</div><div class="pe-usd">≈ $21,410</div></div>
+        </div>
+        <div class="pe-item">
+          <div><div class="pe-label">Valhalla Dungeon — ชุบชีวิตในการแข่งขัน</div></div>
+          <div class="pe-amt"><div class="pe-stp">45,000 STP</div><div class="pe-usd">≈ $4,500</div></div>
+        </div>
+        <div class="pe-item">
+          <div><div class="pe-label">ศึกชนช้าง SS1 — ชุบชีวิตในการแข่งขัน</div></div>
+          <div class="pe-amt"><div class="pe-stp">27,000 STP</div><div class="pe-usd">≈ $2,700</div></div>
+        </div>
+        <div class="pe-item">
+          <div><div class="pe-label">ศึกชนช้าง SS2 — ชุบชีวิตในการแข่งขัน</div></div>
+          <div class="pe-amt"><div class="pe-stp">21,000 STP</div><div class="pe-usd">≈ $2,100</div></div>
         </div>
       </div>
     </div>
