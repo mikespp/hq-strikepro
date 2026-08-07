@@ -76,14 +76,9 @@
     .hero-sub { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
 
     /* ── Quick stats ── */
-    .quick-stats { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid var(--border); }
-    @media (max-width: 480px) { .quick-stats { grid-template-columns: repeat(2, 1fr); } }
+    .quick-stats { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid var(--border); max-width: 640px; margin: 0 auto; }
     .qs-cell { padding: 14px 12px; border-right: 1px solid var(--border); text-align: center; }
     .qs-cell:last-child { border-right: none; }
-    @media (max-width: 480px) {
-      .qs-cell:nth-child(2) { border-right: none; }
-      .qs-cell:nth-child(3), .qs-cell:nth-child(4) { border-top: 1px solid var(--border); }
-    }
     .qs-val { font-size: 16px; font-weight: 800; color: var(--accent); }
     .qs-lbl { font-size: 10px; color: var(--text-sub); margin-top: 3px; text-transform: uppercase; letter-spacing: .05em; }
 
