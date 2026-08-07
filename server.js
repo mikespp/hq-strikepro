@@ -12,6 +12,7 @@ const dashboardRouter        = require('./routes/dashboard');
 const productsRouter         = require('./routes/products');
 const reviewsRouter          = require('./routes/reviews');
 const lastAccountRouter      = require('./routes/last-account');
+const eventsRouter           = require('./routes/events');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -49,6 +50,7 @@ app.use('/api/dashboard', dashboardRouter);
 app.use('/api/products',  productsRouter);
 app.use('/api/reviews',   reviewsRouter);
 app.use('/api/last-account', lastAccountRouter);
+app.use('/api/events',    eventsRouter);
 
 // Health check
 app.get('/api/health', (_, res) => res.json({ status: 'ok', time: new Date().toISOString() }));

@@ -116,6 +116,24 @@ async function init() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
+  // Calendar events — single source of truth shared by the homepage calendar
+  // and the Calendar Dashboard. Seeded once from db/events-seed.js if empty.
+  await pool.execute(`
+    CREATE TABLE IF NOT EXISTS events (
+      id          INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      title       VARCHAR(255) NOT NULL,
+      start_date  DATE         NOT NULL,
+      end_date    DATE         NOT NULL,
+      color       VARCHAR(20)  NOT NULL DEFAULT '#d4af37',
+      href        VARCHAR(255) DEFAULT NULL,
+      live        TINYINT(1)   NOT NULL DEFAULT 0,
+      created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      INDEX idx_start (start_date),
+      INDEX idx_end (end_date)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
   // Add role column to users if it doesn't exist yet (idempotent migration)
   try {
     await pool.execute(`ALTER TABLE users ADD COLUMN role VARCHAR(20) NOT NULL DEFAULT 'user'`);
@@ -157,6 +175,9 @@ async function init() {
 
   // Purge expired sessions on startup
   await pool.execute('DELETE FROM sessions WHERE expires_at <= NOW()');
+
+  // Seed calendar events once (only if the table is empty)
+  await seedEventsIfEmpty();
 
   console.log('  MySQL connected & schema ready.\n');
 }
@@ -498,6 +519,76 @@ async function listLastAccountApplications() {
   return rows;
 }
 
+// ── Events (calendar) ─────────────────────────────────────────────────────────
+
+// DB row -> API shape used by the calendar frontend: { id, t, s:[y,m,d], e:[y,m,d], c, h, live }
+function eventRowToApi(row) {
+  const toArr = s => s.split('-').map(Number);
+  return {
+    id:   Number(row.id),
+    t:    row.title,
+    s:    toArr(row.start_date),
+    e:    toArr(row.end_date),
+    c:    row.color,
+    h:    row.href || null,
+    live: !!row.live,
+  };
+}
+
+const EVENT_COLS = `id, title,
+  DATE_FORMAT(start_date, '%Y-%m-%d') AS start_date,
+  DATE_FORMAT(end_date,   '%Y-%m-%d') AS end_date,
+  color, href, live`;
+
+async function listEvents() {
+  const [rows] = await pool.execute(
+    `SELECT ${EVENT_COLS} FROM events ORDER BY start_date ASC, end_date ASC, id ASC`
+  );
+  return rows.map(eventRowToApi);
+}
+
+async function getEventById(id) {
+  const [rows] = await pool.execute(`SELECT ${EVENT_COLS} FROM events WHERE id = ? LIMIT 1`, [id]);
+  return rows[0] ? eventRowToApi(rows[0]) : null;
+}
+
+async function createEvent({ title, start, end, color, href, live }) {
+  const [result] = await pool.execute(
+    `INSERT INTO events (title, start_date, end_date, color, href, live) VALUES (?, ?, ?, ?, ?, ?)`,
+    [title, start, end, color || '#d4af37', href || null, live ? 1 : 0]
+  );
+  return getEventById(result.insertId);
+}
+
+async function updateEvent(id, { title, start, end, color, href, live }) {
+  const [result] = await pool.execute(
+    `UPDATE events SET title=?, start_date=?, end_date=?, color=?, href=?, live=? WHERE id=?`,
+    [title, start, end, color || '#d4af37', href || null, live ? 1 : 0, id]
+  );
+  if (!result.affectedRows) return null;
+  return getEventById(id);
+}
+
+async function deleteEvent(id) {
+  const [result] = await pool.execute('DELETE FROM events WHERE id = ?', [id]);
+  return result.affectedRows > 0;
+}
+
+async function seedEventsIfEmpty() {
+  const [rows] = await pool.execute('SELECT COUNT(*) AS c FROM events');
+  if (Number(rows[0].c) > 0) return;
+  const seed = require('./events-seed');
+  const pad = n => String(n).padStart(2, '0');
+  const iso = a => `${a[0]}-${pad(a[1])}-${pad(a[2])}`;
+  for (const ev of seed) {
+    await pool.execute(
+      `INSERT INTO events (title, start_date, end_date, color, href, live) VALUES (?, ?, ?, ?, ?, ?)`,
+      [ev.t, iso(ev.s), iso(ev.e), ev.c || '#d4af37', ev.h || null, ev.live ? 1 : 0]
+    );
+  }
+  console.log(`  Seeded ${seed.length} calendar events.`);
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 module.exports = {
@@ -509,4 +600,5 @@ module.exports = {
   getProductStats, getProductInvestors,
   createReview, listReviews, deleteReview, toggleReviewFeatured,
   countLastAccountApplications, createLastAccountApplication, listLastAccountApplications,
+  listEvents, getEventById, createEvent, updateEvent, deleteEvent,
 };

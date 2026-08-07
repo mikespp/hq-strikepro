@@ -409,49 +409,7 @@
     var TH_WD = ['อา','จ','อ','พ','พฤ','ศ','ส'];
 
     // start/end are [year, month(1-12), day]
-    var EVENTS = [
-      { s:[2026,7,10], e:[2026,7,10], t:'SBC 24 : Reunion Party',              c:'#fb923c', h:'/events/sbc',           live:false },
-      { s:[2026,7,12], e:[2026,7,17], t:'บ้านหลังสุดท้าย · The Last Account รุ่น 0', c:'#d4af37', h:'/events/last-account', live:false },
-      { s:[2026,7,13], e:[2026,7,31], t:'ศึกชนช้าง Season 2',                  c:'#E63946', h:null,                    live:true  },
-      { s:[2026,7,19], e:[2026,7,24], t:'บ้านหลังสุดท้าย · The Last Account รุ่น 1', c:'#d4af37', h:'/events/last-account', live:false },
-      { s:[2026,7,26], e:[2026,7,31], t:'บ้านหลังสุดท้าย · The Last Account รุ่น 2', c:'#d4af37', h:'/events/last-account', live:false },
-      { s:[2026,8,2], e:[2026,8,7], t:'บ้านหลังสุดท้าย · The Last Account รุ่น 3', c:'#d4af37', h:'/events/last-account', live:false },
-      { s:[2026,8,9], e:[2026,8,14], t:'บ้านหลังสุดท้าย · The Last Account รุ่น 4', c:'#d4af37', h:'/events/last-account', live:false },
-      { s:[2026,8,16], e:[2026,8,21], t:'บ้านหลังสุดท้าย · The Last Account รุ่น 5', c:'#d4af37', h:'/events/last-account', live:false },
-      { s:[2026,8,23], e:[2026,8,28], t:'บ้านหลังสุดท้าย · The Last Account รุ่น 6', c:'#d4af37', h:'/events/last-account', live:false },
-      { s:[2026,8,30], e:[2026,9,4], t:'บ้านหลังสุดท้าย · The Last Account รุ่น 7', c:'#d4af37', h:'/events/last-account', live:false },
-      { s:[2026,9,6], e:[2026,9,11], t:'บ้านหลังสุดท้าย · The Last Account รุ่น 8', c:'#d4af37', h:'/events/last-account', live:false },
-      { s:[2026,9,13], e:[2026,9,18], t:'บ้านหลังสุดท้าย · The Last Account รุ่น 9', c:'#d4af37', h:'/events/last-account', live:false },
-      { s:[2026,9,20], e:[2026,9,25], t:'บ้านหลังสุดท้าย · The Last Account รุ่น 10', c:'#d4af37', h:'/events/last-account', live:false },
-      { s:[2026,9,27], e:[2026,10,2], t:'บ้านหลังสุดท้าย · The Last Account รุ่น 11', c:'#d4af37', h:'/events/last-account', live:false },
-      { s:[2026,10,4], e:[2026,10,9], t:'บ้านหลังสุดท้าย · The Last Account รุ่น 12', c:'#d4af37', h:'/events/last-account', live:false },
-      { s:[2026,10,11], e:[2026,10,16], t:'บ้านหลังสุดท้าย · The Last Account รุ่น 13', c:'#d4af37', h:'/events/last-account', live:false },
-      { s:[2026,10,18], e:[2026,10,23], t:'บ้านหลังสุดท้าย · The Last Account รุ่น 14', c:'#d4af37', h:'/events/last-account', live:false },
-      { s:[2026,10,25], e:[2026,10,30], t:'บ้านหลังสุดท้าย · The Last Account รุ่น 15', c:'#d4af37', h:'/events/last-account', live:false },
-      { s:[2026,11,1], e:[2026,11,6], t:'บ้านหลังสุดท้าย · The Last Account รุ่น 16', c:'#d4af37', h:'/events/last-account', live:false },
-      { s:[2026,11,8], e:[2026,11,13], t:'บ้านหลังสุดท้าย · The Last Account รุ่น 17', c:'#d4af37', h:'/events/last-account', live:false },
-      { s:[2026,11,15], e:[2026,11,20], t:'บ้านหลังสุดท้าย · The Last Account รุ่น 18', c:'#d4af37', h:'/events/last-account', live:false },
-      { s:[2026,11,22], e:[2026,11,27], t:'บ้านหลังสุดท้าย · The Last Account รุ่น 19', c:'#d4af37', h:'/events/last-account', live:false },
-      { s:[2026,11,29], e:[2026,12,4], t:'บ้านหลังสุดท้าย · The Last Account รุ่น 20', c:'#d4af37', h:'/events/last-account', live:false },
-      { s:[2026,12,6], e:[2026,12,11], t:'บ้านหลังสุดท้าย · The Last Account รุ่น 21', c:'#d4af37', h:'/events/last-account', live:false },
-      { s:[2026,12,13], e:[2026,12,18], t:'บ้านหลังสุดท้าย · The Last Account รุ่น 22', c:'#d4af37', h:'/events/last-account', live:false },
-      { s:[2026,12,20], e:[2026,12,25], t:'บ้านหลังสุดท้าย · The Last Account รุ่น 23', c:'#d4af37', h:'/events/last-account', live:false },
-      { s:[2026,7,31], e:[2026,7,31], t:'กินข้าวบ้านจารย์',                    c:'#4ade80', h:null,                    live:false },
-      { s:[2026,8,1],  e:[2026,8,3],  t:'SBC 25',                              c:'#fb923c', h:'/events/sbc',           live:false },
-      { s:[2026,8,1],  e:[2026,8,14], t:'ศึกชนช้าง Season 3',                  c:'#E63946', h:null,                    live:false },
-      { s:[2026,8,17], e:[2026,8,28], t:'ศึกชนช้าง Season 4',                  c:'#E63946', h:null,                    live:false },
-      { s:[2026,8,31], e:[2026,9,11], t:'ศึกชนช้าง Season 5',                  c:'#E63946', h:null,                    live:false },
-      { s:[2026,9,14], e:[2026,9,25], t:'ศึกชนช้าง Season 6',                  c:'#E63946', h:null,                    live:false },
-      { s:[2026,9,28], e:[2026,10,9], t:'ศึกชนช้าง Season 7',                  c:'#E63946', h:null,                    live:false },
-      { s:[2026,10,12],e:[2026,10,23],t:'ศึกชนช้าง Season 8',                  c:'#E63946', h:null,                    live:false },
-      { s:[2026,10,26],e:[2026,11,6], t:'ศึกชนช้าง Season 9',                  c:'#E63946', h:null,                    live:false },
-      { s:[2026,11,9], e:[2026,11,20],t:'ศึกชนช้าง Season 10',                 c:'#E63946', h:null,                    live:false },
-      { s:[2026,11,23],e:[2026,12,4], t:'ศึกชนช้าง Season 11',                 c:'#E63946', h:null,                    live:false },
-      { s:[2026,12,7], e:[2026,12,18],t:'ศึกชนช้าง Season 12',                 c:'#E63946', h:null,                    live:false },
-      { s:[2026,8,7],  e:[2026,8,7],  t:'SBC 25 Reunion',                      c:'#fb923c', h:'/events/sbc',           live:false },
-      { s:[2026,8,9],  e:[2026,8,9],  t:'The Last Day',                        c:'#818cf8', h:null,                    live:false },
-      { s:[2026,9,5],  e:[2026,9,7],  t:'SBC 26',                              c:'#fb923c', h:'/events/sbc',           live:false },
-    ];
+    var EVENTS = []; // loaded from /api/events (single source of truth)
 
     function num(a){ return a[0]*10000 + a[1]*100 + a[2]; }
     function fmtRange(s, e){
@@ -552,11 +510,7 @@
     }
 
     // Navigable month state, bounded to the range covered by events
-    var minAbs = Math.min.apply(null, EVENTS.map(function (ev){ return ev.s[0]*12 + (ev.s[1]-1); }));
-    var maxAbs = Math.max.apply(null, EVENTS.map(function (ev){ return ev.e[0]*12 + (ev.e[1]-1); }));
-    // Open on the current month, clamped to the range that has events
-    var nowAbs = today.getFullYear() * 12 + today.getMonth();
-    var cur = Math.min(maxAbs, Math.max(minAbs, nowAbs));
+    var minAbs = 0, maxAbs = 0, cur = 0;
 
     var gridEl  = document.getElementById('calGrid');
     var listEl  = document.getElementById('calList');
@@ -604,11 +558,21 @@
       else if (dx > 0 && cur > minAbs) { cur--; render(); }
     }, { passive:true });
 
-    render();
-    listEl.innerHTML = upcomingListHtml(); // 5 nearest upcoming events, independent of the viewed month
+        // Bounds + first render happen once events load from /api/events
+    function boot() {
+      listEl.innerHTML = upcomingListHtml();
+      if (!EVENTS.length) { titleEl.textContent = '\u2014'; gridEl.innerHTML = ''; return; }
+      minAbs = Math.min.apply(null, EVENTS.map(function (ev){ return ev.s[0]*12 + (ev.s[1]-1); }));
+      maxAbs = Math.max.apply(null, EVENTS.map(function (ev){ return ev.e[0]*12 + (ev.e[1]-1); }));
+      var nowAbs = today.getFullYear() * 12 + today.getMonth();
+      cur = Math.min(maxAbs, Math.max(minAbs, nowAbs));
+      render();
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(enableBarScroll);
+    }
+    fetch('/api/events').then(function (r){ return r.json(); })
+      .then(function (data){ EVENTS = Array.isArray(data) ? data : []; boot(); })
+      .catch(function(){ boot(); });
 
-    // Recalculate overflow after fonts load and on resize (widths can change)
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(enableBarScroll);
     var rz; window.addEventListener('resize', function () { clearTimeout(rz); rz = setTimeout(enableBarScroll, 150); });
   })();
 </script>
