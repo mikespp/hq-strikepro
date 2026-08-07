@@ -76,7 +76,8 @@
     .hero-sub { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
 
     /* ── Quick stats ── */
-    .quick-stats { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid var(--border); max-width: 640px; margin: 0 auto; }
+    .quick-stats { border-bottom: 1px solid var(--border); }
+    .qs-inner { display: grid; grid-template-columns: repeat(3, 1fr); max-width: 640px; margin: 0 auto; }
     .qs-cell { padding: 14px 12px; border-right: 1px solid var(--border); text-align: center; }
     .qs-cell:last-child { border-right: none; }
     .qs-val { font-size: 16px; font-weight: 800; color: var(--accent); }
@@ -411,9 +412,11 @@
 </div>
 
 <div class="quick-stats">
-  <div class="qs-cell"><div class="qs-val">10 STP</div><div class="qs-lbl">= 1 USD</div></div>
-  <div class="qs-cell"><div class="qs-val">@stpcoinbot</div><div class="qs-lbl">Telegram Bot</div></div>
-<div class="qs-cell"><div class="qs-val">3 Phases</div><div class="qs-lbl">Roadmap</div></div>
+  <div class="qs-inner">
+    <div class="qs-cell"><div class="qs-val">10 STP</div><div class="qs-lbl">= 1 USD</div></div>
+    <div class="qs-cell"><div class="qs-val">@stpcoinbot</div><div class="qs-lbl">Telegram Bot</div></div>
+    <div class="qs-cell"><div class="qs-val">3 Phases</div><div class="qs-lbl">Roadmap</div></div>
+  </div>
 </div>
 
 <main class="page-main">
