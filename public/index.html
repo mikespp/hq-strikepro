@@ -743,13 +743,13 @@
 
 <script>
   const TOKEN_KEY = 'sp_token';
-  // If already logged in → go to dashboard
+  // If already logged in → go to the admin area
   (async () => {
     const token = localStorage.getItem(TOKEN_KEY);
     if (!token) return;
     try {
       const r = await fetch('/api/auth/me', { headers: { Authorization: 'Bearer ' + token } });
-      if (r.ok) window.location.href = '/dashboard.html';
+      if (r.ok) window.location.href = '/reviews-admin';
     } catch {}
   })();
 

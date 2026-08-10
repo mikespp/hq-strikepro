@@ -7,9 +7,6 @@ const fs      = require('fs');
 
 const db                  = require('./db/database');
 const { router: authRouter } = require('./routes/auth');
-const clientsRouter          = require('./routes/clients');
-const dashboardRouter        = require('./routes/dashboard');
-const productsRouter         = require('./routes/products');
 const reviewsRouter          = require('./routes/reviews');
 const lastAccountRouter      = require('./routes/last-account');
 const eventsRouter           = require('./routes/events');
@@ -45,9 +42,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // API routes
 app.use('/api/auth',      authRouter);
-app.use('/api/clients',   clientsRouter);
-app.use('/api/dashboard', dashboardRouter);
-app.use('/api/products',  productsRouter);
 app.use('/api/reviews',   reviewsRouter);
 app.use('/api/last-account', lastAccountRouter);
 app.use('/api/events',    eventsRouter);

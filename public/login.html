@@ -215,7 +215,7 @@
       const { token } = await apiFetch('/register', { method: 'POST', body: { email, password: pwd } });
       localStorage.setItem(TOKEN_KEY, token);
       showAlert('Account created! Signing you in…', 'success');
-      setTimeout(() => { window.location.href = '/dashboard.html'; }, 800);
+      setTimeout(() => { window.location.href = '/reviews-admin'; }, 800);
     } catch (err) { showAlert(err.message); shakeCard();
     } finally { setLoading('btnRegister', false); }
   }
@@ -228,14 +228,14 @@
     try {
       const { token } = await apiFetch('/login', { method: 'POST', body: { email, password: pwd } });
       localStorage.setItem(TOKEN_KEY, token);
-      window.location.href = '/dashboard.html';
+      window.location.href = '/reviews-admin';
     } catch (err) { showAlert(err.message); shakeCard();
     } finally { setLoading('btnSignIn', false); }
   }
 
   (async function init() {
     if (!localStorage.getItem(TOKEN_KEY)) return;
-    try { await apiFetch('/me'); window.location.href = '/dashboard.html'; }
+    try { await apiFetch('/me'); window.location.href = '/reviews-admin'; }
     catch { localStorage.removeItem(TOKEN_KEY); }
   })();
 </script>
