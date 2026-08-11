@@ -442,8 +442,8 @@
     if (!token) return;
     fetch('/api/auth/me', { headers: { Authorization: 'Bearer ' + token } })
       .then(r => r.ok ? r.json() : null)
-      .then(user => {
-        if (!user) return;
+      .then(data => {
+        const user = data && data.user; if (!user || user.role !== 'admin') return;
         const back = document.getElementById('navBackBtn');
         const ham  = document.getElementById('navHamburgerBtn');
         if (back) back.style.display = 'none';

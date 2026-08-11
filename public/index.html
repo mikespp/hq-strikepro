@@ -54,6 +54,29 @@
     .nav-logo img { width: 36px; height: 36px; object-fit: contain; }
     .nav-logo-name { font-size: 15px; font-weight: 800; color: var(--text); letter-spacing: -.3px; }
     .nav-logo-name span { color: var(--primary); }
+    /* ── Logged-in avatar ── */
+    .nav-user-wrap { position: relative; }
+    .nav-avatar {
+      width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--border);
+      background: var(--surface2) center/cover no-repeat; cursor: pointer; padding: 0;
+      display: flex; align-items: center; justify-content: center; overflow: hidden;
+      font-size: 15px; font-weight: 800; color: var(--text);
+    }
+    .nav-avatar:hover { border-color: var(--primary); }
+    .nav-user-menu {
+      position: absolute; top: 46px; right: 0; min-width: 210px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      padding: 8px; box-shadow: 0 10px 34px rgba(0,0,0,.55); display: none; z-index: 200;
+    }
+    .nav-user-menu.open { display: block; }
+    .num-head { font-size: 12px; color: var(--text-muted); padding: 8px 10px 10px;
+      border-bottom: 1px solid var(--border); margin-bottom: 6px; word-break: break-all; line-height: 1.5; }
+    .num-head b { color: var(--text); font-size: 13px; }
+    .num-item { display: block; width: 100%; text-align: left; padding: 10px;
+      border-radius: 8px; font-size: 14px; font-weight: 600; color: var(--text);
+      text-decoration: none; background: none; border: none; cursor: pointer; font-family: inherit; }
+    .num-item:hover { background: var(--surface2); }
+    .num-logout { color: #f87171; }
     .nav-auth { display: flex; align-items: center; gap: 8px; }
     .nav-btn { font-size: 13px; font-weight: 700; padding: 8px 14px; border-radius: 8px; text-decoration: none; white-space: nowrap; transition: .15s; }
     .nav-btn.ghost { color: var(--text); border: 1px solid var(--border); }
@@ -386,6 +409,14 @@
   <div class="nav-auth" id="navAuth">
     <a class="nav-btn ghost" href="/login">เข้าสู่ระบบ</a>
     <a class="nav-btn solid" href="/register">สมัคร</a>
+  </div>
+  <div class="nav-user-wrap" id="navUserWrap" style="display:none;">
+    <button class="nav-avatar" id="navAvatar" onclick="toggleUserMenu(event)" aria-label="บัญชีของฉัน"></button>
+    <div class="nav-user-menu" id="navUserMenu">
+      <div class="num-head" id="numHead"></div>
+      <a class="num-item" id="numAdmin" href="/reviews-admin" style="display:none;">🛠 ระบบจัดการ (Admin)</a>
+      <button class="num-item num-logout" onclick="doLogout()">ออกจากระบบ</button>
+    </div>
   </div>
 </nav>
 <script>
@@ -779,15 +810,33 @@
 
 <script>
   const TOKEN_KEY = 'sp_token';
-  // If already logged in → go to the admin area
+  // Logged in → show profile avatar top-right (public view stays the same). Admins get an admin link.
   (async () => {
     const token = localStorage.getItem(TOKEN_KEY);
     if (!token) return;
     try {
       const r = await fetch('/api/auth/me', { headers: { Authorization: 'Bearer ' + token } });
-      if (r.ok) window.location.href = '/reviews-admin';
+      if (!r.ok) return;
+      const data = await r.json();
+      const user = data && data.user;
+      if (!user) return;
+      const av = document.getElementById('navAvatar');
+      if (user.avatar) { av.style.backgroundImage = 'url("' + user.avatar + '")'; av.textContent = ''; }
+      else { av.textContent = (user.nickname || user.email || '?').trim().charAt(0).toUpperCase(); }
+      document.getElementById('numHead').innerHTML =
+        (user.nickname ? '<b>' + esc(user.nickname) + '</b><br>' : '') + esc(user.email);
+      if (user.role === 'admin') document.getElementById('numAdmin').style.display = 'block';
+      document.getElementById('navAuth').style.display = 'none';
+      document.getElementById('navUserWrap').style.display = 'block';
     } catch {}
   })();
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function toggleUserMenu(e){ if(e) e.stopPropagation(); document.getElementById('navUserMenu').classList.toggle('open'); }
+  function doLogout(){ localStorage.removeItem(TOKEN_KEY); location.reload(); }
+  document.addEventListener('click', function(e){
+    const w = document.getElementById('navUserWrap');
+    if (w && !w.contains(e.target)) document.getElementById('navUserMenu').classList.remove('open');
+  });
 
   // ── Passcode modal ──
   function openPasscode() {

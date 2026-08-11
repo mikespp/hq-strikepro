@@ -234,7 +234,10 @@ router.get('/me', requireAuth, async (req, res) => {
   try {
     const user = await db.findUserById(req.userId);
     if (!user) return res.status(404).json({ error: 'User not found.' });
-    res.json({ user: { id: user.id, email: user.email, role: user.role || 'user' } });
+    res.json({ user: {
+      id: user.id, email: user.email, role: user.role || 'user',
+      nickname: user.nickname || '', avatar: user.avatar_data || null,
+    } });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Something went wrong. Please try again.' });

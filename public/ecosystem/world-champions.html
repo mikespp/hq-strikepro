@@ -900,6 +900,7 @@
       const r = await fetch('/api/auth/me', { headers: { Authorization: 'Bearer ' + token } });
       if (!r.ok) return;
       const { user } = await r.json();
+      if (!user || user.role !== 'admin') return; // non-admins see the public view
       document.getElementById('navBackBtn').style.display   = 'none';
       document.getElementById('navHamburgerBtn').style.display = 'flex';
       document.getElementById('drawerUser').textContent = user.email;
