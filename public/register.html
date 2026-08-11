@@ -33,12 +33,17 @@
     .form-group{margin-bottom:14px;}
     .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
     label{display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px;}
-    input, textarea{width:100%;padding:12px 14px;background:var(--input-bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);
-      color:var(--text);font-size:15px;outline:none;transition:border-color .2s;-webkit-appearance:none;font-family:inherit;}
+    input, textarea, select{width:100%;padding:12px 14px;background:var(--input-bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);
+      color:var(--text);font-size:15px;outline:none;transition:border-color .2s;-webkit-appearance:none;appearance:none;font-family:inherit;}
     textarea{resize:vertical;min-height:52px;}
     input::placeholder, textarea::placeholder{color:#444;}
-    input:focus, textarea:focus{border-color:var(--gold);}
+    input:focus, textarea:focus, select:focus{border-color:var(--gold);}
     input[type=date]{color-scheme:dark;}
+    select{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23888' d='M6 8 0 0h12z'/%3E%3C/svg%3E");
+      background-repeat:no-repeat;background-position:right 14px center;padding-right:38px;}
+    select:required:invalid{color:#444;}
+    select option{color:var(--text);background:var(--input-bg);}
+    select option[value=""]{color:#444;}
     .otp-input{text-align:center;letter-spacing:14px;font-size:26px;font-weight:800;padding-left:14px;}
     .password-wrap{position:relative;}
     .password-wrap input{padding-right:44px;}
@@ -116,7 +121,7 @@
         <div class="form-group"><label for="district">อำเภอ / เขต</label><input type="text" id="district" required /></div>
       </div>
       <div class="row2">
-        <div class="form-group"><label for="province">จังหวัด</label><input type="text" id="province" required /></div>
+        <div class="form-group"><label for="province">จังหวัด</label><select id="province" required><option value="">เลือกจังหวัด</option></select></div>
         <div class="form-group"><label for="postalCode">รหัสไปรษณีย์</label><input type="text" id="postalCode" inputmode="numeric" maxlength="5" placeholder="10000" required /></div>
       </div>
 
@@ -179,6 +184,10 @@
     return data;
   }
   const $ = id => document.getElementById(id);
+
+  // Populate the province dropdown (77 จังหวัด, เรียงตามตัวอักษร)
+  const PROVINCES = ['กระบี่','กรุงเทพมหานคร','กาญจนบุรี','กาฬสินธุ์','กำแพงเพชร','ขอนแก่น','จันทบุรี','ฉะเชิงเทรา','ชลบุรี','ชัยนาท','ชัยภูมิ','ชุมพร','เชียงราย','เชียงใหม่','ตรัง','ตราด','ตาก','นครนายก','นครปฐม','นครพนม','นครราชสีมา','นครศรีธรรมราช','นครสวรรค์','นนทบุรี','นราธิวาส','น่าน','บึงกาฬ','บุรีรัมย์','ปทุมธานี','ประจวบคีรีขันธ์','ปราจีนบุรี','ปัตตานี','พระนครศรีอยุธยา','พะเยา','พังงา','พัทลุง','พิจิตร','พิษณุโลก','เพชรบุรี','เพชรบูรณ์','แพร่','ภูเก็ต','มหาสารคาม','มุกดาหาร','แม่ฮ่องสอน','ยโสธร','ยะลา','ร้อยเอ็ด','ระนอง','ระยอง','ราชบุรี','ลพบุรี','ลำปาง','ลำพูน','เลย','ศรีสะเกษ','สกลนคร','สงขลา','สตูล','สมุทรปราการ','สมุทรสงคราม','สมุทรสาคร','สระแก้ว','สระบุรี','สิงห์บุรี','สุโขทัย','สุพรรณบุรี','สุราษฎร์ธานี','สุรินทร์','หนองคาย','หนองบัวลำภู','อ่างทอง','อำนาจเจริญ','อุดรธานี','อุตรดิตถ์','อุทัยธานี','อุบลราชธานี'];
+  (function(){ const sel = $('province'); if(!sel) return; PROVINCES.forEach(p => { const o=document.createElement('option'); o.value=p; o.textContent=p; sel.appendChild(o); }); })();
   function alertMsg(msg, type='error'){ const a=$('alert'); a.textContent=msg; a.className=`alert ${type} show`; a.scrollIntoView({block:'nearest'}); }
   function clearAlert(){ $('alert').className='alert'; }
   function shake(){ const c=$('card'); c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake'); }
