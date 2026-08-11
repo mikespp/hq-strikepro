@@ -149,14 +149,27 @@ router.post('/register', async (req, res) => {
   try {
     const email = normEmail(req.body.email);
     const code  = String(req.body.code || '').trim();
-    const { fullName, phone, password } = req.body;
+    const s = v => String(v || '').trim();
+    const b = req.body;
+    const firstName=s(b.firstName), lastName=s(b.lastName), nickname=s(b.nickname),
+          phone=s(b.phone), birthDate=s(b.birthDate), lineId=s(b.lineId),
+          addrLine=s(b.addrLine), subdistrict=s(b.subdistrict), district=s(b.district),
+          province=s(b.province), postalCode=s(b.postalCode), password=String(b.password || '');
+    const avatarData = b.avatarData ? String(b.avatarData) : null;
 
     if (!EMAIL_RE.test(email) || !/^\d{6}$/.test(code))
       return res.status(400).json({ error: 'ข้อมูลไม่ถูกต้อง' });
-    if (!fullName || !String(fullName).trim())
-      return res.status(400).json({ error: 'กรุณากรอกชื่อ-นามสกุล' });
-    if (!password || String(password).length < 8)
+    const requiredFields = { firstName, lastName, nickname, phone, birthDate, lineId, addrLine, subdistrict, district, province, postalCode };
+    for (const v of Object.values(requiredFields))
+      if (!v) return res.status(400).json({ error: 'กรุณากรอกข้อมูลให้ครบทุกช่อง' });
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(birthDate))
+      return res.status(400).json({ error: 'วันเดือนปีเกิดไม่ถูกต้อง' });
+    if (!/^\d{5}$/.test(postalCode))
+      return res.status(400).json({ error: 'รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก' });
+    if (password.length < 8)
       return res.status(400).json({ error: 'รหัสผ่านต้องยาวอย่างน้อย 8 ตัวอักษร' });
+    if (avatarData && (!/^data:image\/(png|jpe?g|webp|gif);base64,/.test(avatarData) || avatarData.length > 3_000_000))
+      return res.status(400).json({ error: 'รูปโปรไฟล์ไม่ถูกต้องหรือใหญ่เกินไป' });
     if (!rateLimit('reg:' + clientIp(req), 40, 60 * 60 * 1000))
       return res.status(429).json({ error: 'ลองบ่อยเกินไป กรุณารอสักครู่' });
 
@@ -180,8 +193,11 @@ router.post('/register', async (req, res) => {
 
     await db.deleteOtp(email);
     const hashed = await bcrypt.hash(password, 12);
-    const user   = await db.createUserFull(email, hashed, String(fullName).trim(), String(phone || '').trim());
-    const token  = await issueToken(user.id);
+    const user = await db.createMember({
+      email, hashedPassword: hashed, firstName, lastName, nickname, phone, birthDate,
+      lineId, addrLine, subdistrict, district, province, postalCode, avatarData,
+    });
+    const token = await issueToken(user.id);
     res.status(201).json({ token, user: { id: user.id, email: user.email } });
   } catch (err) {
     console.error(err);

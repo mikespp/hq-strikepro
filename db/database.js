@@ -183,8 +183,19 @@ async function init() {
 
   // Add profile columns to users (idempotent)
   for (const ddl of [
-    `ALTER TABLE users ADD COLUMN full_name VARCHAR(255) NOT NULL DEFAULT ''`,
-    `ALTER TABLE users ADD COLUMN phone VARCHAR(50) NOT NULL DEFAULT ''`,
+    `ALTER TABLE users ADD COLUMN full_name   VARCHAR(255) NOT NULL DEFAULT ''`,
+    `ALTER TABLE users ADD COLUMN phone       VARCHAR(50)  NOT NULL DEFAULT ''`,
+    `ALTER TABLE users ADD COLUMN first_name  VARCHAR(255) NOT NULL DEFAULT ''`,
+    `ALTER TABLE users ADD COLUMN last_name   VARCHAR(255) NOT NULL DEFAULT ''`,
+    `ALTER TABLE users ADD COLUMN nickname    VARCHAR(255) NOT NULL DEFAULT ''`,
+    `ALTER TABLE users ADD COLUMN birth_date  DATE NULL`,
+    `ALTER TABLE users ADD COLUMN line_id     VARCHAR(255) NOT NULL DEFAULT ''`,
+    `ALTER TABLE users ADD COLUMN addr_line   VARCHAR(500) NOT NULL DEFAULT ''`,
+    `ALTER TABLE users ADD COLUMN subdistrict VARCHAR(255) NOT NULL DEFAULT ''`,
+    `ALTER TABLE users ADD COLUMN district    VARCHAR(255) NOT NULL DEFAULT ''`,
+    `ALTER TABLE users ADD COLUMN province    VARCHAR(255) NOT NULL DEFAULT ''`,
+    `ALTER TABLE users ADD COLUMN postal_code VARCHAR(20)  NOT NULL DEFAULT ''`,
+    `ALTER TABLE users ADD COLUMN avatar_data MEDIUMTEXT NULL`,
   ]) {
     try { await pool.execute(ddl); } catch (err) { if (err.errno !== 1060) throw err; }
   }
@@ -260,6 +271,22 @@ async function createUserFull(email, hashedPassword, fullName, phone) {
   const [result] = await pool.execute(
     'INSERT INTO users (email, password, full_name, phone) VALUES (?, ?, ?, ?)',
     [e, hashedPassword, (fullName || '').trim(), (phone || '').trim()]
+  );
+  return { id: result.insertId, email: e };
+}
+
+async function createMember(d) {
+  const e = (d.email || '').toLowerCase().trim();
+  const s = v => String(v || '').trim();
+  const full = `${s(d.firstName)} ${s(d.lastName)}`.trim();
+  const [result] = await pool.execute(
+    `INSERT INTO users
+       (email, password, full_name, first_name, last_name, nickname, phone, birth_date,
+        line_id, addr_line, subdistrict, district, province, postal_code, avatar_data)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+    [e, d.hashedPassword, full, s(d.firstName), s(d.lastName), s(d.nickname), s(d.phone),
+     d.birthDate || null, s(d.lineId), s(d.addrLine), s(d.subdistrict), s(d.district),
+     s(d.province), s(d.postalCode), d.avatarData || null]
   );
   return { id: result.insertId, email: e };
 }
@@ -680,7 +707,7 @@ async function seedEventsIfEmpty() {
 
 module.exports = {
   init,
-  findUserByEmail, findUserById, createUser, createUserFull,
+  findUserByEmail, findUserById, createUser, createUserFull, createMember,
   isEmailEligible, countEligible, addEligibleHashes,
   upsertOtp, getOtp, incOtpAttempts, deleteOtp,
   createSession, findSession, deleteSession,
