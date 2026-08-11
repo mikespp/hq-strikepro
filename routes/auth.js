@@ -86,24 +86,45 @@ async function requireAdmin(req, res, next) {
 }
 
 // ── Registration (gated by StrikePro customer allowlist + email OTP) ──────────
+// Flow: check(email) → [fill profile form] → send-otp(email) → register(email+code+profile)
 
-// STEP 1 — POST /api/auth/register/check  { email }  → eligibility check + send OTP
+// helper: eligibility + not-already-registered. Returns null if ok, else an {status,body} to send.
+async function guardEmail(email) {
+  if (await db.findUserByEmail(email))
+    return { status: 409, body: { error: 'อีเมลนี้มีบัญชีอยู่แล้ว กรุณาเข้าสู่ระบบ', code: 'exists' } };
+  let eligible;
+  try { eligible = await checkEligible(email); }
+  catch (e) { console.error('eligibility check failed:', e.message); return { status: 503, body: { error: 'ระบบตรวจสอบสมาชิกไม่พร้อมชั่วคราว กรุณาลองใหม่' } }; }
+  if (!eligible)
+    return { status: 403, body: { error: 'ไม่พบอีเมลนี้ในระบบลูกค้า StrikePro จึงไม่สามารถสมัครได้', code: 'not_eligible' } };
+  return null;
+}
+
+// STEP 1 — POST /api/auth/register/check  { email }  → eligibility only (no OTP yet)
 router.post('/register/check', async (req, res) => {
   try {
     const email = normEmail(req.body.email);
     if (!EMAIL_RE.test(email)) return res.status(400).json({ error: 'กรุณากรอกอีเมลให้ถูกต้อง' });
-    if (!rateLimit('chk:' + clientIp(req), 20, 60 * 60 * 1000))
+    if (!rateLimit('chk:' + clientIp(req), 40, 60 * 60 * 1000))
+      return res.status(429).json({ error: 'ลองบ่อยเกินไป กรุณารอสักครู่' });
+    const bad = await guardEmail(email);
+    if (bad) return res.status(bad.status).json(bad.body);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่' });
+  }
+});
+
+// STEP 2 — POST /api/auth/register/send-otp  { email }  → send OTP (after the profile form)
+router.post('/register/send-otp', async (req, res) => {
+  try {
+    const email = normEmail(req.body.email);
+    if (!EMAIL_RE.test(email)) return res.status(400).json({ error: 'กรุณากรอกอีเมลให้ถูกต้อง' });
+    if (!rateLimit('otpip:' + clientIp(req), 20, 60 * 60 * 1000))
       return res.status(429).json({ error: 'ขอรหัสบ่อยเกินไป กรุณาลองใหม่ภายหลัง' });
-
-    if (await db.findUserByEmail(email))
-      return res.status(409).json({ error: 'อีเมลนี้มีบัญชีอยู่แล้ว กรุณาเข้าสู่ระบบ', code: 'exists' });
-
-    let eligible;
-    try { eligible = await checkEligible(email); }
-    catch (e) { console.error('eligibility check failed:', e.message); return res.status(503).json({ error: 'ระบบตรวจสอบสมาชิกไม่พร้อมชั่วคราว กรุณาลองใหม่' }); }
-    if (!eligible)
-      return res.status(403).json({ error: 'ไม่พบอีเมลนี้ในระบบลูกค้า StrikePro จึงไม่สามารถสมัครได้', code: 'not_eligible' });
-
+    const bad = await guardEmail(email);
+    if (bad) return res.status(bad.status).json(bad.body);
     if (!rateLimit('otp:' + email, 5, 60 * 60 * 1000))
       return res.status(429).json({ error: 'ขอรหัสบ่อยเกินไป กรุณารอสักครู่แล้วลองใหม่' });
 
@@ -123,16 +144,23 @@ router.post('/register/check', async (req, res) => {
   }
 });
 
-// STEP 2 — POST /api/auth/register/verify  { email, code }  → registration ticket
-router.post('/register/verify', async (req, res) => {
+// STEP 3 — POST /api/auth/register  { email, code, fullName, phone, password }  → verify OTP + create
+router.post('/register', async (req, res) => {
   try {
     const email = normEmail(req.body.email);
     const code  = String(req.body.code || '').trim();
+    const { fullName, phone, password } = req.body;
+
     if (!EMAIL_RE.test(email) || !/^\d{6}$/.test(code))
       return res.status(400).json({ error: 'ข้อมูลไม่ถูกต้อง' });
-    if (!rateLimit('vrf:' + clientIp(req), 40, 60 * 60 * 1000))
+    if (!fullName || !String(fullName).trim())
+      return res.status(400).json({ error: 'กรุณากรอกชื่อ-นามสกุล' });
+    if (!password || String(password).length < 8)
+      return res.status(400).json({ error: 'รหัสผ่านต้องยาวอย่างน้อย 8 ตัวอักษร' });
+    if (!rateLimit('reg:' + clientIp(req), 40, 60 * 60 * 1000))
       return res.status(429).json({ error: 'ลองบ่อยเกินไป กรุณารอสักครู่' });
 
+    // verify OTP
     const otp = await db.getOtp(email);
     if (!otp || Date.now() > Number(otp.expires_at))
       return res.status(400).json({ error: 'รหัสหมดอายุ กรุณาขอรหัสใหม่', code: 'expired' });
@@ -140,47 +168,17 @@ router.post('/register/verify', async (req, res) => {
       await db.deleteOtp(email);
       return res.status(429).json({ error: 'กรอกรหัสผิดเกินกำหนด กรุณาขอรหัสใหม่', code: 'expired' });
     }
-    const ok = await bcrypt.compare(code, otp.code_hash);
-    if (!ok) {
+    const okCode = await bcrypt.compare(code, otp.code_hash);
+    if (!okCode) {
       await db.incOtpAttempts(email);
       return res.status(400).json({ error: 'รหัสยืนยันไม่ถูกต้อง' });
     }
+
+    // defence in depth — re-check eligibility / not-exists
+    const bad = await guardEmail(email);
+    if (bad) return res.status(bad.status).json(bad.body);
+
     await db.deleteOtp(email);
-    const ticket = jwt.sign({ purpose: 'register', email }, JWT_SECRET, { expiresIn: 15 * 60 });
-    res.json({ ok: true, ticket });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่' });
-  }
-});
-
-// STEP 3 — POST /api/auth/register  { ticket, fullName, phone, password }  → create account
-router.post('/register', async (req, res) => {
-  try {
-    const { ticket, fullName, phone, password } = req.body;
-    let email;
-    try {
-      const p = jwt.verify(ticket || '', JWT_SECRET);
-      if (p.purpose !== 'register' || !p.email) throw new Error('bad ticket');
-      email = normEmail(p.email);
-    } catch {
-      return res.status(401).json({ error: 'เซสชันสมัครหมดอายุ กรุณาเริ่มสมัครใหม่', code: 'ticket' });
-    }
-
-    if (!fullName || !String(fullName).trim())
-      return res.status(400).json({ error: 'กรุณากรอกชื่อ-นามสกุล' });
-    if (!password || String(password).length < 8)
-      return res.status(400).json({ error: 'รหัสผ่านต้องยาวอย่างน้อย 8 ตัวอักษร' });
-
-    // defence in depth — re-check the guards
-    if (await db.findUserByEmail(email))
-      return res.status(409).json({ error: 'อีเมลนี้มีบัญชีอยู่แล้ว', code: 'exists' });
-    let eligible2;
-    try { eligible2 = await checkEligible(email); }
-    catch (e) { console.error('eligibility check failed:', e.message); return res.status(503).json({ error: 'ระบบตรวจสอบสมาชิกไม่พร้อมชั่วคราว กรุณาลองใหม่' }); }
-    if (!eligible2)
-      return res.status(403).json({ error: 'ไม่พบอีเมลนี้ในระบบลูกค้า', code: 'not_eligible' });
-
     const hashed = await bcrypt.hash(password, 12);
     const user   = await db.createUserFull(email, hashed, String(fullName).trim(), String(phone || '').trim());
     const token  = await issueToken(user.id);

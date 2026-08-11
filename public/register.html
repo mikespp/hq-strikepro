@@ -76,34 +76,19 @@
     <!-- STEP 1: email -->
     <form id="step1" onsubmit="doCheck(event)">
       <h1>สมัครสมาชิก</h1>
-      <p class="sub">กรอกอีเมลที่ลงทะเบียนไว้กับ <b>StrikePro</b> — ระบบจะส่งรหัสยืนยันไปที่อีเมลของคุณ</p>
+      <p class="sub">กรอกอีเมลที่ลงทะเบียนไว้กับ <b>StrikePro</b></p>
       <div class="form-group">
         <label for="email">อีเมล</label>
         <input type="email" id="email" placeholder="you@example.com" autocomplete="email" required />
       </div>
-      <button type="submit" id="btn1" data-label="ตรวจสอบและรับรหัส" class="btn-primary">ตรวจสอบและรับรหัส</button>
+      <button type="submit" id="btn1" data-label="ถัดไป" class="btn-primary">ถัดไป</button>
       <div class="linkrow">มีบัญชีอยู่แล้ว? <a href="/login">เข้าสู่ระบบ</a></div>
     </form>
 
-    <!-- STEP 2: OTP -->
-    <form id="step2" style="display:none" onsubmit="doVerify(event)">
-      <h1>ยืนยันอีเมล</h1>
-      <p class="sub">กรอกรหัส 6 หลักที่ส่งไปที่ <b id="emailEcho"></b> <span style="color:#666">(ใช้ได้ 10 นาที)</span></p>
-      <div class="form-group">
-        <label for="code">รหัสยืนยัน</label>
-        <input type="text" id="code" class="otp-input" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code" required />
-      </div>
-      <button type="submit" id="btn2" data-label="ยืนยัน" class="btn-primary">ยืนยัน</button>
-      <div class="subrow">
-        <button type="button" class="textlink" onclick="backToEmail()">← แก้อีเมล</button>
-        <button type="button" class="textlink" id="resendBtn" onclick="resend()">ส่งรหัสอีกครั้ง</button>
-      </div>
-    </form>
-
-    <!-- STEP 3: profile + password -->
-    <form id="step3" style="display:none" onsubmit="doRegister(event)">
+    <!-- STEP 2: profile + password -->
+    <form id="step2" style="display:none" onsubmit="doForm(event)">
       <h1>ข้อมูลส่วนตัว</h1>
-      <p class="sub">ยืนยันอีเมลแล้ว ✓ กรอกข้อมูลและตั้งรหัสผ่านเพื่อสร้างบัญชี</p>
+      <p class="sub">กรอกข้อมูลและตั้งรหัสผ่าน — ขั้นต่อไปเราจะส่งรหัสยืนยันไปที่อีเมลของคุณ</p>
       <div class="form-group">
         <label for="fullName">ชื่อ-นามสกุล</label>
         <input type="text" id="fullName" placeholder="ชื่อ นามสกุล" autocomplete="name" required />
@@ -125,7 +110,23 @@
         <label for="pwd2">ยืนยันรหัสผ่าน</label>
         <input type="password" id="pwd2" placeholder="กรอกรหัสผ่านอีกครั้ง" autocomplete="new-password" required />
       </div>
-      <button type="submit" id="btn3" data-label="สร้างบัญชี" class="btn-primary">สร้างบัญชี</button>
+      <button type="submit" id="btn2" data-label="ส่งรหัสยืนยัน" class="btn-primary">ส่งรหัสยืนยัน</button>
+      <div class="subrow"><button type="button" class="textlink" onclick="goStep(1)">← แก้อีเมล</button><span></span></div>
+    </form>
+
+    <!-- STEP 3: OTP -->
+    <form id="step3" style="display:none" onsubmit="doCreate(event)">
+      <h1>ยืนยันอีเมล</h1>
+      <p class="sub">กรอกรหัส 6 หลักที่ส่งไปที่ <b id="emailEcho"></b> <span style="color:#666">(ใช้ได้ 10 นาที)</span></p>
+      <div class="form-group">
+        <label for="code">รหัสยืนยัน</label>
+        <input type="text" id="code" class="otp-input" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code" required />
+      </div>
+      <button type="submit" id="btn3" data-label="ยืนยันและสมัคร" class="btn-primary">ยืนยันและสมัคร</button>
+      <div class="subrow">
+        <button type="button" class="textlink" onclick="goStep(2)">← กลับ</button>
+        <button type="button" class="textlink" id="resendBtn" onclick="resend()">ส่งรหัสอีกครั้ง</button>
+      </div>
     </form>
   </div>
 </div>
@@ -133,7 +134,7 @@
 <script>
   const API = '/api/auth';
   const TOKEN_KEY = 'sp_token';
-  let state = { email: '', ticket: '' };
+  let state = { email: '', fullName: '', phone: '', password: '' };
 
   async function api(path, body) {
     const res = await fetch(API + path, {
@@ -155,9 +156,8 @@
     clearAlert();
     [1,2,3].forEach(s=>{ $('step'+s).style.display = s===n?'':'none'; $('d'+s).classList.toggle('on', s<=n); });
   }
-  function backToEmail(){ goStep(1); }
 
-  // STEP 1 — check eligibility + send OTP
+  // STEP 1 — check eligibility (no OTP yet)
   async function doCheck(e){
     e.preventDefault(); clearAlert();
     const email = $('email').value.trim().toLowerCase();
@@ -166,29 +166,30 @@
     try {
       await api('/register/check', { email });
       state.email = email;
-      $('emailEcho').textContent = email;
-      $('code').value = '';
       goStep(2);
-      $('code').focus();
+      $('fullName').focus();
     } catch(err){ alertMsg(err.message); shake(); }
     finally { loading('btn1', false); }
   }
 
-  // STEP 2 — verify OTP
-  async function doVerify(e){
+  // STEP 2 — validate form, then send OTP
+  async function doForm(e){
     e.preventDefault(); clearAlert();
-    const code = $('code').value.trim();
-    if(!/^\d{6}$/.test(code)){ alertMsg('กรอกรหัส 6 หลัก'); shake(); return; }
+    const fullName=$('fullName').value.trim();
+    const phone=$('phone').value.trim();
+    const pwd=$('pwd').value, pwd2=$('pwd2').value;
+    if(!fullName){ alertMsg('กรุณากรอกชื่อ-นามสกุล'); shake(); return; }
+    if(pwd.length<8){ alertMsg('รหัสผ่านอย่างน้อย 8 ตัวอักษร'); shake(); return; }
+    if(pwd!==pwd2){ alertMsg('รหัสผ่านไม่ตรงกัน'); shake(); return; }
+    state.fullName=fullName; state.phone=phone; state.password=pwd;
     loading('btn2', true);
     try {
-      const { ticket } = await api('/register/verify', { email: state.email, code });
-      state.ticket = ticket;
+      await api('/register/send-otp', { email: state.email });
+      $('emailEcho').textContent = state.email;
+      $('code').value = '';
       goStep(3);
-      $('fullName').focus();
-    } catch(err){
-      alertMsg(err.message); shake();
-      if(/หมดอายุ|ใหม่/.test(err.message)) { /* let them resend */ }
-    }
+      $('code').focus();
+    } catch(err){ alertMsg(err.message); shake(); if(/มีบัญชี|ลูกค้า/.test(err.message)) setTimeout(()=>goStep(1),1500); }
     finally { loading('btn2', false); }
   }
 
@@ -197,7 +198,7 @@
     if(resendTimer>0) return;
     clearAlert();
     try {
-      await api('/register/check', { email: state.email });
+      await api('/register/send-otp', { email: state.email });
       alertMsg('ส่งรหัสใหม่แล้ว', 'success');
       let t=30; const btn=$('resendBtn');
       resendTimer=t; btn.textContent=`ส่งอีกครั้ง (${t})`;
@@ -205,24 +206,24 @@
     } catch(err){ alertMsg(err.message); shake(); }
   }
 
-  // STEP 3 — create account
-  async function doRegister(e){
+  // STEP 3 — verify OTP + create account
+  async function doCreate(e){
     e.preventDefault(); clearAlert();
-    const fullName=$('fullName').value.trim();
-    const phone=$('phone').value.trim();
-    const pwd=$('pwd').value, pwd2=$('pwd2').value;
-    if(!fullName){ alertMsg('กรุณากรอกชื่อ-นามสกุล'); shake(); return; }
-    if(pwd.length<8){ alertMsg('รหัสผ่านอย่างน้อย 8 ตัวอักษร'); shake(); return; }
-    if(pwd!==pwd2){ alertMsg('รหัสผ่านไม่ตรงกัน'); shake(); return; }
+    const code=$('code').value.trim();
+    if(!/^\d{6}$/.test(code)){ alertMsg('กรอกรหัส 6 หลัก'); shake(); return; }
     loading('btn3', true);
     try {
-      const { token } = await api('/register', { ticket: state.ticket, fullName, phone, password: pwd });
+      const { token } = await api('/register', {
+        email: state.email, code,
+        fullName: state.fullName, phone: state.phone, password: state.password
+      });
       localStorage.setItem(TOKEN_KEY, token);
       alertMsg('สร้างบัญชีสำเร็จ! กำลังเข้าสู่ระบบ…', 'success');
       setTimeout(()=>{ window.location.href='/'; }, 900);
     } catch(err){
       alertMsg(err.message); shake();
-      if(/เซสชัน|หมดอายุ/.test(err.message)) setTimeout(()=>goStep(1), 1500);
+      if(/หมดอายุ/.test(err.message)) { /* let them resend */ }
+      else if(/มีบัญชี|ลูกค้า/.test(err.message)) setTimeout(()=>goStep(1),1500);
     }
     finally { loading('btn3', false); }
   }
