@@ -7,6 +7,7 @@ const fs      = require('fs');
 
 const db                  = require('./db/database');
 const { router: authRouter } = require('./routes/auth');
+const { mailerStatus }       = require('./lib/mailer');
 const reviewsRouter          = require('./routes/reviews');
 const lastAccountRouter      = require('./routes/last-account');
 const eventsRouter           = require('./routes/events');
@@ -132,7 +133,8 @@ app.use((err, req, res, _next) => {
 db.init()
   .then(() => {
     app.listen(PORT, () => {
-      console.log(`  HQ Strikepro running at http://localhost:${PORT}\n`);
+      console.log(`  HQ Strikepro running at http://localhost:${PORT}`);
+      console.log(`  ✉  Mail provider: ${mailerStatus()}\n`);
     });
   })
   .catch(err => {
