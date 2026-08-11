@@ -134,6 +134,27 @@ async function init() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
+  // Allowlist of StrikePro customer emails (SHA-256 hash of the normalised email).
+  // Synced daily from the StrikePro customer DB — registration is gated on this.
+  await pool.execute(`
+    CREATE TABLE IF NOT EXISTS eligible_emails (
+      email_hash CHAR(64) NOT NULL PRIMARY KEY,
+      updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
+  // One-time email verification codes for registration (expires_at is epoch ms).
+  await pool.execute(`
+    CREATE TABLE IF NOT EXISTS email_otps (
+      email      VARCHAR(255) NOT NULL PRIMARY KEY,
+      code_hash  VARCHAR(255) NOT NULL,
+      purpose    VARCHAR(20)  NOT NULL DEFAULT 'register',
+      attempts   TINYINT      NOT NULL DEFAULT 0,
+      expires_at BIGINT       NOT NULL,
+      created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
   // Add role column to users if it doesn't exist yet (idempotent migration)
   try {
     await pool.execute(`ALTER TABLE users ADD COLUMN role VARCHAR(20) NOT NULL DEFAULT 'user'`);
@@ -158,6 +179,14 @@ async function init() {
     } catch (err) {
       if (err.errno !== 1060) throw err;
     }
+  }
+
+  // Add profile columns to users (idempotent)
+  for (const ddl of [
+    `ALTER TABLE users ADD COLUMN full_name VARCHAR(255) NOT NULL DEFAULT ''`,
+    `ALTER TABLE users ADD COLUMN phone VARCHAR(50) NOT NULL DEFAULT ''`,
+  ]) {
+    try { await pool.execute(ddl); } catch (err) { if (err.errno !== 1060) throw err; }
   }
 
   // Promote any emails listed in ADMIN_EMAILS (comma-separated) to admin on startup.
@@ -224,6 +253,64 @@ async function createUser(email, hashedPassword) {
     [email.toLowerCase().trim(), hashedPassword]
   );
   return { id: result.insertId, email: email.toLowerCase().trim() };
+}
+
+async function createUserFull(email, hashedPassword, fullName, phone) {
+  const e = email.toLowerCase().trim();
+  const [result] = await pool.execute(
+    'INSERT INTO users (email, password, full_name, phone) VALUES (?, ?, ?, ?)',
+    [e, hashedPassword, (fullName || '').trim(), (phone || '').trim()]
+  );
+  return { id: result.insertId, email: e };
+}
+
+// ── Eligibility (StrikePro customer allowlist) ─────────────────────────────────
+
+async function isEmailEligible(emailHash) {
+  const [rows] = await pool.execute('SELECT 1 FROM eligible_emails WHERE email_hash = ? LIMIT 1', [emailHash]);
+  return rows.length > 0;
+}
+
+async function countEligible() {
+  const [rows] = await pool.execute('SELECT COUNT(*) AS n FROM eligible_emails');
+  return rows[0].n;
+}
+
+async function addEligibleHashes(hashes) {
+  let added = 0;
+  const CH = 1000;
+  for (let i = 0; i < hashes.length; i += CH) {
+    const chunk = hashes.slice(i, i + CH);
+    const ph = chunk.map(() => '(?)').join(',');
+    const [r] = await pool.query(`INSERT IGNORE INTO eligible_emails (email_hash) VALUES ${ph}`, chunk);
+    added += r.affectedRows;
+  }
+  return added;
+}
+
+// ── Email OTPs ─────────────────────────────────────────────────────────────────
+
+async function upsertOtp(email, codeHash, expiresAtMs, purpose = 'register') {
+  await pool.execute(
+    `INSERT INTO email_otps (email, code_hash, purpose, attempts, expires_at)
+     VALUES (?, ?, ?, 0, ?)
+     ON DUPLICATE KEY UPDATE code_hash=VALUES(code_hash), purpose=VALUES(purpose),
+       attempts=0, expires_at=VALUES(expires_at), created_at=CURRENT_TIMESTAMP`,
+    [email.toLowerCase().trim(), codeHash, purpose, expiresAtMs]
+  );
+}
+
+async function getOtp(email) {
+  const [rows] = await pool.execute('SELECT * FROM email_otps WHERE email = ? LIMIT 1', [email.toLowerCase().trim()]);
+  return rows[0] || null;
+}
+
+async function incOtpAttempts(email) {
+  await pool.execute('UPDATE email_otps SET attempts = attempts + 1 WHERE email = ?', [email.toLowerCase().trim()]);
+}
+
+async function deleteOtp(email) {
+  await pool.execute('DELETE FROM email_otps WHERE email = ?', [email.toLowerCase().trim()]);
 }
 
 // ── Sessions ──────────────────────────────────────────────────────────────────
@@ -593,7 +680,9 @@ async function seedEventsIfEmpty() {
 
 module.exports = {
   init,
-  findUserByEmail, findUserById, createUser,
+  findUserByEmail, findUserById, createUser, createUserFull,
+  isEmailEligible, countEligible, addEligibleHashes,
+  upsertOtp, getOtp, incOtpAttempts, deleteOtp,
   createSession, findSession, deleteSession,
   getAllClients, getClientById, createClient, updateClient, deleteClient,
   getDashboardStats, refreshUserStats,

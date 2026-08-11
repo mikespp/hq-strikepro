@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>สมัครสมาชิก – HQ Strikepro</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <meta name="theme-color" content="#d4af37" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary:#E63946; --primary-dark:#c1121f; --gold:#d4af37;
+      --bg:#0d0d0d; --surface:#1a1a1a; --surface2:#242424; --border:#2e2e2e;
+      --text:#f1f1f1; --text-muted:#888; --input-bg:#111; --radius:14px; --radius-sm:8px;
+    }
+    html,body{height:100%;background:var(--bg);color:var(--text);
+      font-family:'IBM Plex Sans Thai',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;-webkit-font-smoothing:antialiased;}
+    .app{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 20px;}
+    .logo{display:flex;flex-direction:column;align-items:center;margin-bottom:28px;}
+    .logo-mark img{width:80px;height:80px;object-fit:contain;margin-bottom:10px;}
+    .logo-name{font-size:24px;font-weight:800;letter-spacing:-.5px;}
+    .logo-name span{color:var(--primary);}
+    .card{width:100%;max-width:400px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px 24px;}
+    .steps{display:flex;gap:6px;margin-bottom:22px;}
+    .steps .dot{flex:1;height:4px;border-radius:2px;background:var(--border);transition:background .3s;}
+    .steps .dot.on{background:var(--gold);}
+    h1{font-size:20px;font-weight:800;margin-bottom:4px;}
+    .sub{font-size:13px;color:var(--text-muted);line-height:1.55;margin-bottom:22px;}
+    .sub b{color:var(--text);}
+    .form-group{margin-bottom:16px;}
+    label{display:block;font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;}
+    input{width:100%;padding:13px 14px;background:var(--input-bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);
+      color:var(--text);font-size:15px;outline:none;transition:border-color .2s;-webkit-appearance:none;}
+    input::placeholder{color:#444;}
+    input:focus{border-color:var(--gold);}
+    .otp-input{text-align:center;letter-spacing:14px;font-size:26px;font-weight:800;padding-left:14px;}
+    .password-wrap{position:relative;}
+    .password-wrap input{padding-right:44px;}
+    .eye-btn{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-muted);display:flex;align-items:center;padding:4px;}
+    .eye-btn:hover{color:var(--text);}
+    .btn-primary{width:100%;padding:14px;background:var(--gold);color:#111;border:none;border-radius:var(--radius-sm);
+      font-size:15px;font-weight:800;cursor:pointer;margin-top:6px;transition:opacity .2s,transform .1s;}
+    .btn-primary:hover{opacity:.9;}.btn-primary:active{transform:scale(.98);}
+    .btn-primary:disabled{opacity:.5;cursor:default;}
+    .linkrow{text-align:center;margin-top:18px;font-size:13px;color:var(--text-muted);}
+    .linkrow a,.textlink{color:var(--gold);text-decoration:none;cursor:pointer;background:none;border:none;font:inherit;}
+    .textlink:hover,.linkrow a:hover{text-decoration:underline;}
+    .subrow{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:13px;}
+    .alert{padding:11px 14px;border-radius:var(--radius-sm);font-size:13px;margin-bottom:16px;display:none;line-height:1.5;}
+    .alert.error{background:rgba(230,57,70,.12);border:1px solid rgba(230,57,70,.3);color:#ff6b76;}
+    .alert.success{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#4ade80;}
+    .alert.show{display:block;}
+    .strength-bar{display:flex;gap:4px;margin-top:8px;}
+    .strength-bar span{flex:1;height:3px;border-radius:2px;background:var(--border);transition:background .3s;}
+    .strength-label{font-size:11px;margin-top:5px;color:var(--text-muted);}
+    @keyframes shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-6px);}40%{transform:translateX(6px);}60%{transform:translateX(-4px);}80%{transform:translateX(4px);}}
+    .shake{animation:shake .4s ease;}
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@100;300;400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+<div class="app">
+  <div class="logo">
+    <div class="logo-mark"><img src="/logo.png.png" alt="HQ Strikepro" /></div>
+    <div class="logo-name">HQ <span>STRIKEPRO</span></div>
+  </div>
+
+  <div class="card" id="card">
+    <div class="steps"><div class="dot on" id="d1"></div><div class="dot" id="d2"></div><div class="dot" id="d3"></div></div>
+    <div class="alert" id="alert"></div>
+
+    <!-- STEP 1: email -->
+    <form id="step1" onsubmit="doCheck(event)">
+      <h1>สมัครสมาชิก</h1>
+      <p class="sub">กรอกอีเมลที่ลงทะเบียนไว้กับ <b>StrikePro</b> — ระบบจะส่งรหัสยืนยันไปที่อีเมลของคุณ</p>
+      <div class="form-group">
+        <label for="email">อีเมล</label>
+        <input type="email" id="email" placeholder="you@example.com" autocomplete="email" required />
+      </div>
+      <button type="submit" id="btn1" data-label="ตรวจสอบและรับรหัส" class="btn-primary">ตรวจสอบและรับรหัส</button>
+      <div class="linkrow">มีบัญชีอยู่แล้ว? <a href="/login">เข้าสู่ระบบ</a></div>
+    </form>
+
+    <!-- STEP 2: OTP -->
+    <form id="step2" style="display:none" onsubmit="doVerify(event)">
+      <h1>ยืนยันอีเมล</h1>
+      <p class="sub">กรอกรหัส 6 หลักที่ส่งไปที่ <b id="emailEcho"></b> <span style="color:#666">(ใช้ได้ 10 นาที)</span></p>
+      <div class="form-group">
+        <label for="code">รหัสยืนยัน</label>
+        <input type="text" id="code" class="otp-input" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code" required />
+      </div>
+      <button type="submit" id="btn2" data-label="ยืนยัน" class="btn-primary">ยืนยัน</button>
+      <div class="subrow">
+        <button type="button" class="textlink" onclick="backToEmail()">← แก้อีเมล</button>
+        <button type="button" class="textlink" id="resendBtn" onclick="resend()">ส่งรหัสอีกครั้ง</button>
+      </div>
+    </form>
+
+    <!-- STEP 3: profile + password -->
+    <form id="step3" style="display:none" onsubmit="doRegister(event)">
+      <h1>ข้อมูลส่วนตัว</h1>
+      <p class="sub">ยืนยันอีเมลแล้ว ✓ กรอกข้อมูลและตั้งรหัสผ่านเพื่อสร้างบัญชี</p>
+      <div class="form-group">
+        <label for="fullName">ชื่อ-นามสกุล</label>
+        <input type="text" id="fullName" placeholder="ชื่อ นามสกุล" autocomplete="name" required />
+      </div>
+      <div class="form-group">
+        <label for="phone">เบอร์โทร (ไม่บังคับ)</label>
+        <input type="tel" id="phone" placeholder="08x-xxx-xxxx" autocomplete="tel" />
+      </div>
+      <div class="form-group">
+        <label for="pwd">รหัสผ่าน</label>
+        <div class="password-wrap">
+          <input type="password" id="pwd" placeholder="อย่างน้อย 8 ตัวอักษร" autocomplete="new-password" oninput="checkStrength(this.value)" required />
+          <button type="button" class="eye-btn" onclick="togglePwd('pwd',this)">👁</button>
+        </div>
+        <div class="strength-bar"><span id="s1"></span><span id="s2"></span><span id="s3"></span><span id="s4"></span></div>
+        <div class="strength-label" id="strengthLabel"></div>
+      </div>
+      <div class="form-group">
+        <label for="pwd2">ยืนยันรหัสผ่าน</label>
+        <input type="password" id="pwd2" placeholder="กรอกรหัสผ่านอีกครั้ง" autocomplete="new-password" required />
+      </div>
+      <button type="submit" id="btn3" data-label="สร้างบัญชี" class="btn-primary">สร้างบัญชี</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  const API = '/api/auth';
+  const TOKEN_KEY = 'sp_token';
+  let state = { email: '', ticket: '' };
+
+  async function api(path, body) {
+    const res = await fetch(API + path, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'เกิดข้อผิดพลาด');
+    return data;
+  }
+  const $ = id => document.getElementById(id);
+  function alertMsg(msg, type='error'){ const a=$('alert'); a.textContent=msg; a.className=`alert ${type} show`; }
+  function clearAlert(){ $('alert').className='alert'; }
+  function shake(){ const c=$('card'); c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake'); }
+  function loading(id,on){ const b=$(id); b.disabled=on; b.textContent=on?'กรุณารอสักครู่…':b.dataset.label; }
+  function togglePwd(id,btn){ const i=$(id); i.type=i.type==='password'?'text':'password'; btn.textContent=i.type==='text'?'🙈':'👁'; }
+
+  function goStep(n){
+    clearAlert();
+    [1,2,3].forEach(s=>{ $('step'+s).style.display = s===n?'':'none'; $('d'+s).classList.toggle('on', s<=n); });
+  }
+  function backToEmail(){ goStep(1); }
+
+  // STEP 1 — check eligibility + send OTP
+  async function doCheck(e){
+    e.preventDefault(); clearAlert();
+    const email = $('email').value.trim().toLowerCase();
+    if(!email) return;
+    loading('btn1', true);
+    try {
+      await api('/register/check', { email });
+      state.email = email;
+      $('emailEcho').textContent = email;
+      $('code').value = '';
+      goStep(2);
+      $('code').focus();
+    } catch(err){ alertMsg(err.message); shake(); }
+    finally { loading('btn1', false); }
+  }
+
+  // STEP 2 — verify OTP
+  async function doVerify(e){
+    e.preventDefault(); clearAlert();
+    const code = $('code').value.trim();
+    if(!/^\d{6}$/.test(code)){ alertMsg('กรอกรหัส 6 หลัก'); shake(); return; }
+    loading('btn2', true);
+    try {
+      const { ticket } = await api('/register/verify', { email: state.email, code });
+      state.ticket = ticket;
+      goStep(3);
+      $('fullName').focus();
+    } catch(err){
+      alertMsg(err.message); shake();
+      if(/หมดอายุ|ใหม่/.test(err.message)) { /* let them resend */ }
+    }
+    finally { loading('btn2', false); }
+  }
+
+  let resendTimer = 0;
+  async function resend(){
+    if(resendTimer>0) return;
+    clearAlert();
+    try {
+      await api('/register/check', { email: state.email });
+      alertMsg('ส่งรหัสใหม่แล้ว', 'success');
+      let t=30; const btn=$('resendBtn');
+      resendTimer=t; btn.textContent=`ส่งอีกครั้ง (${t})`;
+      const iv=setInterval(()=>{ t--; resendTimer=t; btn.textContent=t>0?`ส่งอีกครั้ง (${t})`:'ส่งรหัสอีกครั้ง'; if(t<=0)clearInterval(iv); },1000);
+    } catch(err){ alertMsg(err.message); shake(); }
+  }
+
+  // STEP 3 — create account
+  async function doRegister(e){
+    e.preventDefault(); clearAlert();
+    const fullName=$('fullName').value.trim();
+    const phone=$('phone').value.trim();
+    const pwd=$('pwd').value, pwd2=$('pwd2').value;
+    if(!fullName){ alertMsg('กรุณากรอกชื่อ-นามสกุล'); shake(); return; }
+    if(pwd.length<8){ alertMsg('รหัสผ่านอย่างน้อย 8 ตัวอักษร'); shake(); return; }
+    if(pwd!==pwd2){ alertMsg('รหัสผ่านไม่ตรงกัน'); shake(); return; }
+    loading('btn3', true);
+    try {
+      const { token } = await api('/register', { ticket: state.ticket, fullName, phone, password: pwd });
+      localStorage.setItem(TOKEN_KEY, token);
+      alertMsg('สร้างบัญชีสำเร็จ! กำลังเข้าสู่ระบบ…', 'success');
+      setTimeout(()=>{ window.location.href='/'; }, 900);
+    } catch(err){
+      alertMsg(err.message); shake();
+      if(/เซสชัน|หมดอายุ/.test(err.message)) setTimeout(()=>goStep(1), 1500);
+    }
+    finally { loading('btn3', false); }
+  }
+
+  function checkStrength(pwd){
+    let s=0; if(pwd.length>=8)s++; if(/[A-Z]/.test(pwd))s++; if(/[0-9]/.test(pwd))s++; if(/[^A-Za-z0-9]/.test(pwd))s++;
+    const colors=['#E63946','#f4a261','#e9c46a','#4ade80'];
+    ['s1','s2','s3','s4'].forEach((id,i)=>{ $(id).style.background = i<s?colors[s-1]:'var(--border)'; });
+    const l=$('strengthLabel'); l.textContent = pwd.length===0?'':['อ่อน','พอใช้','ดี','แข็งแรง'][s-1]||'อ่อน';
+    l.style.color = pwd.length===0?'':colors[s-1]||colors[0];
+  }
+
+  // already logged in? go home
+  (async function(){
+    const t=localStorage.getItem(TOKEN_KEY); if(!t) return;
+    try { const r=await fetch('/api/auth/me',{headers:{Authorization:'Bearer '+t}}); if(r.ok) window.location.href='/'; }
+    catch {}
+  })();
+</script>
+</body>
+</html>

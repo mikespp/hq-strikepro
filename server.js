@@ -10,6 +10,7 @@ const { router: authRouter } = require('./routes/auth');
 const reviewsRouter          = require('./routes/reviews');
 const lastAccountRouter      = require('./routes/last-account');
 const eventsRouter           = require('./routes/events');
+const eligibilityRouter      = require('./routes/eligibility');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -45,6 +46,7 @@ app.use('/api/auth',      authRouter);
 app.use('/api/reviews',   reviewsRouter);
 app.use('/api/last-account', lastAccountRouter);
 app.use('/api/events',    eventsRouter);
+app.use('/api/eligibility', eligibilityRouter);
 
 // Health check
 app.get('/api/health', (_, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
@@ -57,6 +59,11 @@ app.get('/favicon.ico', (req, res) => {
 // /login → serve login.html
 app.get('/login', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+// /register → serve register.html
+app.get('/register', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'register.html'));
 });
 
 // /events/unlock-your-wealth → serve event page
