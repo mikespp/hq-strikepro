@@ -1,5 +1,9 @@
 require('dotenv').config();
 
+// Prefer IPv4 for outbound connections — Railway's IPv6 route to Gmail SMTP
+// is unreachable (ESOCKET ENETUNREACH), which broke OTP email delivery.
+try { require('dns').setDefaultResultOrder('ipv4first'); } catch (_) {}
+
 const express = require('express');
 const cors    = require('cors');
 const path    = require('path');
