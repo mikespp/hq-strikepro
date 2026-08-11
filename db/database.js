@@ -593,6 +593,14 @@ async function countLastAccountApplications(round) {
  * Returns { full: true } if the round's main+reserve seats are exhausted,
  * otherwise { id, seat_type, position }.
  */
+async function hasLastAccountApplication(email, round) {
+  const [rows] = await pool.execute(
+    'SELECT 1 FROM last_account_applications WHERE email = ? AND round = ? LIMIT 1',
+    [String(email || '').toLowerCase().trim(), round]
+  );
+  return rows.length > 0;
+}
+
 async function createLastAccountApplication(data, round, mainSeats, reserveSeats, offset = 0) {
   const conn = await pool.getConnection();
   try {
@@ -715,6 +723,6 @@ module.exports = {
   getDashboardStats, refreshUserStats,
   getProductStats, getProductInvestors,
   createReview, listReviews, deleteReview, toggleReviewFeatured,
-  countLastAccountApplications, createLastAccountApplication, listLastAccountApplications,
+  countLastAccountApplications, createLastAccountApplication, listLastAccountApplications, hasLastAccountApplication,
   listEvents, getEventById, createEvent, updateEvent, deleteEvent,
 };

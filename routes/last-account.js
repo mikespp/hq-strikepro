@@ -1,6 +1,6 @@
 const express = require('express');
 const db      = require('../db/database');
-const { requireAdmin } = require('./auth');
+const { requireAuth, requireAdmin } = require('./auth');
 
 const router = express.Router();
 
@@ -17,6 +17,27 @@ const ROUNDS = {
 function parseRound(v) {
   const r = parseInt(v, 10);
   return ROUNDS[r] ? r : null;
+}
+
+// The next joinable round = lowest round number that hasn't been manually closed.
+function nextJoinRoundNum() {
+  const open = Object.keys(ROUNDS).map(Number).filter(r => !ROUNDS[r].closed).sort((a, b) => a - b);
+  return open.length ? open[0] : null;
+}
+
+function toYMD(v) {
+  if (!v) return null;
+  if (typeof v === 'string') return v.slice(0, 10);
+  const d = new Date(v);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+function ageFromYMD(ymd) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(ymd || '')) return null;
+  const [y, m, d] = ymd.split('-').map(Number);
+  const t = new Date();
+  let a = t.getFullYear() - y;
+  if (t.getMonth() + 1 < m || (t.getMonth() + 1 === m && t.getDate() < d)) a--;
+  return a;
 }
 
 function buildStatus(round, dbCount) {
@@ -163,6 +184,63 @@ router.get('/applications', requireAdmin, async (req, res) => {
   try {
     const rows = await db.listLastAccountApplications();
     res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
+  }
+});
+
+// ── GET /api/last-account/next  (public) — status of the next joinable round ──
+router.get('/next', async (req, res) => {
+  try {
+    const round = nextJoinRoundNum();
+    if (!round) return res.json({ round: null });
+    const count = await db.countLastAccountApplications(round);
+    res.json(buildStatus(round, count));
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
+  }
+});
+
+// ── POST /api/last-account/join  (member) — one-click join using the profile ─
+router.post('/join', requireAuth, async (req, res) => {
+  try {
+    const round = nextJoinRoundNum();
+    if (!round) return res.status(403).json({ error: 'ยังไม่มีรุ่นที่เปิดรับสมัครในขณะนี้' });
+    const cfg = ROUNDS[round];
+    if (new Date() < cfg.opensAt)
+      return res.status(403).json({ error: 'ยังไม่เปิดรับสมัครรุ่นนี้ กรุณารอถึงเวลาเปิดรับสมัคร' });
+
+    const user = await db.findUserById(req.userId);
+    if (!user) return res.status(401).json({ error: 'ไม่พบผู้ใช้' });
+
+    const missing = ['first_name', 'last_name', 'phone', 'birth_date'].filter(k => !user[k] || !String(user[k]).trim());
+    if (missing.length)
+      return res.status(400).json({ error: 'ข้อมูลโปรไฟล์ไม่ครบ กรุณาอัพเดทข้อมูลก่อนลงทะเบียน', code: 'profile' });
+
+    if (await db.hasLastAccountApplication(user.email, round))
+      return res.status(409).json({ error: 'คุณลงทะเบียนรุ่นนี้ไว้แล้ว', code: 'joined' });
+
+    const birth = toYMD(user.birth_date);
+    const data = {
+      first_name:  String(user.first_name).trim().toUpperCase().slice(0, 120),
+      last_name:   String(user.last_name).trim().toUpperCase().slice(0, 120),
+      nickname:    String(user.nickname || '').trim().slice(0, 120),
+      birth_date:  birth,
+      age:         ageFromYMD(birth),
+      phone:       String(user.phone || '').replace(/\D/g, '').slice(0, 50),
+      email:       String(user.email).trim().toLowerCase().slice(0, 255),
+      mt5_account: '',
+      line_id:     String(user.line_id || '').trim().slice(0, 120),
+      discord_id:  '',
+    };
+
+    const result = await db.createLastAccountApplication(data, round, cfg.main, cfg.reserve, cfg.offset || 0);
+    if (result.full)
+      return res.status(409).json({ error: 'รุ่นนี้เต็มแล้ว กรุณารอรอบถัดไป', status: 'full' });
+
+    res.status(201).json({ success: true, round, label: cfg.label, seat_type: result.seat_type, position: result.position });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });

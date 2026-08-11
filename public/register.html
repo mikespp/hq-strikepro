@@ -254,7 +254,7 @@
       const { token } = await api('/register', payload);
       localStorage.setItem(TOKEN_KEY, token);
       alertMsg('สร้างบัญชีสำเร็จ! กำลังเข้าสู่ระบบ…','success');
-      setTimeout(()=>{ window.location.href='/'; }, 900);
+      setTimeout(()=>{ const n=new URLSearchParams(location.search).get('next'); window.location.href=(n&&n.startsWith('/'))?n:'/'; }, 900);
     } catch(err){
       alertMsg(err.message); shake();
       if(/มีบัญชี|ลูกค้า/.test(err.message)) setTimeout(()=>goStep(1),1500);
@@ -272,7 +272,7 @@
 
   (async function(){
     const t=localStorage.getItem(TOKEN_KEY); if(!t) return;
-    try { const r=await fetch('/api/auth/me',{headers:{Authorization:'Bearer '+t}}); if(r.ok) window.location.href='/'; } catch {}
+    try { const r=await fetch('/api/auth/me',{headers:{Authorization:'Bearer '+t}}); if(r.ok){ const n=new URLSearchParams(location.search).get('next'); window.location.href=(n&&n.startsWith('/'))?n:'/'; } } catch {}
   })();
 </script>
 </body>
