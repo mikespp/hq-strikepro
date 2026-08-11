@@ -54,6 +54,17 @@
     .nav-logo img { width: 36px; height: 36px; object-fit: contain; }
     .nav-logo-name { font-size: 15px; font-weight: 800; color: var(--text); letter-spacing: -.3px; }
     .nav-logo-name span { color: var(--primary); }
+    .nav-auth { display: flex; align-items: center; gap: 8px; }
+    .nav-btn { font-size: 13px; font-weight: 700; padding: 8px 14px; border-radius: 8px; text-decoration: none; white-space: nowrap; transition: .15s; }
+    .nav-btn.ghost { color: var(--text); border: 1px solid var(--border); }
+    .nav-btn.ghost:hover { border-color: var(--primary); color: var(--primary); }
+    .nav-btn.solid { background: var(--primary); color: #fff; }
+    .nav-btn.solid:hover { opacity: .9; }
+    .nav-user { display: flex; align-items: center; gap: 10px; }
+    .nav-user .who { font-size: 13px; color: var(--text-muted); max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .nav-user .signout { font-size: 13px; font-weight: 700; color: var(--text-muted); background: none; border: 1px solid var(--border); border-radius: 8px; padding: 7px 12px; cursor: pointer; }
+    .nav-user .signout:hover { border-color: var(--primary); color: var(--primary); }
+    @media (max-width: 420px) { .nav-btn { padding: 7px 11px; font-size: 12px; } }
 
     /* ── Hero ── */
     .hero {
@@ -372,7 +383,32 @@
     <img src="/logo.png.png" alt="HQ" />
     <span class="nav-logo-name">HQ <span>STRIKEPRO</span></span>
   </a>
+  <div class="nav-auth" id="navAuth">
+    <a class="nav-btn ghost" href="/login">เข้าสู่ระบบ</a>
+    <a class="nav-btn solid" href="/register">สมัคร</a>
+  </div>
 </nav>
+<script>
+  (function () {
+    var KEY = 'sp_token', el = document.getElementById('navAuth');
+    var token = localStorage.getItem(KEY);
+    if (!token) return; // logged out → keep เข้าสู่ระบบ / สมัคร
+    fetch('/api/auth/me', { headers: { Authorization: 'Bearer ' + token } })
+      .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+      .then(function (d) {
+        var email = (d.user && d.user.email) || '';
+        el.innerHTML = '<div class="nav-user"><span class="who">' + email +
+          '</span><button class="signout" onclick="hqSignOut()">ออกจากระบบ</button></div>';
+      })
+      .catch(function () { localStorage.removeItem(KEY); });
+  })();
+  function hqSignOut() {
+    var t = localStorage.getItem('sp_token');
+    fetch('/api/auth/logout', { method: 'POST', headers: { Authorization: 'Bearer ' + t } }).catch(function () {});
+    localStorage.removeItem('sp_token');
+    location.reload();
+  }
+</script>
 
 <!-- Hero -->
 <section class="hero">
