@@ -641,6 +641,38 @@ async function listLastAccountApplications() {
   return rows;
 }
 
+// ── User management (admin) ───────────────────────────────────────────────────
+
+async function searchUsers(q) {
+  if (q) {
+    const [rows] = await pool.execute(
+      'SELECT id, email, role, created_at FROM users WHERE email LIKE ? ORDER BY created_at DESC LIMIT 300',
+      ['%' + q + '%']
+    );
+    return rows;
+  }
+  const [rows] = await pool.execute(
+    'SELECT id, email, role, created_at FROM users ORDER BY created_at DESC LIMIT 300'
+  );
+  return rows;
+}
+
+async function deleteUserById(id) {
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+    await conn.execute('DELETE FROM sessions WHERE user_id = ?', [id]);
+    const [result] = await conn.execute('DELETE FROM users WHERE id = ?', [id]);
+    await conn.commit();
+    return result.affectedRows > 0;
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally {
+    conn.release();
+  }
+}
+
 // ── Events (calendar) ─────────────────────────────────────────────────────────
 
 // DB row -> API shape used by the calendar frontend: { id, t, s:[y,m,d], e:[y,m,d], c, h, live }
@@ -725,4 +757,5 @@ module.exports = {
   createReview, listReviews, deleteReview, toggleReviewFeatured,
   countLastAccountApplications, createLastAccountApplication, listLastAccountApplications, hasLastAccountApplication,
   listEvents, getEventById, createEvent, updateEvent, deleteEvent,
+  searchUsers, deleteUserById,
 };

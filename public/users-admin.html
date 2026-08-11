@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#d4af37" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>จัดการผู้ใช้ (Admin)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --gold:#d4af37; --gold-pale:#ffe99a; --gold-dim:rgba(212,175,55,.12); --gold-border:rgba(212,175,55,.22);
+      --bg:#060606; --card:#0f0f0f; --card2:#131313; --border:rgba(255,255,255,.08);
+      --text:#f0f0f0; --muted:#7a7a7a; --red:#f87171; --red-bg:rgba(248,113,113,.12); --radius:14px;
+    }
+    body { font-family:'IBM Plex Sans Thai','Inter',sans-serif; background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; }
+
+    nav { position:sticky; top:0; z-index:50; display:flex; align-items:center; gap:12px; padding:14px 20px;
+      background:rgba(6,6,6,.85); backdrop-filter:blur(20px); border-bottom:1px solid var(--border); }
+    .nav-back { display:inline-flex; align-items:center; gap:6px; font-size:14px; font-weight:600; color:var(--muted); text-decoration:none; }
+    .nav-back:hover { color:var(--text); }
+    .nav-back svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .nav-title { font-size:15px; font-weight:800; color:var(--gold); }
+    .nav-user { margin-left:auto; font-size:12px; color:var(--muted); }
+
+    .wrap { max-width:900px; margin:0 auto; padding:24px 20px 80px; }
+
+    .toolbar { display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
+    .toolbar input { flex:1; min-width:220px; background:var(--card2); border:1px solid var(--border); border-radius:10px;
+      padding:12px 14px; font-size:14px; color:var(--text); font-family:inherit; }
+    .toolbar input:focus { outline:none; border-color:var(--gold-border); }
+    .btn { display:inline-flex; align-items:center; gap:7px; background:var(--card2); border:1px solid var(--border);
+      border-radius:10px; padding:12px 16px; font-size:14px; font-weight:600; color:var(--text); cursor:pointer; font-family:inherit; transition:border-color .15s; }
+    .btn:hover { border-color:var(--gold-border); }
+    .count { font-size:12px; color:var(--muted); margin-bottom:12px; }
+
+    .table-wrap { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; min-width:560px; }
+    th { font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--muted); text-align:left; font-weight:700;
+      padding:14px; border-bottom:1px solid var(--border); white-space:nowrap; background:var(--card2); }
+    td { font-size:13px; padding:13px 14px; border-bottom:1px solid var(--border); vertical-align:middle; }
+    tr:last-child td { border-bottom:none; }
+    tr:hover td { background:rgba(255,255,255,.02); }
+    .email { font-weight:600; color:var(--text); word-break:break-all; }
+    .role-badge { font-size:11px; font-weight:800; padding:3px 10px; border-radius:50px; white-space:nowrap; }
+    .role-badge.admin { background:var(--gold-dim); color:var(--gold-pale); border:1px solid var(--gold-border); }
+    .role-badge.user { background:rgba(255,255,255,.05); color:var(--muted); border:1px solid var(--border); }
+    .cell-sub { font-size:12px; color:var(--muted); white-space:nowrap; }
+    .del-btn { background:var(--red-bg); border:1px solid rgba(248,113,113,.3); color:var(--red);
+      border-radius:8px; padding:7px 12px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap; transition:background .15s; }
+    .del-btn:hover { background:rgba(248,113,113,.2); }
+    .del-btn.confirm { background:var(--red); color:#0a0a0a; border-color:var(--red); }
+    .del-btn.self { opacity:.4; cursor:not-allowed; }
+
+    .state { text-align:center; padding:50px 20px; color:var(--muted); font-size:14px; }
+    .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#222; border:1px solid rgba(255,255,255,.12);
+      color:#f0f0f0; padding:10px 20px; border-radius:10px; font-size:13px; font-weight:600; z-index:999; opacity:0; transition:opacity .2s; pointer-events:none; }
+    .toast.show { opacity:1; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-back" href="/reviews-admin">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg> Reviews
+  </a>
+  <span class="nav-title">👤 จัดการผู้ใช้</span>
+  <span class="nav-user" id="navUser"></span>
+</nav>
+
+<div class="wrap">
+  <div class="toolbar">
+    <input id="search" placeholder="ค้นหาอีเมล… (เว้นว่าง = แสดงทั้งหมด)" />
+    <button class="btn" onclick="load()">ค้นหา</button>
+  </div>
+  <div class="count" id="count"></div>
+  <div id="content"><div class="state">กำลังโหลด…</div></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const TOKEN_KEY = 'sp_token';
+  let me = null;
+  let pendingId = null; // id awaiting delete confirmation
+
+  function el(id){ return document.getElementById(id); }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];}); }
+  function toast(m){ const t=el('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1900); }
+  function tok(){ return localStorage.getItem(TOKEN_KEY); }
+
+  function fmtDate(s){
+    if(!s) return '';
+    const d=new Date(s); if(isNaN(d)) return esc(s);
+    const p=n=>(n<10?'0':'')+n;
+    return p(d.getDate())+'/'+p(d.getMonth()+1)+'/'+d.getFullYear()+' '+p(d.getHours())+':'+p(d.getMinutes());
+  }
+
+  (async () => {
+    if (!tok()) { window.location.href = '/login'; return; }
+    try {
+      const r = await fetch('/api/auth/me', { headers:{ Authorization:'Bearer '+tok() } });
+      if (!r.ok) { window.location.href = '/login'; return; }
+      me = (await r.json()).user;
+      el('navUser').textContent = me.email;
+      if (me.role !== 'admin') {
+        el('content').innerHTML = '<div class="state">🔒 หน้านี้สำหรับผู้ดูแลระบบ (admin) เท่านั้น</div>';
+        document.querySelector('.toolbar').style.display = 'none';
+        return;
+      }
+      load();
+    } catch { window.location.href = '/login'; }
+  })();
+
+  el('search').addEventListener('keydown', function(e){ if (e.key === 'Enter') load(); });
+
+  async function load() {
+    pendingId = null;
+    el('content').innerHTML = '<div class="state">กำลังโหลด…</div>';
+    const q = encodeURIComponent(el('search').value.trim());
+    try {
+      const r = await fetch('/api/users?q=' + q, { headers:{ Authorization:'Bearer '+tok() } });
+      if (!r.ok) throw new Error();
+      render(await r.json());
+    } catch {
+      el('content').innerHTML = '<div class="state">โหลดข้อมูลไม่สำเร็จ</div>';
+    }
+  }
+
+  function render(users) {
+    el('count').textContent = users.length + ' บัญชี';
+    if (!users.length) { el('content').innerHTML = '<div class="state">ไม่พบผู้ใช้</div>'; return; }
+    let html = '<div class="table-wrap"><table><thead><tr><th>#</th><th>Email</th><th>Role</th><th>สมัครเมื่อ</th><th></th></tr></thead><tbody>';
+    users.forEach((u, i) => {
+      const isSelf = me && u.id === me.id;
+      const role = u.role === 'admin'
+        ? '<span class="role-badge admin">admin</span>'
+        : '<span class="role-badge user">user</span>';
+      const action = isSelf
+        ? '<button class="del-btn self" disabled title="ลบบัญชีตัวเองไม่ได้">คุณ</button>'
+        : '<button class="del-btn" id="del-' + u.id + '" onclick="askDelete(' + u.id + ', \'' + esc(u.email) + '\')">ลบ</button>';
+      html += '<tr>' +
+        '<td>' + (i+1) + '</td>' +
+        '<td class="email">' + esc(u.email) + '</td>' +
+        '<td>' + role + '</td>' +
+        '<td class="cell-sub">' + fmtDate(u.created_at) + '</td>' +
+        '<td style="text-align:right;">' + action + '</td>' +
+      '</tr>';
+    });
+    html += '</tbody></table></div>';
+    el('content').innerHTML = html;
+  }
+
+  // Two-step confirm: first click arms the button, second click deletes
+  function askDelete(id, email) {
+    const btn = el('del-' + id);
+    if (pendingId === id) { doDelete(id, email); return; }
+    // reset any previously armed button
+    if (pendingId != null) { const prev = el('del-' + pendingId); if (prev) { prev.classList.remove('confirm'); prev.textContent = 'ลบ'; } }
+    pendingId = id;
+    btn.classList.add('confirm');
+    btn.textContent = 'ยืนยันลบ?';
+    setTimeout(() => {
+      if (pendingId === id && btn) { btn.classList.remove('confirm'); btn.textContent = 'ลบ'; pendingId = null; }
+    }, 3500);
+  }
+
+  async function doDelete(id, email) {
+    pendingId = null;
+    const btn = el('del-' + id);
+    if (btn) { btn.textContent = 'กำลังลบ…'; btn.disabled = true; }
+    try {
+      const r = await fetch('/api/users/' + id, { method:'DELETE', headers:{ Authorization:'Bearer '+tok() } });
+      const j = await r.json().catch(()=>({}));
+      if (!r.ok) { toast(j.error || 'ลบไม่สำเร็จ'); load(); return; }
+      toast('ลบ ' + email + ' แล้ว ✓');
+      load();
+    } catch {
+      toast('เชื่อมต่อไม่สำเร็จ'); load();
+    }
+  }
+</script>
+</body>
+</html>

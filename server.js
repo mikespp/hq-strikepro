@@ -10,6 +10,7 @@ const { router: authRouter } = require('./routes/auth');
 const reviewsRouter          = require('./routes/reviews');
 const lastAccountRouter      = require('./routes/last-account');
 const eventsRouter           = require('./routes/events');
+const usersRouter            = require('./routes/users');
 const eligibilityRouter      = require('./routes/eligibility');
 
 const app  = express();
@@ -46,6 +47,7 @@ app.use('/api/auth',      authRouter);
 app.use('/api/reviews',   reviewsRouter);
 app.use('/api/last-account', lastAccountRouter);
 app.use('/api/events',    eventsRouter);
+app.use('/api/users',     usersRouter);
 app.use('/api/eligibility', eligibilityRouter);
 
 // Health check
@@ -89,6 +91,11 @@ app.get('/events/last-account-apply', (req, res) => {
 // /last-account-admin → serve บ้านหลังสุดท้าย applicants admin page
 app.get('/last-account-admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'last-account-admin.html'));
+});
+
+// /users-admin → serve user management page
+app.get('/users-admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'users-admin.html'));
 });
 
 // /reviews → serve public reviews page
