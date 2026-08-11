@@ -3,7 +3,7 @@ const bcrypt  = require('bcryptjs');
 const jwt     = require('jsonwebtoken');
 const crypto  = require('crypto');
 const db      = require('../db/database');
-const { sendOtpEmail, verifyMailer } = require('../lib/mailer');
+const { sendOtpEmail } = require('../lib/mailer');
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'strikepro_dev_secret_change_in_prod';
@@ -113,15 +113,6 @@ router.post('/register/check', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่' });
-  }
-});
-
-// Diagnostic — GET /api/auth/mail-check  → live SMTP credential check (no secrets exposed)
-router.get('/mail-check', async (req, res) => {
-  try {
-    res.json(await verifyMailer());
-  } catch (e) {
-    res.status(500).json({ ok: false, error: e.message });
   }
 });
 
