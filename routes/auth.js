@@ -24,6 +24,29 @@ function rateLimit(key, max, windowMs) {
   e.count++; return true;
 }
 
+// Is this email a StrikePro customer? Prefer a live check against the VPS endpoint
+// (ELIGIBILITY_CHECK_URL); fall back to the synced local allowlist if not configured.
+// Throws on service error so the caller can fail closed (503) rather than mis-deny.
+async function checkEligible(email) {
+  const url = process.env.ELIGIBILITY_CHECK_URL;
+  if (url) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 8000);
+    try {
+      const r = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Check-Key': process.env.ELIGIBILITY_SYNC_KEY || '' },
+        body: JSON.stringify({ email }),
+        signal: ctrl.signal,
+      });
+      if (!r.ok) throw new Error('eligibility service HTTP ' + r.status);
+      const d = await r.json();
+      return !!d.eligible;
+    } finally { clearTimeout(timer); }
+  }
+  return db.isEmailEligible(emailHash(email)); // fallback: local allowlist
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 async function issueToken(userId) {
@@ -75,7 +98,10 @@ router.post('/register/check', async (req, res) => {
     if (await db.findUserByEmail(email))
       return res.status(409).json({ error: 'อีเมลนี้มีบัญชีอยู่แล้ว กรุณาเข้าสู่ระบบ', code: 'exists' });
 
-    if (!(await db.isEmailEligible(emailHash(email))))
+    let eligible;
+    try { eligible = await checkEligible(email); }
+    catch (e) { console.error('eligibility check failed:', e.message); return res.status(503).json({ error: 'ระบบตรวจสอบสมาชิกไม่พร้อมชั่วคราว กรุณาลองใหม่' }); }
+    if (!eligible)
       return res.status(403).json({ error: 'ไม่พบอีเมลนี้ในระบบลูกค้า StrikePro จึงไม่สามารถสมัครได้', code: 'not_eligible' });
 
     if (!rateLimit('otp:' + email, 5, 60 * 60 * 1000))
@@ -149,7 +175,10 @@ router.post('/register', async (req, res) => {
     // defence in depth — re-check the guards
     if (await db.findUserByEmail(email))
       return res.status(409).json({ error: 'อีเมลนี้มีบัญชีอยู่แล้ว', code: 'exists' });
-    if (!(await db.isEmailEligible(emailHash(email))))
+    let eligible2;
+    try { eligible2 = await checkEligible(email); }
+    catch (e) { console.error('eligibility check failed:', e.message); return res.status(503).json({ error: 'ระบบตรวจสอบสมาชิกไม่พร้อมชั่วคราว กรุณาลองใหม่' }); }
+    if (!eligible2)
       return res.status(403).json({ error: 'ไม่พบอีเมลนี้ในระบบลูกค้า', code: 'not_eligible' });
 
     const hashed = await bcrypt.hash(password, 12);
