@@ -343,7 +343,9 @@
     el('statusWrap').innerHTML =
       '<div class="status-card">' +
         seatBarHtml(count, MAIN, false) +
-        '<div class="banner closed" style="margin-top:14px;">🟢 ' + esc(s.label) + ' เปิดรับสมัครแล้ว — เหลือ <b>' + s.seatsLeft + '</b> ที่นั่ง</div>' +
+        '<div class="banner closed" style="margin-top:14px;">🟢 ' + esc(s.label) + ' เปิดรับสมัครแล้ว — เหลือ <b>' + s.seatsLeft + '</b> ที่นั่ง' +
+          (s.closesAt ? '<br><span style="color:var(--muted);font-weight:500;">⏰ ปิดรับสมัคร ' + fmtOpen(s.closesAt) + '</span>' : '') +
+        '</div>' +
       '</div>';
     el('formCard').style.display = 'block';
     el('submitBtn').textContent = 'ยืนยันการสมัคร';
