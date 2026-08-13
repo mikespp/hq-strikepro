@@ -256,4 +256,32 @@ router.post('/join', requireAuth, async (req, res) => {
   }
 });
 
+// ── PATCH /api/last-account/applications/:id/:flag  (admin) — confirm | intro ─
+const FLAG_MAP = { confirm: 'confirmed', intro: 'intro_submitted' };
+router.patch('/applications/:id/:flag', requireAdmin, async (req, res) => {
+  const field = FLAG_MAP[req.params.flag];
+  if (!field) return res.status(400).json({ error: 'invalid flag' });
+  const id = parseInt(req.params.id, 10);
+  if (!id) return res.status(400).json({ error: 'invalid id' });
+  const value = req.body.value ? 1 : 0;
+  try {
+    await db.setLastAccountFlag(id, field, value);
+    res.json({ ok: true, id, flag: req.params.flag, value });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
+  }
+});
+
+// ── GET /api/last-account/dashboard  (public) — per-round funnel for the Project dashboard
+router.get('/dashboard', async (req, res) => {
+  try {
+    const funnel = await db.lastAccountDashboard();
+    res.json(funnel.map(r => ({ ...r, label: 'รุ่น ' + r.round })));
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
+  }
+});
+
 module.exports = router;

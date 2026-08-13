@@ -169,10 +169,14 @@ async function init() {
     if (err.errno !== 1060) throw err;
   }
 
-  // Add birth date / age columns (idempotent)
+  // Add birth date / age + admin-check flags (idempotent)
   for (const ddl of [
     `ALTER TABLE last_account_applications ADD COLUMN birth_date DATE NULL`,
     `ALTER TABLE last_account_applications ADD COLUMN age SMALLINT NULL`,
+    `ALTER TABLE last_account_applications ADD COLUMN confirmed TINYINT(1) NOT NULL DEFAULT 0`,
+    `ALTER TABLE last_account_applications ADD COLUMN confirmed_at DATETIME NULL`,
+    `ALTER TABLE last_account_applications ADD COLUMN intro_submitted TINYINT(1) NOT NULL DEFAULT 0`,
+    `ALTER TABLE last_account_applications ADD COLUMN intro_at DATETIME NULL`,
   ]) {
     try {
       await pool.execute(ddl);
@@ -635,10 +639,39 @@ async function createLastAccountApplication(data, round, mainSeats, reserveSeats
 async function listLastAccountApplications() {
   const [rows] = await pool.execute(
     `SELECT id, first_name, last_name, nickname, birth_date, age, phone, email, mt5_account,
-            line_id, discord_id, seat_type, round, created_at
+            line_id, discord_id, seat_type, round, confirmed, intro_submitted, created_at
      FROM last_account_applications ORDER BY round ASC, created_at ASC`
   );
   return rows;
+}
+
+// Toggle an admin check flag (confirmed | intro_submitted) + stamp its *_at time.
+async function setLastAccountFlag(id, field, value) {
+  const at = { confirmed: 'confirmed_at', intro_submitted: 'intro_at' }[field];
+  if (!at) throw new Error('invalid field');
+  const v = value ? 1 : 0;
+  await pool.execute(
+    `UPDATE last_account_applications SET ${field} = ?, ${at} = ${v ? 'NOW()' : 'NULL'} WHERE id = ?`,
+    [v, id]
+  );
+}
+
+// Per-round funnel counts for the Project dashboard.
+async function lastAccountDashboard() {
+  const [rows] = await pool.execute(
+    `SELECT round,
+            COUNT(*)                    AS registrants,
+            SUM(confirmed = 1)          AS confirmed,
+            SUM(intro_submitted = 1)    AS intro
+     FROM last_account_applications
+     GROUP BY round ORDER BY round ASC`
+  );
+  return rows.map(r => ({
+    round: r.round == null ? 0 : r.round,
+    registrants: Number(r.registrants),
+    confirmed:   Number(r.confirmed),
+    intro:       Number(r.intro),
+  }));
 }
 
 // ── User management (admin) ───────────────────────────────────────────────────
@@ -756,6 +789,7 @@ module.exports = {
   getProductStats, getProductInvestors,
   createReview, listReviews, deleteReview, toggleReviewFeatured,
   countLastAccountApplications, createLastAccountApplication, listLastAccountApplications, hasLastAccountApplication,
+  setLastAccountFlag, lastAccountDashboard,
   listEvents, getEventById, createEvent, updateEvent, deleteEvent,
   searchUsers, deleteUserById,
 };

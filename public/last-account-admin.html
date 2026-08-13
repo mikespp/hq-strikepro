@@ -43,6 +43,9 @@
     .toolbar select { background:var(--card2); border:1px solid var(--border); border-radius:10px; padding:11px 14px; font-size:14px; color:var(--text); font-family:inherit; cursor:pointer; }
     .toolbar select:focus { outline:none; border-color:var(--gold-border); }
     .seat-badge.round { background:rgba(129,140,248,.14); color:#c7d2fe; border:1px solid rgba(129,140,248,.3); }
+    .chk { background:var(--card2); border:1px solid var(--border); border-radius:8px; padding:6px 12px; font-size:13px; font-weight:700; color:var(--muted); cursor:pointer; font-family:inherit; transition:border-color .15s, background .15s, color .15s; white-space:nowrap; }
+    .chk.on { background:rgba(34,197,94,.16); border-color:rgba(34,197,94,.4); color:#4ade80; }
+    .chk:hover { border-color:var(--gold); }
     .btn { display:inline-flex; align-items:center; gap:7px; background:var(--card2); border:1px solid var(--border);
       border-radius:10px; padding:11px 16px; font-size:14px; font-weight:600; color:var(--text); cursor:pointer; font-family:inherit; transition:border-color .15s, background .15s; }
     .btn:hover { border-color:var(--gold-border); }
@@ -197,7 +200,7 @@
       return;
     }
     let html = '<div class="table-wrap"><table><thead><tr>' +
-      '<th>#</th><th>รุ่น</th><th>ชื่อ-นามสกุล</th><th>ชื่อเล่น</th><th>วันเกิด</th><th>อายุ</th><th>เบอร์โทร</th><th>Email</th><th>MT5</th><th>Line ID</th><th>Discord ID</th><th>ที่นั่ง</th><th>วันที่สมัคร</th>' +
+      '<th>#</th><th>รุ่น</th><th>ชื่อ-นามสกุล</th><th>ชื่อเล่น</th><th>วันเกิด</th><th>อายุ</th><th>เบอร์โทร</th><th>Email</th><th>MT5</th><th>Line ID</th><th>Discord ID</th><th>ที่นั่ง</th><th>Confirm</th><th>แนะนำตัว</th><th>วันที่สมัคร</th>' +
       '</tr></thead><tbody>';
     list.forEach((r, i) => {
       const seat = r.seat_type === 'reserve'
@@ -216,6 +219,8 @@
         '<td>' + esc(r.line_id) + '</td>' +
         '<td>' + esc(r.discord_id) + '</td>' +
         '<td>' + seat + '</td>' +
+        '<td><button class="chk ' + (r.confirmed ? 'on' : '') + '" onclick="toggleFlag(' + r.id + ',\'confirm\',' + (r.confirmed ? 1 : 0) + ')">' + (r.confirmed ? '✓ แล้ว' : 'โทร') + '</button></td>' +
+        '<td><button class="chk ' + (r.intro_submitted ? 'on' : '') + '" onclick="toggleFlag(' + r.id + ',\'intro\',' + (r.intro_submitted ? 1 : 0) + ')">' + (r.intro_submitted ? '✓ ส่งแล้ว' : 'ยังไม่ส่ง') + '</button></td>' +
         '<td class="cell-sub">' + fmtDate(r.created_at) + '</td>' +
       '</tr>';
     });
@@ -226,6 +231,23 @@
   function copy(text) {
     if (!text) return;
     navigator.clipboard.writeText(text).then(() => toast('คัดลอกแล้ว ✓')).catch(()=>{});
+  }
+
+  async function toggleFlag(id, flag, current) {
+    const token = localStorage.getItem(TOKEN_KEY);
+    const value = current ? 0 : 1;
+    try {
+      const r = await fetch('/api/last-account/applications/' + id + '/' + flag, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ value })
+      });
+      if (!r.ok) throw new Error();
+      const row = rows.find(x => x.id === id);
+      if (row) row[flag === 'confirm' ? 'confirmed' : 'intro_submitted'] = value;
+      renderTable();
+      toast(value ? 'ทำเครื่องหมายแล้ว ✓' : 'ยกเลิกแล้ว');
+    } catch { toast('อัปเดตไม่สำเร็จ'); }
   }
 
   function exportCSV() {
