@@ -155,6 +155,18 @@ async function init() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
+  // Per-round MT5 aggregates for the Project dashboard, pushed from the VPS forex job.
+  await pool.execute(`
+    CREATE TABLE IF NOT EXISTS la_project_stats (
+      round           INT           NOT NULL PRIMARY KEY,
+      vip_passed      INT           NOT NULL DEFAULT 0,
+      port_checked    INT           NOT NULL DEFAULT 0,
+      project_revenue DECIMAL(20,2) NOT NULL DEFAULT 0,
+      total_equity    DECIMAL(20,2) NOT NULL DEFAULT 0,
+      updated_at      DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
   // Add role column to users if it doesn't exist yet (idempotent migration)
   try {
     await pool.execute(`ALTER TABLE users ADD COLUMN role VARCHAR(20) NOT NULL DEFAULT 'user'`);
@@ -656,6 +668,34 @@ async function setLastAccountFlag(id, field, value) {
   );
 }
 
+// Confirmed students (round + email) for the VPS forex job to match against MT5.
+async function getConfirmedStudents() {
+  const [rows] = await pool.execute(
+    `SELECT round, LOWER(TRIM(email)) AS email
+     FROM last_account_applications WHERE confirmed = 1 AND TRIM(email) <> ''`
+  );
+  return rows.map(r => ({ round: r.round == null ? 0 : r.round, email: r.email }));
+}
+
+// Upsert per-round MT5 aggregates pushed from the VPS.
+async function upsertProjectStats(round, s) {
+  await pool.execute(
+    `INSERT INTO la_project_stats (round, vip_passed, port_checked, project_revenue, total_equity)
+     VALUES (?, ?, ?, ?, ?)
+     ON DUPLICATE KEY UPDATE vip_passed=VALUES(vip_passed), port_checked=VALUES(port_checked),
+       project_revenue=VALUES(project_revenue), total_equity=VALUES(total_equity)`,
+    [round, parseInt(s.vip_passed, 10) || 0, parseInt(s.port_checked, 10) || 0,
+     Number(s.project_revenue) || 0, Number(s.total_equity) || 0]
+  );
+}
+
+async function getProjectStats() {
+  const [rows] = await pool.execute('SELECT * FROM la_project_stats');
+  const m = {};
+  rows.forEach(r => { m[r.round] = r; });
+  return m;
+}
+
 // Per-round funnel counts for the Project dashboard.
 async function lastAccountDashboard() {
   const [rows] = await pool.execute(
@@ -790,6 +830,7 @@ module.exports = {
   createReview, listReviews, deleteReview, toggleReviewFeatured,
   countLastAccountApplications, createLastAccountApplication, listLastAccountApplications, hasLastAccountApplication,
   setLastAccountFlag, lastAccountDashboard,
+  getConfirmedStudents, upsertProjectStats, getProjectStats,
   listEvents, getEventById, createEvent, updateEvent, deleteEvent,
   searchUsers, deleteUserById,
 };

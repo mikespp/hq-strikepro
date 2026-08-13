@@ -1,8 +1,19 @@
 const express = require('express');
+const crypto  = require('crypto');
 const db      = require('../db/database');
 const { requireAuth, requireAdmin } = require('./auth');
 
 const router = express.Router();
+
+// Shared-secret guard for the VPS forex job (reuses ELIGIBILITY_SYNC_KEY).
+function requireSyncKey(req, res, next) {
+  const key = process.env.ELIGIBILITY_SYNC_KEY;
+  const got = req.get('X-Sync-Key') || '';
+  const a = Buffer.from(got), b = Buffer.from(key || '');
+  if (!key || a.length !== b.length || !crypto.timingSafeEqual(a, b))
+    return res.status(401).json({ error: 'Unauthorized' });
+  next();
+}
 
 // ── Program config — one entry per registration round ────────────────────────
 // No VIP hold; 25 main seats + 5 reserve per round. Applicants stored per round.
@@ -273,14 +284,52 @@ router.patch('/applications/:id/:flag', requireAdmin, async (req, res) => {
   }
 });
 
-// ── GET /api/last-account/dashboard  (public) — per-round funnel for the Project dashboard
+// ── GET /api/last-account/dashboard  (public) — funnel + MT5 aggregates per round
 router.get('/dashboard', async (req, res) => {
   try {
     const funnel = await db.lastAccountDashboard();
-    res.json(funnel.map(r => ({ ...r, label: 'รุ่น ' + r.round })));
+    const stats  = await db.getProjectStats();
+    res.json(funnel.map(r => {
+      const s = stats[r.round] || null;
+      return {
+        ...r,
+        label: 'รุ่น ' + r.round,
+        vip_passed:      s ? Number(s.vip_passed)      : 0,
+        port_checked:    s ? Number(s.port_checked)    : 0,
+        project_revenue: s ? Number(s.project_revenue) : 0,
+        total_equity:    s ? Number(s.total_equity)    : 0,
+        has_forex:       !!s,
+      };
+    }));
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
+  }
+});
+
+// ── GET /api/last-account/students  (sync key) — confirmed students for the VPS forex job
+router.get('/students', requireSyncKey, async (req, res) => {
+  try {
+    res.json(await db.getConfirmedStudents());
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาด' });
+  }
+});
+
+// ── POST /api/last-account/project-stats  (sync key) — VPS pushes per-round MT5 aggregates
+router.post('/project-stats', requireSyncKey, async (req, res) => {
+  const stats = Array.isArray(req.body.stats) ? req.body.stats : null;
+  if (!stats) return res.status(400).json({ error: 'stats[] required' });
+  try {
+    let n = 0;
+    for (const s of stats) {
+      if (s && Number.isInteger(s.round)) { await db.upsertProjectStats(s.round, s); n++; }
+    }
+    res.json({ ok: true, rounds: n });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาด' });
   }
 });
 
