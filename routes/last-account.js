@@ -17,14 +17,14 @@ function requireSyncKey(req, res, next) {
 
 // ── Program config — one entry per registration round ────────────────────────
 // No VIP hold; 25 main seats + 5 reserve per round. Applicants stored per round.
-// Each round opens Wed 12:00 and closes automatically Sun 15:00 (Thai time).
-// closesAt in the past (or closed:true) → registration ended: hidden from the selector, apply rejected.
+// A round opens Wed 12:00 and stays open until its seats fill (no time-based close).
+// closed:true (or a past closesAt) → registration ended: hidden from the selector, apply rejected.
 const ROUNDS = {
-  2: { label: 'รุ่นที่ 2', opensAt: new Date('2026-07-22T12:00:00+07:00'), closesAt: new Date('2026-07-26T15:00:00+07:00'), main: 25, reserve: 5 },
-  3: { label: 'รุ่นที่ 3', opensAt: new Date('2026-07-29T12:00:00+07:00'), closesAt: new Date('2026-08-02T15:00:00+07:00'), main: 25, reserve: 5 },
+  2: { label: 'รุ่นที่ 2', opensAt: new Date('2026-07-22T12:00:00+07:00'), main: 25, reserve: 5, closed: true },
+  3: { label: 'รุ่นที่ 3', opensAt: new Date('2026-07-29T12:00:00+07:00'), main: 25, reserve: 5, closed: true },
   // offset: people already registered via the backend (counted toward the round's total)
-  4: { label: 'รุ่นที่ 4', opensAt: new Date('2026-08-05T12:00:00+07:00'), closesAt: new Date('2026-08-09T15:00:00+07:00'), main: 25, reserve: 5, offset: 15 },
-  5: { label: 'รุ่นที่ 5', opensAt: new Date('2026-08-12T12:00:00+07:00'), closesAt: new Date('2026-08-16T15:00:00+07:00'), main: 25, reserve: 5 },
+  4: { label: 'รุ่นที่ 4', opensAt: new Date('2026-08-05T12:00:00+07:00'), main: 25, reserve: 5, offset: 15, closed: true },
+  5: { label: 'รุ่นที่ 5', opensAt: new Date('2026-08-12T12:00:00+07:00'), main: 25, reserve: 5 },
 };
 
 function parseRound(v) {
