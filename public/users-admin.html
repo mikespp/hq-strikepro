@@ -55,6 +55,25 @@
     .del-btn:hover { background:rgba(248,113,113,.2); }
     .del-btn.confirm { background:var(--red); color:#0a0a0a; border-color:var(--red); }
     .del-btn.self { opacity:.4; cursor:not-allowed; }
+    .row-actions { display:flex; gap:6px; justify-content:flex-end; align-items:center; }
+    .act-btn { background:var(--card2); border:1px solid var(--border); color:var(--text); border-radius:8px;
+      padding:7px 11px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap; transition:border-color .15s, background .15s; }
+    .act-btn:hover { border-color:var(--gold-border); }
+    .act-btn.confirm { background:var(--gold); color:#0a0a0a; border-color:var(--gold); }
+    .self-tag { font-size:12px; color:var(--muted); padding:0 4px; }
+    /* reset-password modal */
+    .modal-ov { position:fixed; inset:0; background:rgba(0,0,0,.6); display:none; align-items:center; justify-content:center; z-index:500; padding:20px; }
+    .modal-ov.open { display:flex; }
+    .modal-box { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:22px; width:100%; max-width:380px; }
+    .modal-title { font-size:16px; font-weight:800; color:var(--text); margin-bottom:4px; }
+    .modal-sub { font-size:12px; color:var(--muted); margin-bottom:16px; word-break:break-all; }
+    .modal-box input { width:100%; background:var(--card2); border:1px solid var(--border); border-radius:10px; padding:12px 14px; font-size:15px; color:var(--text); font-family:inherit; }
+    .modal-box input:focus { outline:none; border-color:var(--gold-border); }
+    .modal-row { margin-top:10px; }
+    .modal-err { font-size:12px; color:var(--red); margin-top:10px; display:none; }
+    .modal-actions { display:flex; gap:8px; margin-top:16px; }
+    .modal-actions button { flex:1; padding:12px; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; border:1px solid var(--border); background:var(--card2); color:var(--text); }
+    .modal-actions .primary { background:var(--gold); color:#0a0a0a; border-color:var(--gold); }
 
     .state { text-align:center; padding:50px 20px; color:var(--muted); font-size:14px; }
     .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#222; border:1px solid rgba(255,255,255,.12);
@@ -79,6 +98,20 @@
   </div>
   <div class="count" id="count"></div>
   <div id="content"><div class="state">กำลังโหลด…</div></div>
+</div>
+
+<div class="modal-ov" id="pwModal">
+  <div class="modal-box">
+    <div class="modal-title">รีเซ็ตรหัสผ่าน</div>
+    <div class="modal-sub" id="pwEmail"></div>
+    <input id="pwInput" type="text" placeholder="รหัสผ่านใหม่ (อย่างน้อย 8 ตัว)" autocomplete="off" />
+    <div class="modal-row"><button class="act-btn" style="width:100%" onclick="genPassword()">🎲 สุ่มรหัสผ่าน</button></div>
+    <div class="modal-err" id="pwErr"></div>
+    <div class="modal-actions">
+      <button onclick="closeReset()">ยกเลิก</button>
+      <button class="primary" id="pwConfirm" onclick="doReset()">ตั้งรหัสใหม่</button>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -140,9 +173,12 @@
       const role = u.role === 'admin'
         ? '<span class="role-badge admin">admin</span>'
         : '<span class="role-badge user">user</span>';
-      const action = isSelf
-        ? '<button class="del-btn self" disabled title="ลบบัญชีตัวเองไม่ได้">คุณ</button>'
-        : '<button class="del-btn" id="del-' + u.id + '" onclick="askDelete(' + u.id + ', \'' + esc(u.email) + '\')">ลบ</button>';
+      const roleBtn = isSelf
+        ? '<span class="self-tag">คุณ</span>'
+        : '<button class="act-btn" id="role-' + u.id + '" onclick="askRole(' + u.id + ',\'' + u.role + '\',\'' + esc(u.email) + '\')">' + (u.role === 'admin' ? '→ user' : '→ admin') + '</button>';
+      const resetBtn = '<button class="act-btn" onclick="openReset(' + u.id + ',\'' + esc(u.email) + '\',' + (isSelf ? 'true' : 'false') + ')">รีเซ็ตรหัส</button>';
+      const delBtn = isSelf ? '' : '<button class="del-btn" id="del-' + u.id + '" onclick="askDelete(' + u.id + ',\'' + esc(u.email) + '\')">ลบ</button>';
+      const action = '<div class="row-actions">' + roleBtn + resetBtn + delBtn + '</div>';
       html += '<tr>' +
         '<td>' + (i+1) + '</td>' +
         '<td class="email">' + esc(u.email) + '</td>' +
@@ -182,6 +218,60 @@
     } catch {
       toast('เชื่อมต่อไม่สำเร็จ'); load();
     }
+  }
+
+  // ── Change role (two-step confirm on the same button) ──
+  function askRole(id, current, email) {
+    const btn = el('role-' + id);
+    const next = current === 'admin' ? 'user' : 'admin';
+    const label = current === 'admin' ? '→ user' : '→ admin';
+    if (btn.classList.contains('confirm')) { doRole(id, next, email); return; }
+    btn.classList.add('confirm');
+    btn.textContent = 'ยืนยัน → ' + next + '?';
+    setTimeout(function(){ const b = el('role-'+id); if (b && b.classList.contains('confirm')) { b.classList.remove('confirm'); b.textContent = label; } }, 3500);
+  }
+  async function doRole(id, role, email) {
+    const btn = el('role-' + id);
+    if (btn) { btn.textContent = 'กำลังเปลี่ยน…'; btn.disabled = true; }
+    try {
+      const r = await fetch('/api/users/' + id + '/role', { method:'PATCH',
+        headers:{ 'Content-Type':'application/json', Authorization:'Bearer '+tok() }, body: JSON.stringify({ role }) });
+      const j = await r.json().catch(()=>({}));
+      if (!r.ok) { toast(j.error || 'เปลี่ยนสิทธิ์ไม่สำเร็จ'); load(); return; }
+      toast(email + ' → ' + role + ' แล้ว ✓'); load();
+    } catch { toast('เชื่อมต่อไม่สำเร็จ'); load(); }
+  }
+
+  // ── Reset password (modal) ──
+  let resetId = null, resetSelf = false;
+  function openReset(id, email, self) {
+    resetId = id; resetSelf = !!self;
+    el('pwEmail').textContent = email;
+    el('pwInput').value = ''; el('pwErr').style.display = 'none';
+    el('pwModal').classList.add('open');
+    setTimeout(function(){ el('pwInput').focus(); }, 60);
+  }
+  function closeReset() { el('pwModal').classList.remove('open'); resetId = null; }
+  function genPassword() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+    const a = new Uint32Array(12); crypto.getRandomValues(a);
+    let p = ''; for (let i=0;i<12;i++) p += chars[a[i] % chars.length];
+    el('pwInput').value = p;
+  }
+  async function doReset() {
+    const pw = el('pwInput').value;
+    if (pw.length < 8) { el('pwErr').textContent = 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร'; el('pwErr').style.display = 'block'; return; }
+    const btn = el('pwConfirm'); const orig = btn.textContent; btn.disabled = true; btn.textContent = 'กำลังตั้ง…';
+    try {
+      const r = await fetch('/api/users/' + resetId + '/reset-password', { method:'POST',
+        headers:{ 'Content-Type':'application/json', Authorization:'Bearer '+tok() }, body: JSON.stringify({ password: pw }) });
+      const j = await r.json().catch(()=>({}));
+      if (!r.ok) { el('pwErr').textContent = j.error || 'ตั้งรหัสไม่สำเร็จ'; el('pwErr').style.display = 'block'; btn.disabled=false; btn.textContent=orig; return; }
+      const wasSelf = resetSelf;
+      closeReset();
+      toast('ตั้งรหัสผ่านใหม่แล้ว ✓');
+      if (wasSelf) setTimeout(function(){ localStorage.removeItem(TOKEN_KEY); location.href = '/login'; }, 1300);
+    } catch { el('pwErr').textContent = 'เชื่อมต่อไม่สำเร็จ'; el('pwErr').style.display = 'block'; btn.disabled=false; btn.textContent=orig; }
   }
 </script>
 </body>

@@ -746,6 +746,28 @@ async function deleteUserById(id) {
   }
 }
 
+async function setUserRole(id, role) {
+  const [res] = await pool.execute('UPDATE users SET role = ? WHERE id = ?', [role, id]);
+  return res.affectedRows > 0;
+}
+
+// Set a new password and invalidate the user's sessions (force re-login)
+async function setUserPassword(id, hashedPassword) {
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+    const [res] = await conn.execute('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, id]);
+    await conn.execute('DELETE FROM sessions WHERE user_id = ?', [id]);
+    await conn.commit();
+    return res.affectedRows > 0;
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally {
+    conn.release();
+  }
+}
+
 // ── Events (calendar) ─────────────────────────────────────────────────────────
 
 // DB row -> API shape used by the calendar frontend: { id, t, s:[y,m,d], e:[y,m,d], c, h, live }
@@ -832,5 +854,5 @@ module.exports = {
   setLastAccountFlag, lastAccountDashboard,
   getConfirmedStudents, upsertProjectStats, getProjectStats,
   listEvents, getEventById, createEvent, updateEvent, deleteEvent,
-  searchUsers, deleteUserById,
+  searchUsers, deleteUserById, setUserRole, setUserPassword,
 };
