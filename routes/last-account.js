@@ -294,6 +294,7 @@ router.get('/dashboard', async (req, res) => {
       return {
         ...r,
         label: 'รุ่น ' + r.round,
+        vip_has:         s ? Number(s.vip_has)         : 0,
         vip_passed:      s ? Number(s.vip_passed)      : 0,
         port_checked:    s ? Number(s.port_checked)    : 0,
         project_revenue: s ? Number(s.project_revenue) : 0,
@@ -349,6 +350,7 @@ router.get('/details', async (req, res) => {
       email:        s.email || '',
       confirmed:    !!s.confirmed,
       intro:        !!s.intro_submitted,
+      has_vip:      !!Number(s.has_vip),
       vip_passed:   !!Number(s.vip_passed),
       vip_amount:   Number(s.vip_amount)   || 0,
       vip_live:     Number(s.vip_live)     || 0,

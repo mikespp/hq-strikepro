@@ -159,6 +159,7 @@ async function init() {
   await pool.execute(`
     CREATE TABLE IF NOT EXISTS la_project_stats (
       round           INT           NOT NULL PRIMARY KEY,
+      vip_has         INT           NOT NULL DEFAULT 0,
       vip_passed      INT           NOT NULL DEFAULT 0,
       port_checked    INT           NOT NULL DEFAULT 0,
       project_revenue DECIMAL(20,2) NOT NULL DEFAULT 0,
@@ -172,6 +173,7 @@ async function init() {
     CREATE TABLE IF NOT EXISTS la_student_stats (
       email        VARCHAR(255)  NOT NULL,
       round        INT           NOT NULL,
+      has_vip      TINYINT(1)    NOT NULL DEFAULT 0,
       vip_passed   TINYINT(1)    NOT NULL DEFAULT 0,
       vip_amount   DECIMAL(20,2) NOT NULL DEFAULT 0,
       vip_live     DECIMAL(20,2) NOT NULL DEFAULT 0,
@@ -203,6 +205,19 @@ async function init() {
     `ALTER TABLE last_account_applications ADD COLUMN confirmed_at DATETIME NULL`,
     `ALTER TABLE last_account_applications ADD COLUMN intro_submitted TINYINT(1) NOT NULL DEFAULT 0`,
     `ALTER TABLE last_account_applications ADD COLUMN intro_at DATETIME NULL`,
+  ]) {
+    try {
+      await pool.execute(ddl);
+    } catch (err) {
+      if (err.errno !== 1060) throw err;
+    }
+  }
+
+  // Add "has VIP port" counters (idempotent). พอร์ต VIP = owns an MT5 VIP account
+  // (existence), distinct from vip_passed (sticky: ever reached $1000, drives revenue).
+  for (const ddl of [
+    `ALTER TABLE la_project_stats ADD COLUMN vip_has INT NOT NULL DEFAULT 0`,
+    `ALTER TABLE la_student_stats  ADD COLUMN has_vip TINYINT(1) NOT NULL DEFAULT 0`,
   ]) {
     try {
       await pool.execute(ddl);
@@ -694,11 +709,11 @@ async function getConfirmedStudents() {
 // Upsert per-round MT5 aggregates pushed from the VPS.
 async function upsertProjectStats(round, s) {
   await pool.execute(
-    `INSERT INTO la_project_stats (round, vip_passed, port_checked, project_revenue, total_equity)
-     VALUES (?, ?, ?, ?, ?)
-     ON DUPLICATE KEY UPDATE vip_passed=VALUES(vip_passed), port_checked=VALUES(port_checked),
+    `INSERT INTO la_project_stats (round, vip_has, vip_passed, port_checked, project_revenue, total_equity)
+     VALUES (?, ?, ?, ?, ?, ?)
+     ON DUPLICATE KEY UPDATE vip_has=VALUES(vip_has), vip_passed=VALUES(vip_passed), port_checked=VALUES(port_checked),
        project_revenue=VALUES(project_revenue), total_equity=VALUES(total_equity)`,
-    [round, parseInt(s.vip_passed, 10) || 0, parseInt(s.port_checked, 10) || 0,
+    [round, parseInt(s.vip_has, 10) || 0, parseInt(s.vip_passed, 10) || 0, parseInt(s.port_checked, 10) || 0,
      Number(s.project_revenue) || 0, Number(s.total_equity) || 0]
   );
 }
@@ -720,11 +735,11 @@ async function replaceStudentStats(round, students) {
       const email = String(s.email || '').toLowerCase().trim();
       if (!email) continue;
       await conn.execute(
-        `INSERT INTO la_student_stats (email, round, vip_passed, vip_amount, vip_live, total_equity)
-         VALUES (?, ?, ?, ?, ?, ?)
-         ON DUPLICATE KEY UPDATE vip_passed=VALUES(vip_passed), vip_amount=VALUES(vip_amount),
+        `INSERT INTO la_student_stats (email, round, has_vip, vip_passed, vip_amount, vip_live, total_equity)
+         VALUES (?, ?, ?, ?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE has_vip=VALUES(has_vip), vip_passed=VALUES(vip_passed), vip_amount=VALUES(vip_amount),
                                  vip_live=VALUES(vip_live), total_equity=VALUES(total_equity)`,
-        [email, round, s.vip_passed ? 1 : 0, Number(s.vip_amount) || 0, Number(s.vip_live) || 0, Number(s.total_equity) || 0]
+        [email, round, s.has_vip ? 1 : 0, s.vip_passed ? 1 : 0, Number(s.vip_amount) || 0, Number(s.vip_live) || 0, Number(s.total_equity) || 0]
       );
     }
     await conn.commit();
@@ -737,6 +752,7 @@ async function getRoundStudents(round) {
   const [rows] = await pool.execute(
     `SELECT la.nickname, la.first_name, la.last_name, la.email,
             la.confirmed, la.intro_submitted, la.seat_type,
+            COALESCE(s.has_vip,0)      AS has_vip,
             COALESCE(s.vip_passed,0)   AS vip_passed,
             COALESCE(s.vip_amount,0)   AS vip_amount,
             COALESCE(s.vip_live,0)     AS vip_live,
