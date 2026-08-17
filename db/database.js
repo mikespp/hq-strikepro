@@ -167,6 +167,20 @@ async function init() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
+  // Per-student MT5 details (pushed from the VPS) — powers the click-to-details view.
+  await pool.execute(`
+    CREATE TABLE IF NOT EXISTS la_student_stats (
+      email        VARCHAR(255)  NOT NULL,
+      round        INT           NOT NULL,
+      vip_passed   TINYINT(1)    NOT NULL DEFAULT 0,
+      vip_amount   DECIMAL(20,2) NOT NULL DEFAULT 0,
+      vip_live     DECIMAL(20,2) NOT NULL DEFAULT 0,
+      total_equity DECIMAL(20,2) NOT NULL DEFAULT 0,
+      updated_at   DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      PRIMARY KEY (email, round)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
   // Add role column to users if it doesn't exist yet (idempotent migration)
   try {
     await pool.execute(`ALTER TABLE users ADD COLUMN role VARCHAR(20) NOT NULL DEFAULT 'user'`);
@@ -696,6 +710,45 @@ async function getProjectStats() {
   return m;
 }
 
+// Replace a round's per-student MT5 rows (delete + bulk insert).
+async function replaceStudentStats(round, students) {
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+    await conn.execute('DELETE FROM la_student_stats WHERE round = ?', [round]);
+    for (const s of students) {
+      const email = String(s.email || '').toLowerCase().trim();
+      if (!email) continue;
+      await conn.execute(
+        `INSERT INTO la_student_stats (email, round, vip_passed, vip_amount, vip_live, total_equity)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [email, round, s.vip_passed ? 1 : 0, Number(s.vip_amount) || 0, Number(s.vip_live) || 0, Number(s.total_equity) || 0]
+      );
+    }
+    await conn.commit();
+  } catch (err) { await conn.rollback(); throw err; }
+  finally { conn.release(); }
+}
+
+// Students of a round with funnel flags (live) + MT5 details (from la_student_stats).
+async function getRoundStudents(round) {
+  const [rows] = await pool.execute(
+    `SELECT la.nickname, la.first_name, la.last_name, la.email,
+            la.confirmed, la.intro_submitted, la.seat_type,
+            COALESCE(s.vip_passed,0)   AS vip_passed,
+            COALESCE(s.vip_amount,0)   AS vip_amount,
+            COALESCE(s.vip_live,0)     AS vip_live,
+            COALESCE(s.total_equity,0) AS total_equity,
+            (s.email IS NOT NULL)      AS has_forex
+     FROM last_account_applications la
+     LEFT JOIN la_student_stats s ON s.email = LOWER(TRIM(la.email)) AND s.round = la.round
+     WHERE la.round = ?
+     ORDER BY la.confirmed DESC, s.total_equity DESC, la.created_at ASC`,
+    [round]
+  );
+  return rows;
+}
+
 // Per-round funnel counts for the Project dashboard.
 async function lastAccountDashboard() {
   const [rows] = await pool.execute(
@@ -852,7 +905,7 @@ module.exports = {
   createReview, listReviews, deleteReview, toggleReviewFeatured,
   countLastAccountApplications, createLastAccountApplication, listLastAccountApplications, hasLastAccountApplication,
   setLastAccountFlag, lastAccountDashboard,
-  getConfirmedStudents, upsertProjectStats, getProjectStats,
+  getConfirmedStudents, upsertProjectStats, getProjectStats, replaceStudentStats, getRoundStudents,
   listEvents, getEventById, createEvent, updateEvent, deleteEvent,
   searchUsers, deleteUserById, setUserRole, setUserPassword,
 };

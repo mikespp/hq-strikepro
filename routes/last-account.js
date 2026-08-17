@@ -324,9 +324,37 @@ router.post('/project-stats', requireSyncKey, async (req, res) => {
   try {
     let n = 0;
     for (const s of stats) {
-      if (s && Number.isInteger(s.round)) { await db.upsertProjectStats(s.round, s); n++; }
+      if (s && Number.isInteger(s.round)) {
+        await db.upsertProjectStats(s.round, s);
+        if (Array.isArray(s.students)) await db.replaceStudentStats(s.round, s.students);
+        n++;
+      }
     }
     res.json({ ok: true, rounds: n });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาด' });
+  }
+});
+
+// ── GET /api/last-account/details?round=N  (public) — per-student rows for the click-to-detail view
+router.get('/details', async (req, res) => {
+  const round = parseInt(req.query.round, 10);
+  if (!Number.isInteger(round)) return res.status(400).json({ error: 'round required' });
+  try {
+    const students = await db.getRoundStudents(round);
+    res.json(students.map(s => ({
+      nickname:     s.nickname || '',
+      name:         `${s.first_name || ''} ${s.last_name || ''}`.trim(),
+      email:        s.email || '',
+      confirmed:    !!s.confirmed,
+      intro:        !!s.intro_submitted,
+      vip_passed:   !!Number(s.vip_passed),
+      vip_amount:   Number(s.vip_amount)   || 0,
+      vip_live:     Number(s.vip_live)     || 0,
+      total_equity: Number(s.total_equity) || 0,
+      has_forex:    !!Number(s.has_forex),
+    })));
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'เกิดข้อผิดพลาด' });
