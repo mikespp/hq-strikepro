@@ -321,20 +321,20 @@ router.get('/students', requireSyncKey, async (req, res) => {
 router.post('/project-stats', requireSyncKey, async (req, res) => {
   const stats = Array.isArray(req.body.stats) ? req.body.stats : null;
   if (!stats) return res.status(400).json({ error: 'stats[] required' });
-  try {
-    let n = 0;
-    for (const s of stats) {
-      if (s && Number.isInteger(s.round)) {
-        await db.upsertProjectStats(s.round, s);
-        if (Array.isArray(s.students)) await db.replaceStudentStats(s.round, s.students);
-        n++;
-      }
+  let n = 0;
+  const errors = [];
+  for (const s of stats) {
+    if (!s || !Number.isInteger(s.round)) continue;
+    try {
+      await db.upsertProjectStats(s.round, s);
+      if (Array.isArray(s.students)) await db.replaceStudentStats(s.round, s.students);
+      n++;
+    } catch (err) {
+      console.error(`project-stats round ${s.round}:`, err);
+      errors.push({ round: s.round, error: err.code || err.message });
     }
-    res.json({ ok: true, rounds: n });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'เกิดข้อผิดพลาด' });
   }
+  res.json({ ok: errors.length === 0, rounds: n, errors });
 });
 
 // ── GET /api/last-account/details?round=N  (public) — per-student rows for the click-to-detail view

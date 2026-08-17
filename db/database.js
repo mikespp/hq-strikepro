@@ -721,7 +721,9 @@ async function replaceStudentStats(round, students) {
       if (!email) continue;
       await conn.execute(
         `INSERT INTO la_student_stats (email, round, vip_passed, vip_amount, vip_live, total_equity)
-         VALUES (?, ?, ?, ?, ?, ?)`,
+         VALUES (?, ?, ?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE vip_passed=VALUES(vip_passed), vip_amount=VALUES(vip_amount),
+                                 vip_live=VALUES(vip_live), total_equity=VALUES(total_equity)`,
         [email, round, s.vip_passed ? 1 : 0, Number(s.vip_amount) || 0, Number(s.vip_live) || 0, Number(s.total_equity) || 0]
       );
     }
