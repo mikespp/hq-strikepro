@@ -62,6 +62,9 @@
     .seat-badge { font-size:11px; font-weight:800; padding:3px 10px; border-radius:50px; }
     .seat-badge.main { background:var(--gold-dim); color:var(--gold-pale); border:1px solid var(--gold-border); }
     .seat-badge.reserve { background:rgba(251,146,60,.12); color:#fdba74; border:1px solid rgba(251,146,60,.3); }
+    .v-badge { font-size:11px; font-weight:800; padding:3px 9px; border-radius:50px; white-space:nowrap; }
+    .v-badge.yes { background:rgba(34,197,94,.14); color:#4ade80; border:1px solid rgba(34,197,94,.35); }
+    .v-badge.no { background:rgba(255,255,255,.05); color:var(--muted); border:1px solid var(--border); }
     .cell-sub { font-size:11px; color:var(--muted); }
     .copy { cursor:pointer; color:var(--gold); text-decoration:none; }
     .copy:hover { text-decoration:underline; }
@@ -278,7 +281,7 @@
       return;
     }
     let html = '<div class="table-wrap"><table><thead><tr>' +
-      '<th>#</th><th>รุ่น</th><th>Confirm</th><th>แนะนำตัว</th><th>ชื่อ-นามสกุล</th><th>ชื่อเล่น</th><th>วันเกิด</th><th>อายุ</th><th>เบอร์โทร</th><th>Email</th><th>MT5</th><th>Line ID</th><th>Discord ID</th><th>ที่นั่ง</th><th>วันที่สมัคร</th>' +
+      '<th>#</th><th>รุ่น</th><th>Confirm</th><th>แนะนำตัว</th><th>ลูกค้า</th><th>ชื่อ-นามสกุล</th><th>ชื่อเล่น</th><th>วันเกิด</th><th>อายุ</th><th>เบอร์โทร</th><th>Email</th><th>MT5</th><th>Line ID</th><th>Discord ID</th><th>ที่นั่ง</th><th>วันที่สมัคร</th>' +
       '</tr></thead><tbody>';
     list.forEach((r, i) => {
       const seat = r.seat_type === 'reserve'
@@ -289,6 +292,7 @@
         '<td><span class="seat-badge round">รุ่น ' + roundOf(r) + '</span></td>' +
         '<td><button class="chk ' + (r.confirmed ? 'on' : '') + '" onclick="toggleFlag(' + r.id + ',\'confirm\',' + (r.confirmed ? 1 : 0) + ')">' + (r.confirmed ? '✓ แล้ว' : 'โทร') + '</button></td>' +
         '<td><button class="chk ' + (r.intro_submitted ? 'on' : '') + '" onclick="toggleFlag(' + r.id + ',\'intro\',' + (r.intro_submitted ? 1 : 0) + ')">' + (r.intro_submitted ? '✓ ส่งแล้ว' : 'ยังไม่ส่ง') + '</button></td>' +
+        '<td>' + (r.verified ? '<span class="v-badge yes">✓ ลูกค้า</span>' : '<span class="v-badge no">ยังไม่ยืนยัน</span>') + '</td>' +
         '<td>' + esc(r.first_name) + ' ' + esc(r.last_name) + '</td>' +
         '<td>' + esc(r.nickname) + '</td>' +
         '<td class="cell-sub">' + fmtDOB(r.birth_date) + '</td>' +

@@ -261,6 +261,8 @@ async function init() {
     `ALTER TABLE users ADD COLUMN province    VARCHAR(255) NOT NULL DEFAULT ''`,
     `ALTER TABLE users ADD COLUMN postal_code VARCHAR(20)  NOT NULL DEFAULT ''`,
     `ALTER TABLE users ADD COLUMN avatar_data MEDIUMTEXT NULL`,
+    // verified = email matched the StrikePro customer allowlist (advisory only; not a gate)
+    `ALTER TABLE users ADD COLUMN verified TINYINT(1) NOT NULL DEFAULT 0`,
   ]) {
     try { await pool.execute(ddl); } catch (err) { if (err.errno !== 1060) throw err; }
   }
@@ -351,11 +353,11 @@ async function createMember(d) {
   const [result] = await pool.execute(
     `INSERT INTO users
        (email, password, full_name, first_name, last_name, nickname, phone, birth_date,
-        line_id, addr_line, subdistrict, district, province, postal_code, avatar_data)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+        line_id, addr_line, subdistrict, district, province, postal_code, avatar_data, verified)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
     [e, d.hashedPassword, full, s(d.firstName), s(d.lastName), s(d.nickname), s(d.phone),
      d.birthDate || null, s(d.lineId), s(d.addrLine), s(d.subdistrict), s(d.district),
-     s(d.province), s(d.postalCode), d.avatarData || null]
+     s(d.province), s(d.postalCode), d.avatarData || null, d.verified ? 1 : 0]
   );
   return { id: result.insertId, email: e };
 }
@@ -401,6 +403,19 @@ async function addEligibleHashes(hashes) {
     added += r.affectedRows;
   }
   return added;
+}
+
+// Flip verified=1 for members whose email now matches the customer allowlist.
+// Called after a sync so newly-added customers auto-upgrade without manual work.
+// Returns the number of members newly marked verified.
+async function refreshVerifiedFromEligible() {
+  const [r] = await pool.execute(
+    `UPDATE users
+     SET verified = 1
+     WHERE verified = 0
+       AND SHA2(LOWER(TRIM(email)), 256) IN (SELECT email_hash FROM eligible_emails)`
+  );
+  return r.affectedRows;
 }
 
 // ── Email OTPs ─────────────────────────────────────────────────────────────────
@@ -722,9 +737,12 @@ async function createLastAccountApplication(data, round, mainSeats, reserveSeats
 
 async function listLastAccountApplications() {
   const [rows] = await pool.execute(
-    `SELECT id, first_name, last_name, nickname, birth_date, age, phone, email, mt5_account,
-            line_id, discord_id, seat_type, round, confirmed, intro_submitted, created_at
-     FROM last_account_applications ORDER BY round ASC, created_at ASC`
+    `SELECT la.id, la.first_name, la.last_name, la.nickname, la.birth_date, la.age, la.phone, la.email, la.mt5_account,
+            la.line_id, la.discord_id, la.seat_type, la.round, la.confirmed, la.intro_submitted, la.created_at,
+            COALESCE(u.verified, 0) AS verified
+     FROM last_account_applications la
+     LEFT JOIN users u ON LOWER(TRIM(u.email)) = LOWER(TRIM(la.email))
+     ORDER BY la.round ASC, la.created_at ASC`
   );
   return rows;
 }
@@ -833,13 +851,13 @@ async function lastAccountDashboard() {
 async function searchUsers(q) {
   if (q) {
     const [rows] = await pool.execute(
-      'SELECT id, email, role, created_at FROM users WHERE email LIKE ? ORDER BY created_at DESC LIMIT 300',
+      'SELECT id, email, role, verified, created_at FROM users WHERE email LIKE ? ORDER BY created_at DESC LIMIT 300',
       ['%' + q + '%']
     );
     return rows;
   }
   const [rows] = await pool.execute(
-    'SELECT id, email, role, created_at FROM users ORDER BY created_at DESC LIMIT 300'
+    'SELECT id, email, role, verified, created_at FROM users ORDER BY created_at DESC LIMIT 300'
   );
   return rows;
 }
@@ -938,9 +956,12 @@ async function createTheLastDayRegistration(data, edition, mainSeats, reserveSea
 
 async function listTheLastDayRegistrations() {
   const [rows] = await pool.execute(
-    `SELECT id, edition, first_name, last_name, nickname, phone, email, line_id,
-            seat_type, confirmed, confirmed_at, created_at
-     FROM the_last_day_registrations ORDER BY edition ASC, created_at ASC`
+    `SELECT r.id, r.edition, r.first_name, r.last_name, r.nickname, r.phone, r.email, r.line_id,
+            r.seat_type, r.confirmed, r.confirmed_at, r.created_at,
+            COALESCE(u.verified, 0) AS verified
+     FROM the_last_day_registrations r
+     LEFT JOIN users u ON LOWER(TRIM(u.email)) = LOWER(TRIM(r.email))
+     ORDER BY r.edition ASC, r.created_at ASC`
   );
   return rows;
 }
@@ -1044,7 +1065,7 @@ async function seedEventsIfEmpty() {
 module.exports = {
   init,
   findUserByEmail, findUserById, createUser, createUserFull, createMember,
-  isEmailEligible, countEligible, addEligibleHashes,
+  isEmailEligible, countEligible, addEligibleHashes, refreshVerifiedFromEligible,
   upsertOtp, getOtp, incOtpAttempts, deleteOtp,
   createSession, findSession, deleteSession,
   getAllClients, getClientById, createClient, updateClient, deleteClient,

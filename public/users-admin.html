@@ -49,6 +49,9 @@
     .role-badge { font-size:11px; font-weight:800; padding:3px 10px; border-radius:50px; white-space:nowrap; }
     .role-badge.admin { background:var(--gold-dim); color:var(--gold-pale); border:1px solid var(--gold-border); }
     .role-badge.user { background:rgba(255,255,255,.05); color:var(--muted); border:1px solid var(--border); }
+    .v-badge { font-size:11px; font-weight:800; padding:3px 10px; border-radius:50px; white-space:nowrap; }
+    .v-badge.yes { background:rgba(34,197,94,.14); color:#4ade80; border:1px solid rgba(34,197,94,.35); }
+    .v-badge.no { background:rgba(255,255,255,.05); color:var(--muted); border:1px solid var(--border); }
     .cell-sub { font-size:12px; color:var(--muted); white-space:nowrap; }
     .del-btn { background:var(--red-bg); border:1px solid rgba(248,113,113,.3); color:var(--red);
       border-radius:8px; padding:7px 12px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap; transition:background .15s; }
@@ -245,12 +248,15 @@
   function render(users) {
     el('count').textContent = users.length + ' บัญชี';
     if (!users.length) { el('content').innerHTML = '<div class="state">ไม่พบผู้ใช้</div>'; return; }
-    let html = '<div class="table-wrap"><table><thead><tr><th>#</th><th>Email</th><th>Role</th><th>สมัครเมื่อ</th><th></th></tr></thead><tbody>';
+    let html = '<div class="table-wrap"><table><thead><tr><th>#</th><th>Email</th><th>Role</th><th>ลูกค้า StrikePro</th><th>สมัครเมื่อ</th><th></th></tr></thead><tbody>';
     users.forEach((u, i) => {
       const isSelf = me && u.id === me.id;
       const role = u.role === 'admin'
         ? '<span class="role-badge admin">admin</span>'
         : '<span class="role-badge user">user</span>';
+      const verified = u.verified
+        ? '<span class="v-badge yes">✓ ยืนยันแล้ว</span>'
+        : '<span class="v-badge no">ยังไม่ยืนยัน</span>';
       const roleBtn = isSelf
         ? '<span class="self-tag">คุณ</span>'
         : '<button class="act-btn" id="role-' + u.id + '" onclick="askRole(' + u.id + ',\'' + u.role + '\',\'' + esc(u.email) + '\')">' + (u.role === 'admin' ? '→ user' : '→ admin') + '</button>';
@@ -261,6 +267,7 @@
         '<td>' + (i+1) + '</td>' +
         '<td class="email">' + esc(u.email) + '</td>' +
         '<td>' + role + '</td>' +
+        '<td>' + verified + '</td>' +
         '<td class="cell-sub">' + fmtDate(u.created_at) + '</td>' +
         '<td style="text-align:right;">' + action + '</td>' +
       '</tr>';

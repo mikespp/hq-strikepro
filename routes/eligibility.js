@@ -25,8 +25,10 @@ router.post('/sync', async (req, res) => {
   const hashes = [...new Set(raw.filter(h => typeof h === 'string' && /^[a-f0-9]{64}$/i.test(h)).map(h => h.toLowerCase()))];
   try {
     const added = await db.addEligibleHashes(hashes);
+    // Auto-upgrade any existing members whose email is now in the allowlist.
+    const verified = await db.refreshVerifiedFromEligible();
     const total = await db.countEligible();
-    res.json({ ok: true, received: hashes.length, added, total });
+    res.json({ ok: true, received: hashes.length, added, verified, total });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Sync failed.' });

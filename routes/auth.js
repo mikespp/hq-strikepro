@@ -88,16 +88,21 @@ async function requireAdmin(req, res, next) {
 // ── Registration (gated by StrikePro customer allowlist + email OTP) ──────────
 // Flow: check(email) → [fill profile form] → send-otp(email) → register(email+code+profile)
 
-// helper: eligibility + not-already-registered. Returns null if ok, else an {status,body} to send.
+// helper: reject only if the email already has an account. Returns null if ok.
+// NOTE: StrikePro-customer eligibility is NO LONGER a gate — anyone who can verify
+// their email via OTP may register. Eligibility is recorded as an advisory
+// `verified` flag (see registerVerifiedFlag) and staff screen at contact-back.
 async function guardEmail(email) {
   if (await db.findUserByEmail(email))
     return { status: 409, body: { error: 'อีเมลนี้มีบัญชีอยู่แล้ว กรุณาเข้าสู่ระบบ', code: 'exists' } };
-  let eligible;
-  try { eligible = await checkEligible(email); }
-  catch (e) { console.error('eligibility check failed:', e.message); return { status: 503, body: { error: 'ระบบตรวจสอบสมาชิกไม่พร้อมชั่วคราว กรุณาลองใหม่' } }; }
-  if (!eligible)
-    return { status: 403, body: { error: 'ไม่พบอีเมลนี้ในระบบลูกค้า StrikePro จึงไม่สามารถสมัครได้', code: 'not_eligible' } };
   return null;
+}
+
+// Best-effort: is this email a known StrikePro customer? Never throws — a failure
+// or a miss just means verified=0 (registration still proceeds).
+async function registerVerifiedFlag(email) {
+  try { return !!(await checkEligible(email)); }
+  catch (e) { console.error('eligibility flag check failed:', e.message); return false; }
 }
 
 // STEP 1 — POST /api/auth/register/check  { email }  → eligibility only (no OTP yet)
@@ -192,10 +197,11 @@ router.post('/register', async (req, res) => {
     if (bad) return res.status(bad.status).json(bad.body);
 
     await db.deleteOtp(email);
+    const verified = await registerVerifiedFlag(email); // advisory only, never blocks
     const hashed = await bcrypt.hash(password, 12);
     const user = await db.createMember({
       email, hashedPassword: hashed, firstName, lastName, nickname, phone, birthDate,
-      lineId, addrLine, subdistrict, district, province, postalCode, avatarData,
+      lineId, addrLine, subdistrict, district, province, postalCode, avatarData, verified,
     });
     const token = await issueToken(user.id);
     res.status(201).json({ token, user: { id: user.id, email: user.email } });
