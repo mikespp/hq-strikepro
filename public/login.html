@@ -220,6 +220,12 @@
     } finally { setLoading('btnRegister', false); }
   }
 
+  // Where to send the user after auth — honor a safe internal ?next=, else home
+  function nextDest() {
+    const n = new URLSearchParams(location.search).get('next');
+    return (n && n.startsWith('/')) ? n : '/';
+  }
+
   async function handleSignIn(e) {
     e.preventDefault(); clearAlert();
     const email = document.getElementById('siEmail').value.trim();
@@ -228,14 +234,14 @@
     try {
       const { token } = await apiFetch('/login', { method: 'POST', body: { email, password: pwd } });
       localStorage.setItem(TOKEN_KEY, token);
-      window.location.href = '/';
+      window.location.href = nextDest();
     } catch (err) { showAlert(err.message); shakeCard();
     } finally { setLoading('btnSignIn', false); }
   }
 
   (async function init() {
     if (!localStorage.getItem(TOKEN_KEY)) return;
-    try { await apiFetch('/me'); window.location.href = '/'; }
+    try { await apiFetch('/me'); window.location.href = nextDest(); }
     catch { localStorage.removeItem(TOKEN_KEY); }
   })();
 </script>

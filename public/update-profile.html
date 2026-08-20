@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>อัพเดทข้อมูลส่วนตัว – HQ Strikepro</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <meta name="theme-color" content="#d4af37" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary:#E63946; --gold:#d4af37;
+      --bg:#0d0d0d; --surface:#1a1a1a; --surface2:#242424; --border:#2e2e2e;
+      --text:#f1f1f1; --text-muted:#888; --input-bg:#111; --radius:14px; --radius-sm:8px;
+    }
+    html,body{background:var(--bg);color:var(--text);
+      font-family:'IBM Plex Sans Thai',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;-webkit-font-smoothing:antialiased;}
+    .app{min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:40px 20px 60px;}
+    .logo{display:flex;flex-direction:column;align-items:center;margin-bottom:22px;}
+    .logo-mark img{width:72px;height:72px;object-fit:contain;margin-bottom:8px;}
+    .logo-name{font-size:22px;font-weight:800;letter-spacing:-.5px;}
+    .logo-name span{color:var(--primary);}
+    .card{width:100%;max-width:420px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:26px 22px;}
+    h1{font-size:20px;font-weight:800;margin-bottom:4px;}
+    .sub{font-size:13px;color:var(--text-muted);line-height:1.55;margin-bottom:20px;}
+    .sub b{color:var(--text);}
+    .banner{background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.3);color:#f5d96b;
+      font-size:13px;line-height:1.55;padding:11px 14px;border-radius:var(--radius-sm);margin-bottom:18px;display:none;}
+    .banner.show{display:block;}
+    .section-label{font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.8px;margin:20px 0 12px;padding-top:14px;border-top:1px solid var(--border);}
+    .form-group{margin-bottom:14px;}
+    .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+    label{display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px;}
+    input, textarea, select{width:100%;padding:12px 14px;background:var(--input-bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);
+      color:var(--text);font-size:15px;outline:none;transition:border-color .2s;-webkit-appearance:none;appearance:none;font-family:inherit;}
+    textarea{resize:vertical;min-height:52px;}
+    input::placeholder, textarea::placeholder{color:#444;}
+    input:focus, textarea:focus, select:focus{border-color:var(--gold);}
+    input[type=date]{color-scheme:dark;}
+    input:disabled{opacity:.6;cursor:not-allowed;}
+    select{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23888' d='M6 8 0 0h12z'/%3E%3C/svg%3E");
+      background-repeat:no-repeat;background-position:right 14px center;padding-right:38px;}
+    select:required:invalid{color:#444;}
+    select option{color:var(--text);background:var(--input-bg);}
+    select option[value=""]{color:#444;}
+    .avatar-row{display:flex;align-items:center;gap:14px;}
+    .avatar-preview{width:66px;height:66px;border-radius:50%;flex-shrink:0;background:var(--input-bg) center/cover no-repeat;
+      border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;color:#555;font-size:26px;}
+    .avatar-btn{display:inline-block;font-size:13px;font-weight:700;color:var(--gold);border:1px solid var(--border);border-radius:8px;padding:9px 14px;cursor:pointer;}
+    .avatar-btn:hover{border-color:var(--gold);}
+    .avatar-hint{font-size:11px;color:#666;margin-top:4px;}
+    .btn-primary{width:100%;padding:14px;background:var(--gold);color:#111;border:none;border-radius:var(--radius-sm);
+      font-size:15px;font-weight:800;cursor:pointer;margin-top:10px;transition:opacity .2s,transform .1s;}
+    .btn-primary:hover{opacity:.9;}.btn-primary:active{transform:scale(.98);}.btn-primary:disabled{opacity:.5;cursor:default;}
+    .subrow{display:flex;justify-content:center;align-items:center;margin-top:14px;font-size:13px;}
+    .textlink{color:var(--gold);text-decoration:none;cursor:pointer;background:none;border:none;font:inherit;}
+    .textlink:hover{text-decoration:underline;}
+    .alert{padding:11px 14px;border-radius:var(--radius-sm);font-size:13px;margin-bottom:14px;display:none;line-height:1.5;}
+    .alert.error{background:rgba(230,57,70,.12);border:1px solid rgba(230,57,70,.3);color:#ff6b76;}
+    .alert.success{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#4ade80;}
+    .alert.show{display:block;}
+    @keyframes shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-6px);}40%{transform:translateX(6px);}60%{transform:translateX(-4px);}80%{transform:translateX(4px);}}
+    .shake{animation:shake .4s ease;}
+    .loading-wrap{max-width:420px;width:100%;text-align:center;color:var(--text-muted);font-size:14px;padding:40px 0;}
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@100;300;400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+<div class="app">
+  <div class="logo">
+    <div class="logo-mark"><img src="/logo.png.png" alt="HQ Strikepro" /></div>
+    <div class="logo-name">HQ <span>STRIKEPRO</span></div>
+  </div>
+
+  <div class="loading-wrap" id="loadingWrap">กำลังโหลดข้อมูล…</div>
+
+  <div class="card" id="card" style="display:none">
+    <div class="alert" id="alert"></div>
+    <h1>อัพเดทข้อมูลส่วนตัว</h1>
+    <p class="sub">กรอกข้อมูลให้ครบเพื่อใช้ในการลงทะเบียนกิจกรรมต่าง ๆ</p>
+    <div class="banner" id="banner"></div>
+
+    <form id="form" onsubmit="doSave(event)">
+      <div class="form-group"><label for="email">อีเมล</label><input type="email" id="email" disabled /></div>
+
+      <div class="row2">
+        <div class="form-group"><label for="firstName">ชื่อ</label><input type="text" id="firstName" autocomplete="given-name" required /></div>
+        <div class="form-group"><label for="lastName">นามสกุล</label><input type="text" id="lastName" autocomplete="family-name" required /></div>
+      </div>
+      <div class="form-group"><label for="nickname">ชื่อเล่น</label><input type="text" id="nickname" required /></div>
+      <div class="row2">
+        <div class="form-group"><label for="phone">เบอร์โทร</label><input type="tel" id="phone" placeholder="08x-xxx-xxxx" autocomplete="tel" required /></div>
+        <div class="form-group"><label for="birthDate">วันเดือนปีเกิด</label><input type="date" id="birthDate" required /></div>
+      </div>
+      <div class="form-group"><label for="lineId">LINE ID</label><input type="text" id="lineId" required /></div>
+
+      <div class="section-label">ที่อยู่สำหรับส่งเอกสาร</div>
+      <div class="form-group"><label for="addrLine">ที่อยู่ (บ้านเลขที่ / หมู่ / ถนน)</label><textarea id="addrLine" required></textarea></div>
+      <div class="row2">
+        <div class="form-group"><label for="subdistrict">ตำบล / แขวง</label><input type="text" id="subdistrict" required /></div>
+        <div class="form-group"><label for="district">อำเภอ / เขต</label><input type="text" id="district" required /></div>
+      </div>
+      <div class="row2">
+        <div class="form-group"><label for="province">จังหวัด</label><select id="province" required><option value="">เลือกจังหวัด</option></select></div>
+        <div class="form-group"><label for="postalCode">รหัสไปรษณีย์</label><input type="text" id="postalCode" inputmode="numeric" maxlength="5" placeholder="10000" required /></div>
+      </div>
+
+      <div class="section-label">รูปโปรไฟล์ <span style="color:#666;font-weight:400;text-transform:none;letter-spacing:0">(ไม่บังคับ)</span></div>
+      <div class="form-group">
+        <div class="avatar-row">
+          <div class="avatar-preview" id="avatarPreview">👤</div>
+          <div>
+            <label class="avatar-btn" for="avatarFile">เลือกรูป</label>
+            <input type="file" id="avatarFile" accept="image/*" hidden onchange="onAvatar(this)" />
+            <div class="avatar-hint">JPG/PNG · ระบบย่อขนาดให้อัตโนมัติ</div>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" id="saveBtn" data-label="บันทึกข้อมูล" class="btn-primary">บันทึกข้อมูล</button>
+      <div class="subrow"><a class="textlink" id="backLink" href="/">← กลับหน้าหลัก</a></div>
+    </form>
+  </div>
+</div>
+
+<script>
+  const API = '/api/auth';
+  const TOKEN_KEY = 'sp_token';
+  const $ = id => document.getElementById(id);
+  const FIELDS = ['firstName','lastName','nickname','phone','birthDate','lineId','addrLine','subdistrict','district','province','postalCode'];
+  let avatarData = null;
+
+  // where to go after saving (safe internal path only)
+  const nextParam = new URLSearchParams(location.search).get('next');
+  const NEXT = (nextParam && nextParam.startsWith('/')) ? nextParam : '/';
+  $('backLink').href = NEXT;
+  if (new URLSearchParams(location.search).get('reason') === 'register') {
+    const b = $('banner'); b.textContent = 'กรุณากรอกข้อมูลส่วนตัวให้ครบก่อนลงทะเบียนกิจกรรม'; b.classList.add('show');
+  }
+
+  const PROVINCES = ['กระบี่','กรุงเทพมหานคร','กาญจนบุรี','กาฬสินธุ์','กำแพงเพชร','ขอนแก่น','จันทบุรี','ฉะเชิงเทรา','ชลบุรี','ชัยนาท','ชัยภูมิ','ชุมพร','เชียงราย','เชียงใหม่','ตรัง','ตราด','ตาก','นครนายก','นครปฐม','นครพนม','นครราชสีมา','นครศรีธรรมราช','นครสวรรค์','นนทบุรี','นราธิวาส','น่าน','บึงกาฬ','บุรีรัมย์','ปทุมธานี','ประจวบคีรีขันธ์','ปราจีนบุรี','ปัตตานี','พระนครศรีอยุธยา','พะเยา','พังงา','พัทลุง','พิจิตร','พิษณุโลก','เพชรบุรี','เพชรบูรณ์','แพร่','ภูเก็ต','มหาสารคาม','มุกดาหาร','แม่ฮ่องสอน','ยโสธร','ยะลา','ร้อยเอ็ด','ระนอง','ระยอง','ราชบุรี','ลพบุรี','ลำปาง','ลำพูน','เลย','ศรีสะเกษ','สกลนคร','สงขลา','สตูล','สมุทรปราการ','สมุทรสงคราม','สมุทรสาคร','สระแก้ว','สระบุรี','สิงห์บุรี','สุโขทัย','สุพรรณบุรี','สุราษฎร์ธานี','สุรินทร์','หนองคาย','หนองบัวลำภู','อ่างทอง','อำนาจเจริญ','อุดรธานี','อุตรดิตถ์','อุทัยธานี','อุบลราชธานี'];
+  (function(){ const sel=$('province'); PROVINCES.forEach(p=>{ const o=document.createElement('option'); o.value=p; o.textContent=p; sel.appendChild(o); }); })();
+
+  function alertMsg(msg, type='error'){ const a=$('alert'); a.textContent=msg; a.className=`alert ${type} show`; a.scrollIntoView({block:'nearest'}); }
+  function clearAlert(){ $('alert').className='alert'; }
+  function shake(){ const c=$('card'); c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake'); }
+  function loading(on){ const b=$('saveBtn'); b.disabled=on; b.textContent=on?'กำลังบันทึก…':b.dataset.label; }
+
+  function onAvatar(input){
+    const f = input.files && input.files[0]; if(!f) return;
+    if(!/^image\//.test(f.type)){ alertMsg('ไฟล์ต้องเป็นรูปภาพ'); return; }
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const img = new Image();
+      img.onload = () => {
+        const max=400; let w=img.width, h=img.height;
+        if(w>h && w>max){ h=Math.round(h*max/w); w=max; } else if(h>max){ w=Math.round(w*max/h); h=max; }
+        const c=document.createElement('canvas'); c.width=w; c.height=h;
+        c.getContext('2d').drawImage(img,0,0,w,h);
+        avatarData = c.toDataURL('image/jpeg', 0.85);
+        const pv=$('avatarPreview'); pv.textContent=''; pv.style.backgroundImage=`url(${avatarData})`;
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(f);
+  }
+
+  async function loadProfile(){
+    const token = localStorage.getItem(TOKEN_KEY);
+    if(!token){ window.location.href = '/login?next=' + encodeURIComponent(location.pathname + location.search); return; }
+    try {
+      const r = await fetch(API + '/profile', { headers:{ Authorization:'Bearer '+token } });
+      if(r.status===401){ localStorage.removeItem(TOKEN_KEY); window.location.href='/login?next=' + encodeURIComponent(location.pathname + location.search); return; }
+      const d = await r.json();
+      const p = d.profile || {};
+      $('email').value = p.email || '';
+      FIELDS.forEach(id => { if(p[id] != null) $(id).value = p[id]; });
+      if(p.avatar){ const pv=$('avatarPreview'); pv.textContent=''; pv.style.backgroundImage=`url(${p.avatar})`; }
+      $('loadingWrap').style.display='none';
+      $('card').style.display='';
+    } catch { $('loadingWrap').textContent='โหลดข้อมูลไม่สำเร็จ กรุณารีเฟรช'; }
+  }
+
+  async function doSave(e){
+    e.preventDefault(); clearAlert();
+    for(const id of FIELDS){ if(!$(id).value.trim()){ alertMsg('กรุณากรอกข้อมูลให้ครบทุกช่อง'); $(id).focus(); shake(); return; } }
+    if(!/^\d{5}$/.test($('postalCode').value.trim())){ alertMsg('รหัสไปรษณีย์ต้องเป็นเลข 5 หลัก'); shake(); return; }
+    const payload = { avatarData };
+    FIELDS.forEach(id => payload[id] = $(id).value.trim());
+    loading(true);
+    try {
+      const token = localStorage.getItem(TOKEN_KEY);
+      const r = await fetch(API + '/profile', {
+        method:'PATCH', headers:{ 'Content-Type':'application/json', Authorization:'Bearer '+token }, body: JSON.stringify(payload)
+      });
+      if(r.status===401){ localStorage.removeItem(TOKEN_KEY); window.location.href='/login'; return; }
+      const d = await r.json().catch(()=>({}));
+      if(!r.ok) throw new Error(d.error || 'บันทึกไม่สำเร็จ');
+      alertMsg('บันทึกข้อมูลเรียบร้อย ✓','success');
+      setTimeout(()=>{ window.location.href = NEXT; }, 800);
+    } catch(err){ alertMsg(err.message); shake(); loading(false); }
+  }
+
+  loadProfile();
+</script>
+</body>
+</html>

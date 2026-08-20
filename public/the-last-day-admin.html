@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#d4af37" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ผู้ลงทะเบียน — The Last Day (Admin)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --gold:#d4af37; --gold-pale:#ffe99a; --gold-dim:rgba(212,175,55,.12); --gold-border:rgba(212,175,55,.22);
+      --bg:#060606; --card:#0f0f0f; --card2:#131313; --border:rgba(255,255,255,.08);
+      --text:#f0f0f0; --muted:#7a7a7a; --green:#4ade80; --orange:#fb923c; --radius:14px;
+    }
+    body { font-family:'IBM Plex Sans Thai', 'Inter',sans-serif; background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; }
+    nav { position:sticky; top:0; z-index:50; display:flex; align-items:center; gap:12px; padding:14px 20px;
+      background:rgba(6,6,6,.85); backdrop-filter:blur(20px); border-bottom:1px solid var(--border); }
+    .nav-back { display:inline-flex; align-items:center; gap:6px; font-size:14px; font-weight:600; color:var(--muted); text-decoration:none; }
+    .nav-back:hover { color:var(--text); }
+    .nav-back svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .nav-title { font-size:15px; font-weight:800; color:var(--gold); }
+    .nav-user { margin-left:auto; font-size:12px; color:var(--muted); }
+    .wrap { max-width:1100px; margin:0 auto; padding:24px 20px 80px; }
+    .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px; }
+    @media (max-width:640px){ .stats { grid-template-columns:repeat(2,1fr); } }
+    .stat { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:16px 18px; }
+    .stat-num { font-size:26px; font-weight:900; color:var(--gold); letter-spacing:-.5px; }
+    .stat-num.green { color:var(--green); } .stat-num.orange { color:var(--orange); }
+    .stat-num small { font-size:15px; color:var(--muted); font-weight:700; }
+    .stat-lbl { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-top:4px; }
+    .toolbar { display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
+    .toolbar input { flex:1; min-width:200px; background:var(--card2); border:1px solid var(--border); border-radius:10px;
+      padding:11px 14px; font-size:14px; color:var(--text); font-family:inherit; }
+    .toolbar input:focus { outline:none; border-color:var(--gold-border); }
+    .chk { background:var(--card2); border:1px solid var(--border); border-radius:8px; padding:6px 12px; font-size:13px; font-weight:700; color:var(--muted); cursor:pointer; font-family:inherit; transition:border-color .15s, background .15s, color .15s; white-space:nowrap; }
+    .chk.on { background:rgba(34,197,94,.16); border-color:rgba(34,197,94,.4); color:#4ade80; }
+    .chk:hover { border-color:var(--gold); }
+    .btn { display:inline-flex; align-items:center; gap:7px; background:var(--card2); border:1px solid var(--border);
+      border-radius:10px; padding:11px 16px; font-size:14px; font-weight:600; color:var(--text); cursor:pointer; font-family:inherit; transition:border-color .15s, background .15s; }
+    .btn:hover { border-color:var(--gold-border); }
+    .btn.gold { background:var(--gold); color:#080808; border-color:var(--gold); font-weight:800; }
+    .btn svg { width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .table-wrap { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; min-width:820px; }
+    th { font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--muted); text-align:left; font-weight:700;
+      padding:14px 14px; border-bottom:1px solid var(--border); white-space:nowrap; background:var(--card2); position:sticky; top:0; }
+    td { font-size:13px; padding:13px 14px; border-bottom:1px solid var(--border); white-space:nowrap; vertical-align:top; }
+    tr:last-child td { border-bottom:none; }
+    tr:hover td { background:rgba(255,255,255,.02); }
+    .seat-badge { font-size:11px; font-weight:800; padding:3px 10px; border-radius:50px; }
+    .seat-badge.main { background:var(--gold-dim); color:var(--gold-pale); border:1px solid var(--gold-border); }
+    .seat-badge.reserve { background:rgba(251,146,60,.12); color:#fdba74; border:1px solid rgba(251,146,60,.3); }
+    .cell-sub { font-size:11px; color:var(--muted); }
+    .copy { cursor:pointer; color:var(--gold); text-decoration:none; }
+    .copy:hover { text-decoration:underline; }
+    .state { text-align:center; padding:60px 20px; color:var(--muted); font-size:14px; }
+    .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#222; border:1px solid rgba(255,255,255,.12);
+      color:#f0f0f0; padding:10px 20px; border-radius:10px; font-size:13px; font-weight:600; z-index:999; opacity:0; transition:opacity .2s; pointer-events:none; }
+    .toast.show { opacity:1; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-back" href="/reviews-admin">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg> Reviews
+  </a>
+  <span class="nav-title">🌅 ผู้ลงทะเบียน The Last Day</span>
+  <span class="nav-user" id="navUser"></span>
+</nav>
+
+<div class="wrap">
+  <div class="stats" id="stats"></div>
+
+  <div class="toolbar">
+    <input id="search" placeholder="ค้นหา ชื่อ / เบอร์ / อีเมล / Line…" oninput="renderTable()" />
+    <button class="btn" onclick="load()"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> รีเฟรช</button>
+    <button class="btn gold" onclick="exportCSV()"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export CSV</button>
+  </div>
+
+  <div id="content"><div class="state">กำลังโหลด…</div></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const TOKEN_KEY = 'sp_token';
+  const MAIN = 30, RESERVE = 10, CAP = MAIN + RESERVE;
+  let rows = [];
+
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];}); }
+  function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1800); }
+
+  (async () => {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) { window.location.href = '/login'; return; }
+    try {
+      const r = await fetch('/api/auth/me', { headers:{ Authorization:'Bearer '+token } });
+      if (!r.ok) { window.location.href = '/login'; return; }
+      const { user } = await r.json();
+      document.getElementById('navUser').textContent = user.email;
+      if (user.role !== 'admin') {
+        document.getElementById('content').innerHTML =
+          '<div class="state">🔒 หน้านี้สำหรับผู้ดูแลระบบ (admin) เท่านั้น</div>';
+        document.querySelector('.toolbar').style.display = 'none';
+        return;
+      }
+      load();
+    } catch { window.location.href = '/login'; }
+  })();
+
+  async function load() {
+    const token = localStorage.getItem(TOKEN_KEY);
+    document.getElementById('content').innerHTML = '<div class="state">กำลังโหลด…</div>';
+    try {
+      const r = await fetch('/api/the-last-day/registrations', { headers:{ Authorization:'Bearer '+token } });
+      if (!r.ok) throw new Error();
+      rows = await r.json();
+      renderStats();
+      renderTable();
+    } catch {
+      document.getElementById('content').innerHTML = '<div class="state">โหลดข้อมูลไม่สำเร็จ</div>';
+    }
+  }
+
+  function renderStats() {
+    const total = rows.length;
+    const mainCount = rows.filter(r => r.seat_type !== 'reserve').length;
+    const reserveCount = rows.filter(r => r.seat_type === 'reserve').length;
+    const confirmed = rows.filter(r => r.confirmed).length;
+    document.getElementById('stats').innerHTML =
+      '<div class="stat"><div class="stat-num">' + total + '<small> / ' + CAP + '</small></div><div class="stat-lbl">ลงทะเบียนทั้งหมด</div></div>' +
+      '<div class="stat"><div class="stat-num green">' + mainCount + '<small> / ' + MAIN + '</small></div><div class="stat-lbl">ที่นั่งหลัก</div></div>' +
+      '<div class="stat"><div class="stat-num orange">' + reserveCount + '<small> / ' + RESERVE + '</small></div><div class="stat-lbl">ที่นั่งสำรอง</div></div>' +
+      '<div class="stat"><div class="stat-num green">' + confirmed + '</div><div class="stat-lbl">ติดต่อ / ผ่านเกณฑ์</div></div>';
+  }
+
+  function fmtDate(s) {
+    if (!s) return '';
+    const d = new Date(s); if (isNaN(d)) return esc(s);
+    const p = n => (n<10?'0':'')+n;
+    return p(d.getDate())+'/'+p(d.getMonth()+1)+'/'+d.getFullYear()+' '+p(d.getHours())+':'+p(d.getMinutes());
+  }
+
+  function getFiltered() {
+    const q = (document.getElementById('search').value || '').toLowerCase().trim();
+    let list = rows.slice();
+    if (q) list = list.filter(r => [r.first_name,r.last_name,r.nickname,r.phone,r.email,r.line_id].some(v => String(v||'').toLowerCase().includes(q)));
+    return list;
+  }
+
+  function renderTable() {
+    const list = getFiltered();
+    if (!list.length) {
+      document.getElementById('content').innerHTML = '<div class="state">' + (rows.length ? 'ไม่พบข้อมูลที่ค้นหา' : 'ยังไม่มีผู้ลงทะเบียน') + '</div>';
+      return;
+    }
+    let html = '<div class="table-wrap"><table><thead><tr>' +
+      '<th>#</th><th>ติดต่อ/ผ่านเกณฑ์</th><th>ชื่อ-นามสกุล</th><th>ชื่อเล่น</th><th>เบอร์โทร</th><th>Email</th><th>Line ID</th><th>ที่นั่ง</th><th>วันที่ลงทะเบียน</th>' +
+      '</tr></thead><tbody>';
+    list.forEach((r, i) => {
+      const seat = r.seat_type === 'reserve'
+        ? '<span class="seat-badge reserve">สำรอง</span>'
+        : '<span class="seat-badge main">หลัก</span>';
+      html += '<tr>' +
+        '<td>' + (i+1) + '</td>' +
+        '<td><button class="chk ' + (r.confirmed ? 'on' : '') + '" onclick="toggleConfirm(' + r.id + ',' + (r.confirmed ? 1 : 0) + ')">' + (r.confirmed ? '✓ แล้ว' : 'ยังไม่ติดต่อ') + '</button></td>' +
+        '<td>' + esc(r.first_name) + ' ' + esc(r.last_name) + '</td>' +
+        '<td>' + esc(r.nickname) + '</td>' +
+        '<td><a class="copy" onclick="copy(\'' + esc(r.phone) + '\')">' + esc(r.phone) + '</a></td>' +
+        '<td><a class="copy" onclick="copy(\'' + esc(r.email) + '\')">' + esc(r.email) + '</a></td>' +
+        '<td>' + esc(r.line_id) + '</td>' +
+        '<td>' + seat + '</td>' +
+        '<td class="cell-sub">' + fmtDate(r.created_at) + '</td>' +
+      '</tr>';
+    });
+    html += '</tbody></table></div>';
+    document.getElementById('content').innerHTML = html;
+  }
+
+  function copy(text) {
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => toast('คัดลอกแล้ว ✓')).catch(()=>{});
+  }
+
+  async function toggleConfirm(id, current) {
+    const token = localStorage.getItem(TOKEN_KEY);
+    const value = current ? 0 : 1;
+    try {
+      const r = await fetch('/api/the-last-day/registrations/' + id + '/confirm', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ value })
+      });
+      if (!r.ok) throw new Error();
+      const row = rows.find(x => x.id === id);
+      if (row) row.confirmed = value;
+      renderStats(); renderTable();
+      toast(value ? 'ทำเครื่องหมายแล้ว ✓' : 'ยกเลิกแล้ว');
+    } catch { toast('อัปเดตไม่สำเร็จ'); }
+  }
+
+  function exportCSV() {
+    const list = getFiltered();
+    if (!list.length) { toast('ไม่มีข้อมูลให้ส่งออก'); return; }
+    const cols = ['ลำดับ','ติดต่อ/ผ่านเกณฑ์','ชื่อจริง','นามสกุล','ชื่อเล่น','เบอร์โทร','Email','Line ID','ประเภทที่นั่ง','วันที่ลงทะเบียน'];
+    const q = v => '"' + String(v==null?'':v).replace(/"/g,'""') + '"';
+    const lines = [cols.map(q).join(',')];
+    list.forEach((r, i) => {
+      lines.push([i+1, (r.confirmed?'ใช่':'ไม่'), r.first_name, r.last_name, r.nickname,
+        r.phone, r.email, r.line_id, (r.seat_type==='reserve'?'สำรอง':'หลัก'), fmtDate(r.created_at)].map(q).join(','));
+    });
+    const blob = new Blob(['﻿' + lines.join('\r\n')], { type:'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'the-last-day-registrants.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    toast('ดาวน์โหลด CSV แล้ว ✓');
+  }
+</script>
+</body>
+</html>

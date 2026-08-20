@@ -44,5 +44,6 @@ module.exports = [
   { s:[2026,12,7],  e:[2026,12,18], t:'ศึกชนช้าง Season 12',                       c:'#E63946', h:null,                    live:false },
   { s:[2026,8,7],   e:[2026,8,7],   t:'SBC 25 Reunion',                            c:'#fb923c', h:'/events/sbc',           live:false },
   { s:[2026,8,9],   e:[2026,8,9],   t:'The Last Day',                              c:'#818cf8', h:null,                    live:false },
+  { s:[2026,8,23],  e:[2026,8,23],  t:'The Last Day ครั้งที่ 2',                   c:'#818cf8', h:'/events/the-last-day', live:false },
   { s:[2026,9,5],   e:[2026,9,7],   t:'SBC 26',                                    c:'#fb923c', h:'/events/sbc',           live:false },
 ];

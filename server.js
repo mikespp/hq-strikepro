@@ -14,6 +14,7 @@ const { router: authRouter } = require('./routes/auth');
 const { mailerStatus }       = require('./lib/mailer');
 const reviewsRouter          = require('./routes/reviews');
 const lastAccountRouter      = require('./routes/last-account');
+const theLastDayRouter       = require('./routes/the-last-day');
 const eventsRouter           = require('./routes/events');
 const usersRouter            = require('./routes/users');
 const eligibilityRouter      = require('./routes/eligibility');
@@ -51,6 +52,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/api/auth',      authRouter);
 app.use('/api/reviews',   reviewsRouter);
 app.use('/api/last-account', lastAccountRouter);
+app.use('/api/the-last-day', theLastDayRouter);
 app.use('/api/events',    eventsRouter);
 app.use('/api/users',     usersRouter);
 app.use('/api/eligibility', eligibilityRouter);
@@ -71,6 +73,11 @@ app.get('/login', (req, res) => {
 // /register → serve register.html
 app.get('/register', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'register.html'));
+});
+
+// /update-profile → serve profile update page
+app.get('/update-profile', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'update-profile.html'));
 });
 
 // /events/unlock-your-wealth → serve event page
@@ -96,6 +103,16 @@ app.get('/events/last-account-apply', (req, res) => {
 // /last-account-admin → serve บ้านหลังสุดท้าย applicants admin page
 app.get('/last-account-admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'last-account-admin.html'));
+});
+
+// /events/the-last-day → serve The Last Day info + registration page
+app.get('/events/the-last-day', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'events', 'the-last-day.html'));
+});
+
+// /the-last-day-admin → serve The Last Day registrants admin page
+app.get('/the-last-day-admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'the-last-day-admin.html'));
 });
 
 // /users-admin → serve user management page

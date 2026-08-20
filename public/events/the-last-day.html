@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#d4af37" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Last Day — StrikePro</title>
+  <meta name="description" content="วันพิเศษสำหรับผู้ที่ผ่านค่าย SBC — workshop การบริหารเงินอย่างมีระบบ พบปะแลกเปลี่ยน connection และ session พิเศษสำหรับชาว Bussay" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --gold:#d4af37; --gold-light:#f5d96b; --gold-pale:#ffe99a;
+      --gold-dim:rgba(212,175,55,.12); --gold-border:rgba(212,175,55,.22);
+      --bg:#060606; --bg2:#0d0d0d; --card:#0f0f0f; --card2:#131313;
+      --border:rgba(255,255,255,.06); --text:#f0f0f0; --muted:#7a7a7a;
+      --radius:18px; --radius-sm:12px;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family:'IBM Plex Sans Thai','Inter',sans-serif; background:var(--bg); color:var(--text); overflow-x:hidden; -webkit-font-smoothing:antialiased; }
+    #particles { position:fixed; inset:0; z-index:0; pointer-events:none; }
+    .glow-top { position:fixed; top:-200px; left:50%; transform:translateX(-50%); width:1000px; height:700px; pointer-events:none; z-index:0; background:radial-gradient(ellipse at 50% 0%, rgba(212,175,55,.09) 0%, transparent 65%); }
+
+    nav { position:sticky; top:0; z-index:200; display:flex; align-items:center; justify-content:space-between; padding:14px 20px; background:rgba(6,6,6,.80); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border-bottom:1px solid var(--border); }
+    .nav-back { display:inline-flex; align-items:center; gap:6px; font-size:14px; font-weight:600; color:var(--muted); text-decoration:none; transition:color .15s; -webkit-tap-highlight-color:transparent; }
+    .nav-back:hover { color:var(--text); }
+    .nav-back svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+    .page { position:relative; z-index:1; }
+    .hero { min-height:88vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:80px 24px 64px; position:relative; overflow:hidden; }
+    .hero::before { content:''; position:absolute; top:0; left:50%; transform:translateX(-50%); width:2px; height:55%; background:linear-gradient(to bottom, transparent, rgba(212,175,55,.5), transparent); filter:blur(1px); }
+    .hero::after { content:''; position:absolute; bottom:0; left:0; right:0; height:200px; background:linear-gradient(to bottom, transparent, var(--bg)); pointer-events:none; }
+    .streak { position:absolute; height:1px; pointer-events:none; background:linear-gradient(90deg, transparent, rgba(212,175,55,.25), transparent); }
+    .streak-1 { width:60%; top:30%; left:20%; } .streak-2 { width:40%; top:60%; left:30%; opacity:.5; }
+
+    .hero-eyebrow { display:inline-flex; align-items:center; gap:10px; font-size:11px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--gold); border:1px solid var(--gold-border); background:var(--gold-dim); padding:7px 18px; border-radius:50px; margin-bottom:40px; position:relative; z-index:1; }
+    .hero-eyebrow .dot { width:6px; height:6px; border-radius:50%; background:var(--gold); box-shadow:0 0 10px var(--gold); animation:blink 2.2s ease-in-out infinite; }
+    @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:.3;} }
+    .hero-label { font-size:clamp(13px,2.5vw,16px); font-weight:500; letter-spacing:4px; text-transform:uppercase; color:rgba(212,175,55,.6); margin-bottom:16px; position:relative; z-index:1; }
+    .hero-title { font-size:clamp(40px,10vw,86px); font-weight:900; letter-spacing:-2px; line-height:1.0; background:linear-gradient(160deg,#ffffff 20%,var(--gold-pale) 55%,var(--gold) 85%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom:20px; position:relative; z-index:1; }
+    .hero-sub { font-size:clamp(16px,3.2vw,22px); font-weight:300; color:rgba(240,240,240,.75); letter-spacing:.5px; margin-bottom:30px; position:relative; z-index:1; max-width:540px; }
+    .hero-meta { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; position:relative; z-index:1; }
+    .hero-pill { display:inline-flex; align-items:center; gap:9px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); border-radius:50px; padding:9px 20px; font-size:14px; font-weight:700; color:var(--text); letter-spacing:.3px; }
+    .hero-pill .p-gold { color:var(--gold); }
+
+    .content { max-width:780px; margin:0 auto; padding:0 20px 140px; }
+    .divider { display:flex; align-items:center; gap:16px; margin:52px 0 44px; }
+    .divider-line { flex:1; height:1px; background:var(--gold-border); }
+    .divider-diamond { width:8px; height:8px; background:var(--gold); transform:rotate(45deg); flex-shrink:0; box-shadow:0 0 12px rgba(212,175,55,.5); }
+    .s-label { font-size:10px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--gold); margin-bottom:16px; display:flex; align-items:center; gap:10px; }
+    .s-label::after { content:''; flex:1; height:1px; background:var(--gold-border); }
+
+    .gate-card { background:linear-gradient(135deg,#141408 0%,#111 100%); border:1px solid var(--gold-border); border-radius:var(--radius); padding:22px 24px; display:flex; align-items:center; gap:16px; margin-bottom:26px; position:relative; overflow:hidden; }
+    .gate-card::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg, transparent, var(--gold), transparent); }
+    .gate-ico { font-size:26px; flex-shrink:0; filter:drop-shadow(0 0 10px rgba(212,175,55,.5)); }
+    .gate-text { font-size:15px; font-weight:700; color:var(--text); line-height:1.5; }
+    .gate-text span { color:var(--gold); }
+
+    .desc-card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:34px 28px; position:relative; overflow:hidden; margin-bottom:14px; }
+    .desc-card::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg, transparent, rgba(212,175,55,.35), transparent); }
+    .desc-card p { font-size:16px; line-height:1.9; color:rgba(240,240,240,.82); font-weight:400; }
+    .desc-card .highlight { font-size:17px; font-weight:600; color:var(--text); border-left:3px solid var(--gold); padding-left:16px; margin-top:20px; line-height:1.7; }
+
+    .exp-grid { display:flex; flex-direction:column; gap:12px; }
+    .exp-item { display:flex; align-items:flex-start; gap:16px; background:var(--card); border:1px solid var(--border); border-radius:var(--radius-sm); padding:20px; transition:border-color .2s, transform .2s; position:relative; overflow:hidden; }
+    .exp-item::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:linear-gradient(to bottom, var(--gold), rgba(212,175,55,.3)); border-radius:3px 0 0 3px; }
+    .exp-item:hover { border-color:var(--gold-border); transform:translateX(4px); }
+    .exp-ico { width:40px; height:40px; border-radius:10px; flex-shrink:0; background:var(--gold-dim); border:1px solid var(--gold-border); display:flex; align-items:center; justify-content:center; font-size:19px; }
+    .exp-body { padding-top:2px; }
+    .exp-head { font-size:15px; font-weight:700; color:var(--text); margin-bottom:3px; }
+    .exp-text { font-size:14px; font-weight:400; color:rgba(240,240,240,.68); line-height:1.6; }
+
+    /* Event details */
+    .info-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    @media (max-width:520px){ .info-grid { grid-template-columns:1fr; } }
+    .info-card { background:var(--card2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:20px; }
+    .info-label { font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--gold); margin-bottom:6px; }
+    .info-val { font-size:16px; font-weight:700; color:var(--text); line-height:1.4; }
+    .info-val small { display:block; font-size:13px; font-weight:400; color:var(--muted); margin-top:3px; }
+
+    /* Registration */
+    .reg-card { background:linear-gradient(135deg,#0f0f0f 0%,#111 100%); border:1px solid var(--gold-border); border-radius:24px; padding:40px 28px 34px; text-align:center; position:relative; overflow:hidden; margin-top:12px; }
+    .reg-card::before { content:''; position:absolute; top:0; left:50%; transform:translateX(-50%); width:60%; height:1px; background:linear-gradient(90deg, transparent, var(--gold), transparent); }
+    .reg-card::after { content:''; position:absolute; top:-80px; left:50%; transform:translateX(-50%); width:600px; height:400px; background:radial-gradient(ellipse, rgba(212,175,55,.07) 0%, transparent 65%); pointer-events:none; }
+    .reg-icon { font-size:44px; margin-bottom:16px; display:block; filter:drop-shadow(0 0 16px rgba(212,175,55,.5)); }
+    .reg-title { font-size:clamp(21px,5vw,30px); font-weight:900; letter-spacing:-.5px; margin-bottom:8px; position:relative; z-index:1; }
+    .reg-sub { font-size:14px; color:var(--muted); margin-bottom:26px; line-height:1.6; position:relative; z-index:1; }
+
+    .seat-wrap { max-width:420px; margin:0 auto 24px; position:relative; z-index:1; }
+    .seat-top { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; font-size:13px; }
+    .seat-top .seat-count { font-weight:800; color:var(--text); }
+    .seat-top .seat-count b { color:var(--gold); font-size:16px; }
+    .seat-top .seat-state { font-weight:700; color:var(--gold); }
+    .seat-bar { height:12px; border-radius:50px; background:rgba(255,255,255,.06); border:1px solid var(--border); overflow:hidden; }
+    .seat-fill { height:100%; width:0%; border-radius:50px; background:linear-gradient(90deg,var(--gold),var(--gold-light)); transition:width .8s cubic-bezier(.4,0,.2,1); box-shadow:0 0 12px rgba(212,175,55,.5); }
+    .seat-fill.reserve { background:linear-gradient(90deg,#f59e0b,#fbbf24); }
+    .seat-fill.full { background:linear-gradient(90deg,#ef4444,#f87171); }
+    .seat-note { font-size:12px; color:var(--muted); margin-top:8px; }
+
+    .reg-status { font-size:14px; color:var(--gold); margin-bottom:14px; min-height:20px; font-weight:600; position:relative; z-index:1; }
+    .reg-btn { display:inline-flex; align-items:center; justify-content:center; gap:10px; background:linear-gradient(135deg,var(--gold) 0%,var(--gold-light) 50%,var(--gold) 100%); background-size:200% 200%; color:#080808; text-decoration:none; font-size:16px; font-weight:900; letter-spacing:.3px; padding:18px 44px; border:none; cursor:pointer; border-radius:50px; box-shadow:0 8px 32px rgba(212,175,55,.4); transition:background-position .4s, transform .15s, box-shadow .2s; -webkit-tap-highlight-color:transparent; position:relative; z-index:1; width:100%; max-width:420px; font-family:inherit; }
+    .reg-btn:hover:not(:disabled) { background-position:100% 100%; box-shadow:0 14px 48px rgba(212,175,55,.55); transform:translateY(-3px); }
+    .reg-btn:active:not(:disabled) { transform:scale(.97); }
+    .reg-btn:disabled { opacity:.55; cursor:default; }
+    .reg-btn svg { width:20px; height:20px; fill:#080808; flex-shrink:0; }
+    .contact-note { display:flex; align-items:center; justify-content:center; gap:8px; margin-top:16px; font-size:13px; color:rgba(240,240,240,.7); position:relative; z-index:1; }
+    .contact-note span { color:var(--gold); }
+
+    .line-btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; background:#22c55e; color:#fff; text-decoration:none; font-size:15px; font-weight:700; padding:15px 40px; border-radius:50px; width:100%; max-width:420px; margin-top:14px; box-shadow:0 4px 20px rgba(34,197,94,.3); transition:background .15s, transform .1s; -webkit-tap-highlight-color:transparent; position:relative; z-index:1; }
+    .line-btn:hover { background:#16a34a; } .line-btn:active { transform:scale(.97); }
+    .line-btn svg { width:20px; height:20px; fill:#fff; flex-shrink:0; }
+
+    .page-footer { text-align:center; padding:28px 20px 32px; font-size:12px; color:rgba(122,122,122,.5); letter-spacing:.5px; }
+    .page-footer span { color:var(--gold); opacity:.7; }
+    .fade { opacity:0; transform:translateY(28px); transition:opacity .65s ease, transform .65s ease; }
+    .fade.in { opacity:1; transform:translateY(0); }
+    .fade-d1 { transition-delay:.08s; } .fade-d2 { transition-delay:.16s; } .fade-d3 { transition-delay:.24s; }
+
+    /* Hamburger + drawer (shared) */
+    .hamburger { background:none; border:none; cursor:pointer; color:var(--text,#f0f0f0); padding:8px; display:flex; flex-direction:column; gap:5px; align-items:center; justify-content:center; border-radius:8px; transition:background .15s; flex-shrink:0; }
+    .hamburger:hover { background:rgba(255,255,255,.08); }
+    .hamburger span { display:block; width:22px; height:2px; background:currentColor; border-radius:2px; }
+    .drawer-overlay { position:fixed; inset:0; z-index:200; background:rgba(0,0,0,.6); opacity:0; pointer-events:none; transition:opacity .25s; }
+    .drawer-overlay.open { opacity:1; pointer-events:all; }
+    .drawer { position:fixed; top:0; left:0; bottom:0; z-index:201; width:275px; background:#1a1a1a; border-right:1px solid #2e2e2e; display:flex; flex-direction:column; transform:translateX(-100%); transition:transform .28s cubic-bezier(.4,0,.2,1); }
+    .drawer.open { transform:translateX(0); }
+    .drawer-header { display:flex; align-items:center; gap:10px; padding:14px 18px; border-bottom:1px solid #2e2e2e; }
+    .drawer-logo-name { font-size:16px; font-weight:800; color:#f1f1f1; letter-spacing:-.3px; }
+    .drawer-logo-name span { color:#E63946; }
+    .drawer-nav { flex:1; padding:10px 0; overflow-y:auto; }
+    .drawer-link { display:flex; align-items:center; gap:12px; padding:13px 20px; font-size:15px; font-weight:600; color:#777; text-decoration:none; transition:color .15s, background .15s; border-left:3px solid transparent; }
+    .drawer-link:hover { color:#f1f1f1; background:#222; }
+    .drawer-link-icon { font-size:18px; }
+    .drawer-footer { padding:16px 18px; border-top:1px solid #2e2e2e; }
+    .drawer-signout { width:100%; background:none; border:1px solid #2e2e2e; color:#777; border-radius:8px; padding:10px; font-size:13px; font-weight:600; cursor:pointer; transition:border-color .15s, color .15s; font-family:inherit; }
+    .drawer-signout:hover { border-color:#E63946; color:#E63946; }
+    .drawer-section-label { font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:#555; padding:14px 20px 6px; }
+    .drawer-divider { border:none; border-top:1px solid #2e2e2e; margin:6px 0; }
+    .drawer-link-line { background:#22c55e; color:#fff; border-radius:8px; margin:6px 12px; padding:11px 14px; justify-content:center; font-size:14px; border-left:none; }
+    .drawer-link-line:hover { background:#16a34a; color:#fff; }
+    .drawer-link-line svg { width:18px; height:18px; fill:#fff; flex-shrink:0; }
+    .drawer-accordion { border-left:3px solid transparent; }
+    .drawer-accordion-btn { display:flex; align-items:center; gap:12px; width:100%; padding:13px 20px; font-size:15px; font-weight:600; color:#777; background:none; border:none; cursor:pointer; transition:color .15s, background .15s; text-align:left; font-family:inherit; }
+    .drawer-accordion-btn:hover { color:#f1f1f1; background:#222; }
+    .drawer-accordion-btn .acc-arrow { margin-left:auto; font-size:12px; transition:transform .22s; }
+    .drawer-accordion.open .acc-arrow { transform:rotate(180deg); }
+    .drawer-accordion-body { display:none; }
+    .drawer-accordion.open .drawer-accordion-body { display:block; }
+    .drawer-sub-link { display:flex; align-items:center; gap:10px; padding:10px 20px 10px 52px; font-size:14px; font-weight:500; color:#777; text-decoration:none; transition:color .15s, background .15s; border-left:3px solid transparent; }
+    .drawer-sub-link:hover { color:#f1f1f1; background:#222; }
+    .drawer-sub-icon { font-size:15px; }
+    .nav-share { background:none; border:none; cursor:pointer; color:var(--muted); padding:8px; margin-left:auto; margin-right:-8px; display:flex; align-items:center; justify-content:center; border-radius:8px; transition:color .15s, background .15s; flex-shrink:0; }
+    .nav-share:hover { color:var(--text); background:rgba(255,255,255,.08); }
+    .nav-share svg { width:19px; height:19px; stroke:currentColor; fill:none; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
+  </style>
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="glow-top"></div>
+
+<nav>
+  <a class="nav-back" href="/" id="navBackBtn">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    Back
+  </a>
+  <button class="hamburger" id="navHamburgerBtn" onclick="toggleDrawer()" aria-label="Menu" style="display:none">
+    <span></span><span></span><span></span>
+  </button>
+  <button class="nav-share" onclick="sharePage()" aria-label="แชร์">
+    <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+  </button>
+</nav>
+
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <img src="/logo.png.png" alt="HQ" style="width:34px;height:34px;object-fit:contain;" />
+    <span class="drawer-logo-name">HQ <span>STRIKEPRO</span></span>
+  </div>
+  <nav class="drawer-nav">
+    <a class="drawer-link" href="/reviews-admin"><span class="drawer-link-icon">⭐</span> Reviews</a>
+    <a class="drawer-link" href="/last-account-admin"><span class="drawer-link-icon">🏠</span> ผู้สมัคร Last Account</a>
+    <a class="drawer-link" href="/the-last-day-admin"><span class="drawer-link-icon">🌅</span> ผู้ลงทะเบียน The Last Day</a>
+    <a class="drawer-link" href="/users-admin"><span class="drawer-link-icon">👤</span> จัดการผู้ใช้</a>
+    <hr class="drawer-divider" />
+    <div class="drawer-section-label">ข้อมูลเพิ่มเติม</div>
+    <div class="drawer-accordion open" id="acc-events">
+      <button class="drawer-accordion-btn" onclick="toggleAcc('acc-events')"><span class="drawer-link-icon">🎟️</span> Upcoming Events <span class="acc-arrow">▾</span></button>
+      <div class="drawer-accordion-body">
+        <a class="drawer-sub-link" href="/events/unlock-your-wealth"><span class="drawer-sub-icon">👑</span> Unlock Your Wealth</a>
+        <a class="drawer-sub-link" href="/events/sbc"><span class="drawer-sub-icon">🔥</span> SBC</a>
+        <a class="drawer-sub-link" href="/events/last-account"><span class="drawer-sub-icon">🏠</span> บ้านหลังสุดท้าย</a>
+        <a class="drawer-sub-link" href="/events/the-last-day" style="color:#d4af37;"><span class="drawer-sub-icon">🌅</span> The Last Day</a>
+      </div>
+    </div>
+    <div class="drawer-accordion" id="acc-community">
+      <button class="drawer-accordion-btn" onclick="toggleAcc('acc-community')"><span class="drawer-link-icon">🌐</span> Community <span class="acc-arrow">▾</span></button>
+      <div class="drawer-accordion-body">
+        <a class="drawer-sub-link" href="/ecosystem/stp-coin.html"><span class="drawer-sub-icon">🪙</span> STP Coin</a>
+        <a class="drawer-sub-link" href="/ecosystem/free-education.html"><span class="drawer-sub-icon">📚</span> Free Education</a>
+        <a class="drawer-sub-link" href="/ecosystem/trade-challenge.html"><span class="drawer-sub-icon">⚔️</span> Valhalla Dungeon</a>
+        <a class="drawer-sub-link" href="/ecosystem/charity-project.html"><span class="drawer-sub-icon">❤️</span> Charity Project</a>
+        <a class="drawer-sub-link" href="/ecosystem/world-champions.html"><span class="drawer-sub-icon">👑</span> World Champions 100</a>
+      </div>
+    </div>
+    <a class="drawer-link drawer-link-line" href="https://lin.ee/8WkoRmL" target="_blank">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.07 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+      สอบถาม / ติดต่อ Admin
+    </a>
+  </nav>
+  <div class="drawer-footer">
+    <div class="drawer-user" id="drawerUser" style="font-size:12px;color:#777;margin-bottom:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+    <button class="drawer-signout" onclick="drawerSignOut()">ออกจากระบบ</button>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="streak streak-1"></div>
+    <div class="streak streak-2"></div>
+    <div class="hero-eyebrow"><span class="dot"></span> SBC Graduates Only</div>
+    <p class="hero-label">StrikePro Exclusive Day</p>
+    <h1 class="hero-title">The Last Day</h1>
+    <p class="hero-sub">วันพิเศษสำหรับชาว Bussay ที่ผ่านค่าย SBC — ลงมือ workshop บริหารเงินจริง พบปะแลกเปลี่ยน และ session ที่หาไม่ได้จากที่ไหน</p>
+    <div class="hero-meta">
+      <span class="hero-pill">🗓️ <span class="p-gold">23 ส.ค. 2026</span></span>
+      <span class="hero-pill">⏰ 10:00–18:00</span>
+      <span class="hero-pill">📍 Strike Pro Head Office</span>
+    </div>
+  </section>
+
+  <div class="content">
+
+    <!-- Gate -->
+    <div class="fade">
+      <div class="gate-card">
+        <span class="gate-ico">🎓</span>
+        <div class="gate-text">เฉพาะผู้ที่<span> ผ่านค่าย SBC </span>มาแล้วเท่านั้น</div>
+      </div>
+    </div>
+
+    <!-- About -->
+    <div class="fade">
+      <p class="s-label">เกี่ยวกับกิจกรรม</p>
+      <div class="desc-card">
+        <p>The Last Day คือวันพิเศษที่รวมชาว Bussay ผู้ผ่านค่าย SBC มาต่อยอดสิ่งที่ได้เรียนรู้ — ผ่านการลงมือทำจริง พูดคุยแลกเปลี่ยน และสร้างคอนเนกชันที่จะอยู่กับคุณต่อไป</p>
+        <p class="highlight">เรียนรู้การบริหารเงินอย่างมีระบบผ่าน workshop จริง พบปะแลกเปลี่ยน connection และ session พิเศษสำหรับชาว Bussay ที่หาไม่ได้จากที่ไหน</p>
+      </div>
+    </div>
+
+    <div class="divider"><div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-line"></div></div>
+
+    <!-- Highlights -->
+    <div class="fade fade-d1">
+      <p class="s-label">ไฮไลต์ภายในงาน</p>
+      <div class="exp-grid">
+        <div class="exp-item">
+          <div class="exp-ico">💰</div>
+          <div class="exp-body">
+            <div class="exp-head">Workshop บริหารเงินอย่างมีระบบ</div>
+            <div class="exp-text">เรียนรู้เรื่องการบริหารเงินอย่างมีระบบผ่านการลงมือทำ workshop จริง ไม่ใช่แค่ฟังทฤษฎี</div>
+          </div>
+        </div>
+        <div class="exp-item">
+          <div class="exp-ico">🤝</div>
+          <div class="exp-body">
+            <div class="exp-head">พบปะ แลกเปลี่ยน Connection</div>
+            <div class="exp-text">พบปะพูดคุยกับเพื่อน ๆ ชาว Bussay ขยายคอนเนกชันและมุมมองใหม่ ๆ</div>
+          </div>
+        </div>
+        <div class="exp-item">
+          <div class="exp-ico">✨</div>
+          <div class="exp-body">
+            <div class="exp-head">Session พิเศษสำหรับชาว Bussay</div>
+            <div class="exp-text">เนื้อหาและช่วงเวลาพิเศษที่จัดเฉพาะสำหรับผู้ผ่านค่าย SBC — หาไม่ได้จากที่ไหน</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"><div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-line"></div></div>
+
+    <!-- Event details -->
+    <div class="fade fade-d1">
+      <p class="s-label">รายละเอียดงาน</p>
+      <div class="info-grid">
+        <div class="info-card"><div class="info-label">📅 วันที่</div><div class="info-val">อาทิตย์ 23 ส.ค. 2026</div></div>
+        <div class="info-card"><div class="info-label">⏰ เวลา</div><div class="info-val">10:00 – 18:00 น.</div></div>
+        <div class="info-card"><div class="info-label">📍 สถานที่</div><div class="info-val">Strike Pro Head Office</div></div>
+        <div class="info-card"><div class="info-label">🎫 ค่าเข้าร่วม</div><div class="info-val">ฟรี<small>ไม่มีค่าใช้จ่าย</small></div></div>
+      </div>
+    </div>
+
+    <div class="divider"><div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-line"></div></div>
+
+    <!-- Registration -->
+    <div class="fade fade-d2">
+      <p class="s-label">ลงทะเบียนเข้าร่วม</p>
+      <div class="reg-card">
+        <span class="reg-icon">🌅</span>
+        <h2 class="reg-title">จองที่นั่งของคุณ</h2>
+        <p class="reg-sub">รับจำนวนจำกัด 30 ที่นั่งหลัก + สำรอง 10 ที่นั่ง</p>
+
+        <div class="seat-wrap">
+          <div class="seat-top">
+            <span class="seat-count" id="seatCount">กำลังโหลด…</span>
+            <span class="seat-state" id="seatState"></span>
+          </div>
+          <div class="seat-bar"><div class="seat-fill" id="seatFill"></div></div>
+          <div class="seat-note" id="seatNote"></div>
+        </div>
+
+        <div class="reg-status" id="regStatus"></div>
+        <button class="reg-btn" id="regBtn" type="button" onclick="registerNow()" disabled>
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm-1 15-4-4 1.41-1.41L11 14.17l5.59-5.59L18 10z"/></svg>
+          <span id="regBtnText">ลงทะเบียนเข้าร่วม</span>
+        </button>
+        <div class="contact-note">📞 <span>มีเจ้าหน้าที่ติดต่อกลับ</span> สำหรับผู้ที่ผ่านเกณฑ์</div>
+
+        <a class="line-btn" href="https://lin.ee/8WkoRmL" target="_blank">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.07 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+          สอบถามผ่าน LINE
+        </a>
+      </div>
+    </div>
+
+    <p class="page-footer" style="margin-top:28px;">© 2026 <span>StrikePro</span> · The Last Day</p>
+
+  </div>
+</div>
+
+<script>
+  /* Particles */
+  const canvas = document.getElementById('particles'); const ctx = canvas.getContext('2d');
+  let W, H, pts = [];
+  function resize(){ W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+  resize(); window.addEventListener('resize', resize);
+  const rb = (a,b) => a + Math.random()*(b-a);
+  for (let i=0;i<55;i++) pts.push({ x:Math.random()*1600-400, y:Math.random()*2400, r:rb(.4,1.4), vy:rb(.1,.35), o:rb(.1,.45) });
+  (function draw(){ ctx.clearRect(0,0,W,H); pts.forEach(p=>{ ctx.beginPath(); ctx.arc(p.x,p.y%H,p.r,0,Math.PI*2); ctx.fillStyle=`rgba(212,175,55,${p.o})`; ctx.fill(); p.y+=p.vy; if(p.y>H+10)p.y=-10; }); requestAnimationFrame(draw); })();
+
+  /* Scroll fade */
+  const io = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold:0.06 });
+  document.querySelectorAll('.fade').forEach(el => io.observe(el));
+
+  /* Drawer */
+  function toggleDrawer(){ document.getElementById('drawer').classList.toggle('open'); document.getElementById('drawerOverlay').classList.toggle('open'); }
+  function closeDrawer(){ document.getElementById('drawer').classList.remove('open'); document.getElementById('drawerOverlay').classList.remove('open'); }
+  function toggleAcc(id){ document.getElementById(id).classList.toggle('open'); }
+  function drawerSignOut(){ localStorage.removeItem('sp_token'); window.location.href='/login'; }
+  (function(){
+    const token = localStorage.getItem('sp_token'); if(!token) return;
+    fetch('/api/auth/me',{ headers:{ Authorization:'Bearer '+token } }).then(r=>r.ok?r.json():null).then(data=>{
+      const user = data && data.user; if(!user || user.role!=='admin') return;
+      const back=document.getElementById('navBackBtn'), ham=document.getElementById('navHamburgerBtn');
+      if(back) back.style.display='none'; if(ham) ham.style.display='flex';
+      const el=document.getElementById('drawerUser'); if(el && user.email) el.textContent=user.email;
+    }).catch(()=>{});
+  })();
+
+  /* Share */
+  async function sharePage(){
+    try {
+      if(navigator.share){ await navigator.share({ title:document.title, url:location.href }); }
+      else {
+        await navigator.clipboard.writeText(location.href);
+        const t=document.createElement('div'); t.textContent='คัดลอกลิงก์แล้ว ✓';
+        t.style.cssText='position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#222;border:1px solid rgba(255,255,255,.12);color:#f0f0f0;padding:9px 18px;border-radius:10px;font-size:13px;font-weight:600;z-index:9999;pointer-events:none;';
+        document.body.appendChild(t); setTimeout(()=>t.remove(),2000);
+      }
+    } catch {}
+  }
+
+  /* ── Registration ── */
+  const SELF = '/events/the-last-day';
+  const btn = document.getElementById('regBtn');
+  const btnText = document.getElementById('regBtnText');
+  const regStatus = document.getElementById('regStatus');
+  let alreadyRegistered = false;
+
+  function paintSeats(s){
+    const total = s.mainSeats + s.reserveSeats;
+    const pct = Math.min(100, Math.round((s.count / total) * 100));
+    const fill = document.getElementById('seatFill');
+    fill.style.width = pct + '%';
+    fill.className = 'seat-fill' + (s.capacityStatus === 'full' ? ' full' : s.capacityStatus === 'reserve' ? ' reserve' : '');
+    document.getElementById('seatCount').innerHTML = `<b>${s.count}</b> / ${total} ที่นั่ง`;
+    const stateEl = document.getElementById('seatState');
+    const noteEl = document.getElementById('seatNote');
+    if (s.ended)                     { stateEl.textContent = 'ปิดรับสมัคร'; noteEl.textContent = 'สิ้นสุดการรับลงทะเบียนแล้ว'; }
+    else if (s.capacityStatus === 'full')    { stateEl.textContent = 'เต็มแล้ว';  noteEl.textContent = 'ที่นั่งเต็มทั้งหมดแล้ว'; }
+    else if (s.capacityStatus === 'reserve') { stateEl.textContent = 'ที่นั่งสำรอง'; noteEl.textContent = `เหลือที่นั่งสำรอง ${s.seatsLeft} ที่`; }
+    else                                     { stateEl.textContent = `เหลือ ${s.seatsLeft} ที่`; noteEl.textContent = `ที่นั่งหลัก ${s.mainSeats} · สำรอง ${s.reserveSeats}`; }
+  }
+
+  async function loadStatus(){
+    try {
+      const s = await (await fetch('/api/the-last-day/status')).json();
+      paintSeats(s);
+      // Has this member already registered?
+      const token = localStorage.getItem('sp_token');
+      if (token) {
+        try {
+          const me = await (await fetch('/api/the-last-day/me', { headers:{ Authorization:'Bearer '+token } })).json();
+          alreadyRegistered = !!(me && me.registered);
+        } catch {}
+      }
+      if (alreadyRegistered) {
+        btn.disabled = true; btnText.textContent = '✓ คุณลงทะเบียนแล้ว';
+        btn.style.background = '#22c55e';
+        regStatus.style.color = '#4ade80'; regStatus.textContent = '🎉 คุณลงทะเบียน The Last Day ไว้เรียบร้อยแล้ว';
+        return;
+      }
+      if (s.ended)  { btn.disabled = true; btnText.textContent = 'ปิดรับสมัครแล้ว'; return; }
+      if (s.status === 'full') { btn.disabled = true; btnText.textContent = 'เต็มแล้ว'; return; }
+      if (s.status === 'closed') { btn.disabled = true; btnText.textContent = 'ยังไม่เปิดรับสมัคร'; return; }
+      btn.disabled = false;
+      btnText.textContent = s.capacityStatus === 'reserve' ? 'ลงทะเบียน (ที่นั่งสำรอง)' : 'ลงทะเบียนเข้าร่วม';
+    } catch {
+      document.getElementById('seatCount').textContent = 'โหลดข้อมูลไม่สำเร็จ';
+    }
+  }
+
+  async function registerNow(){
+    const token = localStorage.getItem('sp_token');
+    if (!token) { window.location.href = '/login?next=' + encodeURIComponent(SELF); return; }
+    const prev = btnText.textContent;
+    btn.disabled = true; btnText.textContent = 'กำลังลงทะเบียน…'; regStatus.textContent = '';
+    try {
+      const r = await fetch('/api/the-last-day/join', { method:'POST', headers:{ Authorization:'Bearer '+token } });
+      if (r.status === 401) { localStorage.removeItem('sp_token'); window.location.href = '/login?next=' + encodeURIComponent(SELF); return; }
+      const d = await r.json().catch(()=>({}));
+      if (r.status === 400 && d.code === 'profile') {
+        regStatus.style.color = '#f5d96b';
+        regStatus.textContent = 'กรุณากรอกข้อมูลส่วนตัวให้ครบก่อน กำลังพาไปหน้าอัพเดทข้อมูล…';
+        setTimeout(()=>{ window.location.href = '/update-profile?reason=register&next=' + encodeURIComponent(SELF); }, 1200);
+        return;
+      }
+      if (r.status === 409 && d.code === 'joined') {
+        alreadyRegistered = true;
+        btnText.textContent = '✓ คุณลงทะเบียนแล้ว'; btn.style.background = '#22c55e';
+        regStatus.style.color = '#4ade80'; regStatus.textContent = '🎉 คุณลงทะเบียนไว้แล้ว';
+        return;
+      }
+      if (!r.ok) throw new Error(d.error || 'ลงทะเบียนไม่สำเร็จ');
+      const seat = d.seat_type === 'reserve' ? 'ที่นั่งสำรอง' : 'ที่นั่งหลัก';
+      btnText.textContent = '✓ ลงทะเบียนสำเร็จแล้ว'; btn.style.background = '#22c55e';
+      regStatus.style.color = '#4ade80';
+      regStatus.textContent = `🎉 ลงทะเบียนสำเร็จ — ${seat} ลำดับที่ ${d.position} · เจ้าหน้าที่จะติดต่อกลับสำหรับผู้ผ่านเกณฑ์`;
+      loadStatus();
+    } catch (err) {
+      regStatus.style.color = '#ff6b76'; regStatus.textContent = err.message;
+      btn.disabled = false; btnText.textContent = prev;
+    }
+  }
+
+  loadStatus();
+</script>
+</body>
+</html>

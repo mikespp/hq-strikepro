@@ -244,6 +244,70 @@ router.get('/me', requireAuth, async (req, res) => {
   }
 });
 
+// ── GET /api/auth/profile ─── full editable profile (for the update-profile form)
+const toYMD = v => {
+  if (!v) return '';
+  if (typeof v === 'string') return v.slice(0, 10);
+  const d = new Date(v);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+router.get('/profile', requireAuth, async (req, res) => {
+  try {
+    const u = await db.findUserById(req.userId);
+    if (!u) return res.status(404).json({ error: 'User not found.' });
+    res.json({ profile: {
+      email:       u.email,
+      firstName:   u.first_name  || '',
+      lastName:    u.last_name   || '',
+      nickname:    u.nickname    || '',
+      phone:       u.phone       || '',
+      birthDate:   toYMD(u.birth_date),
+      lineId:      u.line_id     || '',
+      addrLine:    u.addr_line   || '',
+      subdistrict: u.subdistrict || '',
+      district:    u.district    || '',
+      province:    u.province    || '',
+      postalCode:  u.postal_code || '',
+      avatar:      u.avatar_data || null,
+    } });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่' });
+  }
+});
+
+// ── PATCH /api/auth/profile ─── update the member's own profile ────────────────
+router.patch('/profile', requireAuth, async (req, res) => {
+  try {
+    const s = v => String(v || '').trim();
+    const b = req.body;
+    const firstName=s(b.firstName), lastName=s(b.lastName), nickname=s(b.nickname),
+          phone=s(b.phone), birthDate=s(b.birthDate), lineId=s(b.lineId),
+          addrLine=s(b.addrLine), subdistrict=s(b.subdistrict), district=s(b.district),
+          province=s(b.province), postalCode=s(b.postalCode);
+    const avatarData = b.avatarData ? String(b.avatarData) : null;
+
+    const requiredFields = { firstName, lastName, nickname, phone, birthDate, lineId, addrLine, subdistrict, district, province, postalCode };
+    for (const v of Object.values(requiredFields))
+      if (!v) return res.status(400).json({ error: 'กรุณากรอกข้อมูลให้ครบทุกช่อง' });
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(birthDate))
+      return res.status(400).json({ error: 'วันเดือนปีเกิดไม่ถูกต้อง' });
+    if (!/^\d{5}$/.test(postalCode))
+      return res.status(400).json({ error: 'รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก' });
+    if (avatarData && (!/^data:image\/(png|jpe?g|webp|gif);base64,/.test(avatarData) || avatarData.length > 3_000_000))
+      return res.status(400).json({ error: 'รูปโปรไฟล์ไม่ถูกต้องหรือใหญ่เกินไป' });
+
+    await db.updateUserProfile(req.userId, {
+      firstName, lastName, nickname, phone, birthDate, lineId,
+      addrLine, subdistrict, district, province, postalCode, avatarData,
+    });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่' });
+  }
+});
+
 // ── POST /api/auth/logout ─────────────────────────────────────────────────────
 
 router.post('/logout', requireAuth, async (req, res) => {

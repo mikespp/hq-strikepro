@@ -134,6 +134,26 @@ async function init() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
+  // The Last Day — event registrations (one row per member per edition).
+  await pool.execute(`
+    CREATE TABLE IF NOT EXISTS the_last_day_registrations (
+      id          INT UNSIGNED  NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      edition     SMALLINT      NOT NULL DEFAULT 2,
+      user_id     INT UNSIGNED  NULL,
+      first_name  VARCHAR(120)  NOT NULL DEFAULT '',
+      last_name   VARCHAR(120)  NOT NULL DEFAULT '',
+      nickname    VARCHAR(120)  NOT NULL DEFAULT '',
+      phone       VARCHAR(50)   NOT NULL DEFAULT '',
+      email       VARCHAR(255)  NOT NULL DEFAULT '',
+      line_id     VARCHAR(120)  NOT NULL DEFAULT '',
+      seat_type   VARCHAR(10)   NOT NULL DEFAULT 'main',
+      confirmed   TINYINT(1)    NOT NULL DEFAULT 0,
+      confirmed_at DATETIME     NULL,
+      created_at  DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE KEY uniq_edition_email (edition, email)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
   // Allowlist of StrikePro customer emails (SHA-256 hash of the normalised email).
   // Synced daily from the StrikePro customer DB — registration is gated on this.
   await pool.execute(`
@@ -334,6 +354,25 @@ async function createMember(d) {
      s(d.province), s(d.postalCode), d.avatarData || null]
   );
   return { id: result.insertId, email: e };
+}
+
+// Update a member's editable profile fields (not email / password / role).
+// avatar_data is only overwritten when a new value is supplied (null = keep).
+async function updateUserProfile(id, d) {
+  const s = v => String(v || '').trim();
+  const full = `${s(d.firstName)} ${s(d.lastName)}`.trim();
+  const sets = [
+    'full_name=?', 'first_name=?', 'last_name=?', 'nickname=?', 'phone=?', 'birth_date=?',
+    'line_id=?', 'addr_line=?', 'subdistrict=?', 'district=?', 'province=?', 'postal_code=?',
+  ];
+  const vals = [
+    full, s(d.firstName), s(d.lastName), s(d.nickname), s(d.phone), d.birthDate || null,
+    s(d.lineId), s(d.addrLine), s(d.subdistrict), s(d.district), s(d.province), s(d.postalCode),
+  ];
+  if (d.avatarData) { sets.push('avatar_data=?'); vals.push(d.avatarData); }
+  vals.push(id);
+  const [res] = await pool.execute(`UPDATE users SET ${sets.join(', ')} WHERE id = ?`, vals);
+  return res.affectedRows > 0;
 }
 
 // ── Eligibility (StrikePro customer allowlist) ─────────────────────────────────
@@ -839,6 +878,78 @@ async function setUserPassword(id, hashedPassword) {
   }
 }
 
+// ── The Last Day — event registrations ─────────────────────────────────────────
+
+async function countTheLastDayRegistrations(edition) {
+  const [rows] = await pool.execute(
+    'SELECT COUNT(*) AS c FROM the_last_day_registrations WHERE edition = ?',
+    [edition]
+  );
+  return Number(rows[0].c);
+}
+
+async function hasTheLastDayRegistration(email, edition) {
+  const [rows] = await pool.execute(
+    'SELECT 1 FROM the_last_day_registrations WHERE email = ? AND edition = ? LIMIT 1',
+    [String(email || '').toLowerCase().trim(), edition]
+  );
+  return rows.length > 0;
+}
+
+/**
+ * Insert a registration atomically with a per-edition capacity check.
+ * Returns { full: true } if main+reserve seats are exhausted, else { id, seat_type, position }.
+ * Throws ER_DUP_ENTRY (1062) if the member already registered this edition.
+ */
+async function createTheLastDayRegistration(data, edition, mainSeats, reserveSeats) {
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+    const [rows] = await conn.execute(
+      'SELECT COUNT(*) AS c FROM the_last_day_registrations WHERE edition = ? FOR UPDATE',
+      [edition]
+    );
+    const count = Number(rows[0].c);
+    if (count >= mainSeats + reserveSeats) {
+      await conn.rollback();
+      return { full: true };
+    }
+    const seatType = count < mainSeats ? 'main' : 'reserve';
+    const [result] = await conn.execute(
+      `INSERT INTO the_last_day_registrations
+         (edition, user_id, first_name, last_name, nickname, phone, email, line_id, seat_type)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [edition, data.user_id || null, data.first_name, data.last_name, data.nickname,
+       data.phone, data.email, data.line_id, seatType]
+    );
+    await conn.commit();
+    return { id: result.insertId, seat_type: seatType, position: count + 1 };
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally {
+    conn.release();
+  }
+}
+
+async function listTheLastDayRegistrations() {
+  const [rows] = await pool.execute(
+    `SELECT id, edition, first_name, last_name, nickname, phone, email, line_id,
+            seat_type, confirmed, confirmed_at, created_at
+     FROM the_last_day_registrations ORDER BY edition ASC, created_at ASC`
+  );
+  return rows;
+}
+
+// Toggle the admin "confirmed / contacted" flag + stamp its time.
+async function setTheLastDayFlag(id, value) {
+  const v = value ? 1 : 0;
+  await pool.execute(
+    `UPDATE the_last_day_registrations SET confirmed = ?, confirmed_at = ${v ? 'NOW()' : 'NULL'} WHERE id = ?`,
+    [v, id]
+  );
+}
+
 // ── Events (calendar) ─────────────────────────────────────────────────────────
 
 // DB row -> API shape used by the calendar frontend: { id, t, s:[y,m,d], e:[y,m,d], c, h, live }
@@ -925,5 +1036,7 @@ module.exports = {
   setLastAccountFlag, lastAccountDashboard,
   getConfirmedStudents, upsertProjectStats, getProjectStats, replaceStudentStats, getRoundStudents,
   listEvents, getEventById, createEvent, updateEvent, deleteEvent,
-  searchUsers, deleteUserById, setUserRole, setUserPassword,
+  searchUsers, deleteUserById, setUserRole, setUserPassword, updateUserProfile,
+  countTheLastDayRegistrations, hasTheLastDayRegistration, createTheLastDayRegistration,
+  listTheLastDayRegistrations, setTheLastDayFlag,
 };
