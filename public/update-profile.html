@@ -64,12 +64,18 @@
     @keyframes shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-6px);}40%{transform:translateX(6px);}60%{transform:translateX(-4px);}80%{transform:translateX(4px);}}
     .shake{animation:shake .4s ease;}
     .loading-wrap{max-width:420px;width:100%;text-align:center;color:var(--text-muted);font-size:14px;padding:40px 0;}
+    .home-fab{position:fixed;top:16px;left:16px;z-index:10;display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;background:#1a1a1a;border:1px solid #2e2e2e;color:#888;text-decoration:none;transition:color .15s,border-color .15s;}
+    .home-fab:hover{color:#d4af37;border-color:#d4af37;}
+    .home-fab svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
   </style>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@100;300;400;500;600;700&display=swap" rel="stylesheet" />
 </head>
 <body>
+<a href="/" class="home-fab" title="หน้าหลัก" aria-label="หน้าหลัก">
+  <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+</a>
 <div class="app">
   <div class="logo">
     <div class="logo-mark"><img src="/logo.png.png" alt="HQ Strikepro" /></div>

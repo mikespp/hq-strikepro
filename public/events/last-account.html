@@ -455,8 +455,8 @@
 <!-- Nav -->
 <nav>
   <a class="nav-back" href="/" id="navBackBtn">
-    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-    Back
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    หน้าหลัก
   </a>
   <button class="hamburger" id="navHamburgerBtn" onclick="toggleDrawer()" aria-label="Menu" style="display:none">
     <span></span><span></span><span></span>
@@ -930,7 +930,6 @@
         const user = data && data.user; if (!user || user.role !== 'admin') return;
         const back = document.getElementById('navBackBtn');
         const ham  = document.getElementById('navHamburgerBtn');
-        if (back) back.style.display = 'none';
         if (ham)  ham.style.display  = 'flex';
         const el = document.getElementById('drawerUser');
         if (el && user.email) el.textContent = user.email;
