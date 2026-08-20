@@ -284,6 +284,10 @@ async function init() {
   // Seed calendar events once (only if the table is empty)
   await seedEventsIfEmpty();
 
+  // Ensure specific events that were added AFTER the initial seed exist even on
+  // an already-populated DB (idempotent — matched by title + start_date).
+  await ensureEvent({ title: 'The Last Day ครั้งที่ 2', start: '2026-08-23', end: '2026-08-23', color: '#818cf8', href: '/events/the-last-day', live: false });
+
   console.log('  MySQL connected & schema ready.\n');
 }
 
@@ -1003,6 +1007,21 @@ async function updateEvent(id, { title, start, end, color, href, live }) {
 async function deleteEvent(id) {
   const [result] = await pool.execute('DELETE FROM events WHERE id = ?', [id]);
   return result.affectedRows > 0;
+}
+
+// Insert a single event only if one with the same title + start_date is absent.
+async function ensureEvent({ title, start, end, color, href, live }) {
+  const [rows] = await pool.execute(
+    'SELECT 1 FROM events WHERE title = ? AND start_date = ? LIMIT 1',
+    [title, start]
+  );
+  if (rows.length) return false;
+  await pool.execute(
+    'INSERT INTO events (title, start_date, end_date, color, href, live) VALUES (?, ?, ?, ?, ?, ?)',
+    [title, start, end, color || '#d4af37', href || null, live ? 1 : 0]
+  );
+  console.log(`  Ensured calendar event: ${title}`);
+  return true;
 }
 
 async function seedEventsIfEmpty() {
