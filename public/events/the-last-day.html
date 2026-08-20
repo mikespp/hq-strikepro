@@ -232,9 +232,9 @@
     <h1 class="hero-title">The Last Day</h1>
     <p class="hero-sub">วันพิเศษสำหรับชาว Bussay ที่ผ่านค่าย SBC — ลงมือ workshop บริหารเงินจริง พบปะแลกเปลี่ยน และ session ที่หาไม่ได้จากที่ไหน</p>
     <div class="hero-meta">
-      <span class="hero-pill">🗓️ <span class="p-gold">23 ส.ค. 2026</span></span>
-      <span class="hero-pill">⏰ 10:00–18:00</span>
-      <span class="hero-pill">📍 Strike Pro Head Office</span>
+      <span class="hero-pill">🗓️ <span class="p-gold" id="heroDate">23 ส.ค. 2026</span></span>
+      <span class="hero-pill">⏰ <span id="heroTime">10:00–18:00</span></span>
+      <span class="hero-pill">📍 <span id="heroVenue">Strike Pro Head Office</span></span>
     </div>
   </section>
 
@@ -293,9 +293,9 @@
     <div class="fade fade-d1">
       <p class="s-label">รายละเอียดงาน</p>
       <div class="info-grid">
-        <div class="info-card"><div class="info-label">📅 วันที่</div><div class="info-val">อาทิตย์ 23 ส.ค. 2026</div></div>
-        <div class="info-card"><div class="info-label">⏰ เวลา</div><div class="info-val">10:00 – 18:00 น.</div></div>
-        <div class="info-card"><div class="info-label">📍 สถานที่</div><div class="info-val">Strike Pro Head Office</div></div>
+        <div class="info-card"><div class="info-label">📅 วันที่</div><div class="info-val" id="infoDate">อาทิตย์ 23 ส.ค. 2026</div></div>
+        <div class="info-card"><div class="info-label">⏰ เวลา</div><div class="info-val" id="infoTime">10:00 – 18:00 น.</div></div>
+        <div class="info-card"><div class="info-label">📍 สถานที่</div><div class="info-val" id="infoVenue">Strike Pro Head Office</div></div>
         <div class="info-card"><div class="info-label">🎫 ค่าเข้าร่วม</div><div class="info-val">ฟรี<small>ไม่มีค่าใช้จ่าย</small></div></div>
       </div>
     </div>
@@ -308,7 +308,7 @@
       <div class="reg-card">
         <span class="reg-icon">🌅</span>
         <h2 class="reg-title">จองที่นั่งของคุณ</h2>
-        <p class="reg-sub">รับจำนวนจำกัด 30 ที่นั่งหลัก + สำรอง 10 ที่นั่ง</p>
+        <p class="reg-sub" id="regSub">รับจำนวนจำกัด 30 ที่นั่งหลัก + สำรอง 10 ที่นั่ง</p>
 
         <div class="seat-wrap">
           <div class="seat-top">
@@ -387,6 +387,24 @@
   const regStatus = document.getElementById('regStatus');
   let alreadyRegistered = false;
 
+  // Fill date / time / venue / seat counts from the backend config (single source of truth)
+  function fillEventDetails(s){
+    const TZ = 'Asia/Bangkok';
+    const start = new Date(s.eventStart), end = new Date(s.eventEnd);
+    const shortDate = start.toLocaleDateString('th-TH-u-ca-gregory', { day:'numeric', month:'short', year:'numeric', timeZone:TZ });
+    const longDate  = start.toLocaleDateString('th-TH-u-ca-gregory', { weekday:'long', day:'numeric', month:'short', year:'numeric', timeZone:TZ });
+    const t = d => d.toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit', hour12:false, timeZone:TZ });
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    set('heroDate', shortDate);
+    set('heroTime', `${t(start)}–${t(end)}`);
+    set('heroVenue', s.venue || '');
+    set('infoDate', longDate);
+    set('infoTime', `${t(start)} – ${t(end)} น.`);
+    set('infoVenue', s.venue || '');
+    set('regSub', `รับจำนวนจำกัด ${s.mainSeats} ที่นั่งหลัก + สำรอง ${s.reserveSeats} ที่นั่ง`);
+    if (document.title.indexOf('ครั้งที่') === -1 && s.label) document.title = `The Last Day (${s.label}) — StrikePro`;
+  }
+
   function paintSeats(s){
     const total = s.mainSeats + s.reserveSeats;
     const pct = Math.min(100, Math.round((s.count / total) * 100));
@@ -405,6 +423,7 @@
   async function loadStatus(){
     try {
       const s = await (await fetch('/api/the-last-day/status')).json();
+      fillEventDetails(s);
       paintSeats(s);
       // Has this member already registered?
       const token = localStorage.getItem('sp_token');
