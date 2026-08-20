@@ -496,16 +496,14 @@
       justify-content: center; border-radius: 8px; transition: color .15s, background .15s; flex-shrink: 0; }
     .nav-share:hover { color: var(--text); background: rgba(255,255,255,.08); }
     .nav-share svg { width: 19px; height: 19px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+      .nav-back img{width:34px;height:34px;object-fit:contain;display:block;}
   </style>
 </head>
 <body>
 
   <!-- Nav -->
   <nav>
-    <a class="nav-back" href="/" id="navBackBtn">
-    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-    หน้าหลัก
-  </a>
+    <a class="nav-back" href="/" id="navBackBtn"><img src="/logo.png.png" alt="HQ Strikepro" /></a>
     <button class="hamburger" id="navHamburgerBtn" onclick="toggleDrawer()" aria-label="Menu" style="display:none">
     <span></span><span></span><span></span>
   </button>
