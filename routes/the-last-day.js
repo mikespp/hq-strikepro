@@ -4,25 +4,25 @@ const { requireAuth, requireAdmin } = require('./auth');
 
 const router = express.Router();
 
-// ── Event config — one entry per edition ("ครั้งที่ N") ───────────────────────
-// Registration opens at opensAt and stays open until seats fill or the event starts.
-const EDITIONS = {
-  2: {
-    label:      'ครั้งที่ 2',
-    opensAt:    new Date('2026-08-20T00:00:00+07:00'), // open now
-    eventStart: new Date('2026-08-23T10:00:00+07:00'),
-    eventEnd:   new Date('2026-08-23T18:00:00+07:00'),
-    venue:      'Strike Pro Head Office',
-    main:       30,
-    reserve:    10,
-  },
-};
-const ACTIVE = 2; // the edition currently accepting registrations
+// Editions ("ครั้งที่ N") live in the DB (the_last_day_editions) so an admin can
+// open the next edition at runtime with its own date/time/venue. The active
+// edition = the highest edition number. Datetimes are ISO strings with +07:00.
+async function activeCfg() {
+  const row = await db.getActiveTheLastDayEdition();
+  if (!row) return null;
+  return {
+    edition:    row.edition,
+    label:      row.label,
+    opensAt:    new Date(row.opens_at),
+    eventStart: new Date(row.event_start),
+    eventEnd:   new Date(row.event_end),
+    venue:      row.venue,
+    main:       row.main_seats,
+    reserve:    row.reserve_seats,
+  };
+}
 
-function cfgOf(edition) { return EDITIONS[edition] || null; }
-
-function buildStatus(edition, dbCount, state = {}) {
-  const cfg    = cfgOf(edition);
+function buildStatus(cfg, dbCount, state = {}) {
   const now    = new Date();
   const isOpen = now >= cfg.opensAt;
   // Registration ends when the event starts, OR an admin closed it / completed the event.
@@ -37,7 +37,7 @@ function buildStatus(edition, dbCount, state = {}) {
   const status = ended ? 'ended' : (isOpen ? capacity : 'closed');
 
   return {
-    edition,
+    edition:      cfg.edition,
     label:        cfg.label,
     count,
     mainSeats:    cfg.main,
@@ -60,9 +60,11 @@ function buildStatus(edition, dbCount, state = {}) {
 // ── GET /api/the-last-day/status  (public) — active edition status ────────────
 router.get('/status', async (req, res) => {
   try {
-    const count = await db.countTheLastDayRegistrations(ACTIVE);
-    const state = await db.getTheLastDayState(ACTIVE);
-    res.json(buildStatus(ACTIVE, count, state));
+    const cfg = await activeCfg();
+    if (!cfg) return res.status(404).json({ error: 'ยังไม่มีรุ่นที่เปิดรับสมัคร' });
+    const count = await db.countTheLastDayRegistrations(cfg.edition);
+    const state = await db.getTheLastDayState(cfg.edition);
+    res.json(buildStatus(cfg, count, state));
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
@@ -72,9 +74,11 @@ router.get('/status', async (req, res) => {
 // ── GET /api/the-last-day/me  (member) — has the user already registered? ─────
 router.get('/me', requireAuth, async (req, res) => {
   try {
+    const cfg = await activeCfg();
+    if (!cfg) return res.json({ registered: false });
     const user = await db.findUserById(req.userId);
     if (!user) return res.status(401).json({ error: 'ไม่พบผู้ใช้' });
-    const registered = await db.hasTheLastDayRegistration(user.email, ACTIVE);
+    const registered = await db.hasTheLastDayRegistration(user.email, cfg.edition);
     res.json({ registered });
   } catch (err) {
     console.error(err);
@@ -85,9 +89,10 @@ router.get('/me', requireAuth, async (req, res) => {
 // ── POST /api/the-last-day/join  (member) — one-click register using profile ──
 router.post('/join', requireAuth, async (req, res) => {
   try {
-    const cfg = cfgOf(ACTIVE);
+    const cfg = await activeCfg();
+    if (!cfg) return res.status(403).json({ error: 'ยังไม่มีรุ่นที่เปิดรับสมัคร' });
     const now = new Date();
-    const state = await db.getTheLastDayState(ACTIVE);
+    const state = await db.getTheLastDayState(cfg.edition);
     if (state.event_completed)     return res.status(403).json({ error: 'กิจกรรมสิ้นสุดแล้ว' });
     if (state.registration_closed) return res.status(403).json({ error: 'ปิดรับสมัครแล้ว' });
     if (now < cfg.opensAt)     return res.status(403).json({ error: 'ยังไม่เปิดรับสมัคร' });
@@ -100,7 +105,7 @@ router.post('/join', requireAuth, async (req, res) => {
     if (missing.length)
       return res.status(400).json({ error: 'ข้อมูลโปรไฟล์ไม่ครบ กรุณาอัพเดทข้อมูลก่อนลงทะเบียน', code: 'profile' });
 
-    if (await db.hasTheLastDayRegistration(user.email, ACTIVE))
+    if (await db.hasTheLastDayRegistration(user.email, cfg.edition))
       return res.status(409).json({ error: 'คุณลงทะเบียนไว้แล้ว', code: 'joined' });
 
     const data = {
@@ -115,7 +120,7 @@ router.post('/join', requireAuth, async (req, res) => {
 
     let result;
     try {
-      result = await db.createTheLastDayRegistration(data, ACTIVE, cfg.main, cfg.reserve);
+      result = await db.createTheLastDayRegistration(data, cfg.edition, cfg.main, cfg.reserve);
     } catch (err) {
       if (err && err.code === 'ER_DUP_ENTRY')
         return res.status(409).json({ error: 'คุณลงทะเบียนไว้แล้ว', code: 'joined' });
@@ -131,10 +136,11 @@ router.post('/join', requireAuth, async (req, res) => {
   }
 });
 
-// ── GET /api/the-last-day/registrations  (admin) ──────────────────────────────
+// ── GET /api/the-last-day/registrations  (admin) — active edition's list ──────
 router.get('/registrations', requireAdmin, async (req, res) => {
   try {
-    res.json(await db.listTheLastDayRegistrations());
+    const cfg = await activeCfg();
+    res.json(await db.listTheLastDayRegistrations(cfg ? cfg.edition : null));
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
@@ -144,9 +150,11 @@ router.get('/registrations', requireAdmin, async (req, res) => {
 // ── GET /api/the-last-day/admin/state  (admin) — registration/event flags ─────
 router.get('/admin/state', requireAdmin, async (req, res) => {
   try {
-    const count = await db.countTheLastDayRegistrations(ACTIVE);
-    const state = await db.getTheLastDayState(ACTIVE);
-    res.json({ edition: ACTIVE, ...state, status: buildStatus(ACTIVE, count, state) });
+    const cfg = await activeCfg();
+    if (!cfg) return res.json({ edition: null, registration_closed: false, event_completed: false, status: null });
+    const count = await db.countTheLastDayRegistrations(cfg.edition);
+    const state = await db.getTheLastDayState(cfg.edition);
+    res.json({ edition: cfg.edition, ...state, status: buildStatus(cfg, count, state) });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
@@ -156,10 +164,12 @@ router.get('/admin/state', requireAdmin, async (req, res) => {
 // ── POST /api/the-last-day/admin/registration  (admin) — open/close signup ────
 router.post('/admin/registration', requireAdmin, async (req, res) => {
   try {
-    const state = await db.getTheLastDayState(ACTIVE);
+    const cfg = await activeCfg();
+    if (!cfg) return res.status(404).json({ error: 'ยังไม่มีรุ่น' });
+    const state = await db.getTheLastDayState(cfg.edition);
     if (state.event_completed) return res.status(409).json({ error: 'กิจกรรมสิ้นสุดแล้ว ไม่สามารถเปลี่ยนสถานะรับสมัครได้' });
     const closed = !!req.body.closed;
-    const next = await db.setTheLastDayState(ACTIVE, { registration_closed: closed });
+    const next = await db.setTheLastDayState(cfg.edition, { registration_closed: closed });
     res.json({ ok: true, ...next });
   } catch (err) {
     console.error(err);
@@ -172,9 +182,11 @@ router.post('/admin/registration', requireAdmin, async (req, res) => {
 // (unchecked = did not attend = did not pass the activity).
 router.post('/admin/complete', requireAdmin, async (req, res) => {
   try {
-    const deleted = await db.deleteUncheckedTheLastDay(ACTIVE);
-    const next = await db.setTheLastDayState(ACTIVE, { event_completed: true, registration_closed: true });
-    const remaining = await db.countTheLastDayRegistrations(ACTIVE);
+    const cfg = await activeCfg();
+    if (!cfg) return res.status(404).json({ error: 'ยังไม่มีรุ่น' });
+    const deleted = await db.deleteUncheckedTheLastDay(cfg.edition);
+    const next = await db.setTheLastDayState(cfg.edition, { event_completed: true, registration_closed: true });
+    const remaining = await db.countTheLastDayRegistrations(cfg.edition);
     res.json({ ok: true, deleted, remaining, ...next });
   } catch (err) {
     console.error(err);
@@ -182,7 +194,49 @@ router.post('/admin/complete', requireAdmin, async (req, res) => {
   }
 });
 
-// ── PATCH /api/the-last-day/registrations/:id/confirm  (admin) ────────────────
+// ── POST /api/the-last-day/admin/next-edition  (admin) — open the next edition ─
+// Body: { date:'YYYY-MM-DD', start:'HH:MM', end:'HH:MM', venue, main?, reserve? }
+router.post('/admin/next-edition', requireAdmin, async (req, res) => {
+  try {
+    const b = req.body || {};
+    const date  = String(b.date  || '').trim();
+    const start = String(b.start || '').trim();
+    const end   = String(b.end   || '').trim();
+    const venue = String(b.venue || '').trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date))  return res.status(400).json({ error: 'กรุณาเลือกวันที่ให้ถูกต้อง' });
+    if (!/^\d{2}:\d{2}$/.test(start) || !/^\d{2}:\d{2}$/.test(end))
+      return res.status(400).json({ error: 'กรุณากรอกเวลาให้ถูกต้อง (HH:MM)' });
+    if (!venue) return res.status(400).json({ error: 'กรุณากรอกสถานที่' });
+
+    const eventStartIso = `${date}T${start}:00+07:00`;
+    const eventEndIso   = `${date}T${end}:00+07:00`;
+    const sd = new Date(eventStartIso), ed = new Date(eventEndIso);
+    if (isNaN(sd) || isNaN(ed)) return res.status(400).json({ error: 'วัน/เวลาไม่ถูกต้อง' });
+    if (ed <= sd)               return res.status(400).json({ error: 'เวลาสิ้นสุดต้องหลังเวลาเริ่ม' });
+
+    const main    = Math.max(1, Math.min(1000, parseInt(b.main, 10)    || 30));
+    const reserve = Math.max(0, Math.min(1000, parseInt(b.reserve, 10) || 10));
+
+    const row = await db.createNextTheLastDayEdition({
+      opens_at:    new Date().toISOString(), // open immediately
+      event_start: eventStartIso,
+      event_end:   eventEndIso,
+      venue,
+      main_seats:    main,
+      reserve_seats: reserve,
+    });
+
+    const cfg   = await activeCfg();
+    const count = await db.countTheLastDayRegistrations(cfg.edition);
+    const state = await db.getTheLastDayState(cfg.edition);
+    res.status(201).json({ ok: true, edition: row.edition, label: row.label, status: buildStatus(cfg, count, state) });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
+  }
+});
+
+// ── PATCH /api/the-last-day/registrations/:id/confirm  (admin) — check-in ─────
 router.patch('/registrations/:id/confirm', requireAdmin, async (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (!id) return res.status(400).json({ error: 'invalid id' });

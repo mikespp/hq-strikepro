@@ -77,7 +77,21 @@
     .ctrl-btn.danger { border-color:rgba(248,113,113,.4); color:#f87171; }
     .ctrl-btn.danger:hover { background:rgba(248,113,113,.12); }
     .ctrl-btn.arm { background:#dc2626; border-color:#dc2626; color:#fff; }
+    .ctrl-btn.primary { background:var(--gold); border-color:var(--gold); color:#080808; }
+    .ctrl-btn.primary:hover { background:var(--gold-pale); }
     .ctrl-btn:disabled { opacity:.4; cursor:default; }
+    /* Next-edition modal */
+    .modal-overlay { position:fixed; inset:0; z-index:300; background:rgba(0,0,0,.65); display:none; align-items:center; justify-content:center; padding:20px; }
+    .modal-overlay.open { display:flex; }
+    .modal { width:100%; max-width:420px; background:var(--card); border:1px solid var(--gold-border); border-radius:var(--radius); padding:24px 22px; }
+    .modal h3 { font-size:18px; font-weight:800; margin-bottom:4px; }
+    .modal .modal-sub { font-size:13px; color:var(--muted); margin-bottom:18px; }
+    .modal label { display:block; font-size:12px; font-weight:700; color:var(--muted); margin:12px 0 6px; }
+    .modal input { width:100%; background:var(--card2); border:1px solid var(--border); border-radius:10px; padding:11px 13px; font-size:14px; color:var(--text); font-family:inherit; }
+    .modal input:focus { outline:none; border-color:var(--gold-border); }
+    .modal input[type=date], .modal input[type=time] { color-scheme:dark; }
+    .modal .row2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .modal-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:22px; }
     .copy { cursor:pointer; color:var(--gold); text-decoration:none; }
     .copy:hover { text-decoration:underline; }
     .state { text-align:center; padding:60px 20px; color:var(--muted); font-size:14px; }
@@ -190,9 +204,34 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- Next-edition modal -->
+<div class="modal-overlay" id="nextOverlay">
+  <div class="modal">
+    <h3>เปิดรับสมัครรุ่นถัดไป</h3>
+    <p class="modal-sub">สร้างรุ่นใหม่และเปิดรับสมัครทันที (หน้าเว็บจะอัปเดตวันที่/สถานที่ให้อัตโนมัติ)</p>
+    <label for="nfDate">วันที่จัดงาน</label>
+    <input type="date" id="nfDate" />
+    <div class="row2">
+      <div><label for="nfStart">เวลาเริ่ม</label><input type="time" id="nfStart" value="10:00" /></div>
+      <div><label for="nfEnd">เวลาสิ้นสุด</label><input type="time" id="nfEnd" value="18:00" /></div>
+    </div>
+    <label for="nfVenue">สถานที่</label>
+    <input type="text" id="nfVenue" value="Strike Pro Head Office" />
+    <div class="row2">
+      <div><label for="nfMain">ที่นั่งหลัก</label><input type="number" id="nfMain" value="30" min="1" /></div>
+      <div><label for="nfReserve">ที่นั่งสำรอง</label><input type="number" id="nfReserve" value="10" min="0" /></div>
+    </div>
+    <div class="modal-actions">
+      <button class="ctrl-btn" onclick="closeNextForm()">ยกเลิก</button>
+      <button class="ctrl-btn primary" id="nfSubmit" onclick="submitNextEdition()">เปิดรับสมัคร</button>
+    </div>
+  </div>
+</div>
+
 <script>
   const TOKEN_KEY = 'sp_token';
-  const MAIN = 30, RESERVE = 10, CAP = MAIN + RESERVE;
+  let caps = { main: 30, reserve: 10 };
+  let editionLabel = '';
   let rows = [];
   let state = { registration_closed:false, event_completed:false };
   let completeArmed = false;
@@ -228,7 +267,11 @@
       ]);
       if (!rReg.ok) throw new Error();
       rows = await rReg.json();
-      if (rState.ok) { const s = await rState.json(); state = { registration_closed: !!s.registration_closed, event_completed: !!s.event_completed }; }
+      if (rState.ok) {
+        const s = await rState.json();
+        state = { registration_closed: !!s.registration_closed, event_completed: !!s.event_completed };
+        if (s.status) { caps = { main: s.status.mainSeats, reserve: s.status.reserveSeats }; editionLabel = s.status.label || ''; }
+      }
       renderStats();
       renderControl();
       renderTable();
@@ -254,8 +297,10 @@
       actions += '<button class="ctrl-btn danger" id="completeBtn" onclick="armComplete()">✔ สิ้นสุดกิจกรรม'
         + (unchecked ? (' (ลบ ' + unchecked + ' ที่ไม่เช็คชื่อ)') : '') + '</button>';
     }
+    // Always available: open the next edition (new date/time/venue).
+    actions += '<button class="ctrl-btn primary" onclick="openNextForm()">➕ เปิดรับสมัครรุ่นถัดไป</button>';
     el.innerHTML =
-      '<span class="c-status ' + cls + '"><span class="dot"></span>' + txt + '</span>' +
+      '<span class="c-status ' + cls + '"><span class="dot"></span>' + (editionLabel ? esc(editionLabel) + ' · ' : '') + txt + '</span>' +
       '<span class="c-sub">' + sub + '</span>' +
       '<span class="c-actions">' + actions + '</span>';
   }
@@ -291,6 +336,28 @@
     completeEvent();
   }
 
+  function openNextForm() { document.getElementById('nextOverlay').classList.add('open'); }
+  function closeNextForm() { document.getElementById('nextOverlay').classList.remove('open'); }
+
+  async function submitNextEdition() {
+    const token = localStorage.getItem(TOKEN_KEY);
+    const v = id => (document.getElementById(id).value || '').trim();
+    const body = { date:v('nfDate'), start:v('nfStart'), end:v('nfEnd'), venue:v('nfVenue'), main:v('nfMain'), reserve:v('nfReserve') };
+    if (!body.date || !body.start || !body.end || !body.venue) { toast('กรอกวันที่ / เวลา / สถานที่ ให้ครบ'); return; }
+    const btn = document.getElementById('nfSubmit'); btn.disabled = true;
+    try {
+      const r = await fetch('/api/the-last-day/admin/next-edition', {
+        method:'POST', headers:{ 'Content-Type':'application/json', Authorization:'Bearer '+token }, body: JSON.stringify(body)
+      });
+      const d = await r.json().catch(()=>({}));
+      if (!r.ok) throw new Error(d.error || 'ทำรายการไม่สำเร็จ');
+      toast('เปิด ' + (d.label || 'รุ่นถัดไป') + ' แล้ว ✓');
+      closeNextForm();
+      load();
+    } catch (e) { toast(e.message || 'ทำรายการไม่สำเร็จ'); }
+    finally { btn.disabled = false; }
+  }
+
   async function completeEvent() {
     const token = localStorage.getItem(TOKEN_KEY);
     try {
@@ -309,10 +376,11 @@
     const mainCount = rows.filter(r => r.seat_type !== 'reserve').length;
     const reserveCount = rows.filter(r => r.seat_type === 'reserve').length;
     const confirmed = rows.filter(r => r.confirmed).length;
+    const CAP = caps.main + caps.reserve;
     document.getElementById('stats').innerHTML =
       '<div class="stat"><div class="stat-num">' + total + '<small> / ' + CAP + '</small></div><div class="stat-lbl">ลงทะเบียนทั้งหมด</div></div>' +
-      '<div class="stat"><div class="stat-num green">' + mainCount + '<small> / ' + MAIN + '</small></div><div class="stat-lbl">ที่นั่งหลัก</div></div>' +
-      '<div class="stat"><div class="stat-num orange">' + reserveCount + '<small> / ' + RESERVE + '</small></div><div class="stat-lbl">ที่นั่งสำรอง</div></div>' +
+      '<div class="stat"><div class="stat-num green">' + mainCount + '<small> / ' + caps.main + '</small></div><div class="stat-lbl">ที่นั่งหลัก</div></div>' +
+      '<div class="stat"><div class="stat-num orange">' + reserveCount + '<small> / ' + caps.reserve + '</small></div><div class="stat-lbl">ที่นั่งสำรอง</div></div>' +
       '<div class="stat"><div class="stat-num green">' + confirmed + '</div><div class="stat-lbl">เช็คชื่อแล้ว</div></div>';
   }
 

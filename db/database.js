@@ -134,6 +134,35 @@ async function init() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
+  // The Last Day — editions ("ครั้งที่ N"). Date/time/venue are admin-editable at
+  // runtime (opening the next edition), so they live in the DB, not in code.
+  // Datetimes are stored as ISO strings WITH the +07:00 offset (unambiguous).
+  await pool.execute(`
+    CREATE TABLE IF NOT EXISTS the_last_day_editions (
+      edition       SMALLINT     NOT NULL PRIMARY KEY,
+      label         VARCHAR(60)  NOT NULL,
+      opens_at      VARCHAR(40)  NOT NULL,
+      event_start   VARCHAR(40)  NOT NULL,
+      event_end     VARCHAR(40)  NOT NULL,
+      venue         VARCHAR(255) NOT NULL DEFAULT '',
+      main_seats    SMALLINT     NOT NULL DEFAULT 30,
+      reserve_seats SMALLINT     NOT NULL DEFAULT 10,
+      created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+  // Seed the current edition (2) once, preserving the previously-hardcoded values.
+  {
+    const [c] = await pool.execute('SELECT COUNT(*) AS c FROM the_last_day_editions');
+    if (Number(c[0].c) === 0) {
+      await pool.execute(
+        `INSERT INTO the_last_day_editions
+           (edition, label, opens_at, event_start, event_end, venue, main_seats, reserve_seats)
+         VALUES (2, 'ครั้งที่ 2', '2026-08-20T00:00:00+07:00', '2026-08-23T10:00:00+07:00',
+                 '2026-08-23T18:00:00+07:00', 'Strike Pro Head Office', 30, 10)`
+      );
+    }
+  }
+
   // The Last Day — per-edition admin state (registration closed / event completed).
   await pool.execute(`
     CREATE TABLE IF NOT EXISTS the_last_day_state (
@@ -966,14 +995,18 @@ async function createTheLastDayRegistration(data, edition, mainSeats, reserveSea
   }
 }
 
-async function listTheLastDayRegistrations() {
+async function listTheLastDayRegistrations(edition = null) {
+  const where = edition == null ? '' : 'WHERE r.edition = ?';
+  const args  = edition == null ? [] : [edition];
   const [rows] = await pool.execute(
     `SELECT r.id, r.edition, r.first_name, r.last_name, r.nickname, r.phone, r.email, r.line_id,
             r.seat_type, r.confirmed, r.confirmed_at, r.created_at,
             COALESCE(u.verified, 0) AS verified
      FROM the_last_day_registrations r
      LEFT JOIN users u ON LOWER(TRIM(u.email)) = LOWER(TRIM(r.email))
-     ORDER BY r.edition ASC, r.created_at ASC`
+     ${where}
+     ORDER BY r.edition ASC, r.created_at ASC`,
+    args
   );
   return rows;
 }
@@ -985,6 +1018,33 @@ async function setTheLastDayFlag(id, value) {
     `UPDATE the_last_day_registrations SET confirmed = ?, confirmed_at = ${v ? 'NOW()' : 'NULL'} WHERE id = ?`,
     [v, id]
   );
+}
+
+// The active edition = the highest edition number (the newest one opened).
+async function getActiveTheLastDayEdition() {
+  const [rows] = await pool.execute(
+    'SELECT * FROM the_last_day_editions ORDER BY edition DESC LIMIT 1'
+  );
+  return rows[0] || null;
+}
+
+async function getTheLastDayEditionRow(edition) {
+  const [rows] = await pool.execute('SELECT * FROM the_last_day_editions WHERE edition = ? LIMIT 1', [edition]);
+  return rows[0] || null;
+}
+
+// Create the next edition (max+1) and return its row. Registration opens immediately.
+async function createNextTheLastDayEdition(d) {
+  const [m] = await pool.execute('SELECT COALESCE(MAX(edition), 1) AS mx FROM the_last_day_editions');
+  const next = Number(m[0].mx) + 1;
+  await pool.execute(
+    `INSERT INTO the_last_day_editions
+       (edition, label, opens_at, event_start, event_end, venue, main_seats, reserve_seats)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    [next, 'ครั้งที่ ' + next, d.opens_at, d.event_start, d.event_end,
+     String(d.venue || '').slice(0, 255), d.main_seats || 30, d.reserve_seats || 10]
+  );
+  return getTheLastDayEditionRow(next);
 }
 
 // Per-edition admin state (registration_closed / event_completed). Defaults to 0/0.
@@ -1127,4 +1187,5 @@ module.exports = {
   countTheLastDayRegistrations, hasTheLastDayRegistration, createTheLastDayRegistration,
   listTheLastDayRegistrations, setTheLastDayFlag,
   getTheLastDayState, setTheLastDayState, deleteUncheckedTheLastDay,
+  getActiveTheLastDayEdition, getTheLastDayEditionRow, createNextTheLastDayEdition,
 };
