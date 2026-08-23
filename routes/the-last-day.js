@@ -21,11 +21,12 @@ const ACTIVE = 2; // the edition currently accepting registrations
 
 function cfgOf(edition) { return EDITIONS[edition] || null; }
 
-function buildStatus(edition, dbCount) {
+function buildStatus(edition, dbCount, state = {}) {
   const cfg    = cfgOf(edition);
   const now    = new Date();
   const isOpen = now >= cfg.opensAt;
-  const ended  = now >= cfg.eventStart; // registration closes when the event begins
+  // Registration ends when the event starts, OR an admin closed it / completed the event.
+  const ended  = now >= cfg.eventStart || !!state.registration_closed || !!state.event_completed;
   const count  = dbCount;
 
   let capacity, seatsLeft;
@@ -51,6 +52,8 @@ function buildStatus(edition, dbCount) {
     status,
     capacityStatus: capacity,
     seatsLeft,
+    registrationClosed: !!state.registration_closed,
+    eventCompleted:     !!state.event_completed,
   };
 }
 
@@ -58,7 +61,8 @@ function buildStatus(edition, dbCount) {
 router.get('/status', async (req, res) => {
   try {
     const count = await db.countTheLastDayRegistrations(ACTIVE);
-    res.json(buildStatus(ACTIVE, count));
+    const state = await db.getTheLastDayState(ACTIVE);
+    res.json(buildStatus(ACTIVE, count, state));
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
@@ -83,6 +87,9 @@ router.post('/join', requireAuth, async (req, res) => {
   try {
     const cfg = cfgOf(ACTIVE);
     const now = new Date();
+    const state = await db.getTheLastDayState(ACTIVE);
+    if (state.event_completed)     return res.status(403).json({ error: 'กิจกรรมสิ้นสุดแล้ว' });
+    if (state.registration_closed) return res.status(403).json({ error: 'ปิดรับสมัครแล้ว' });
     if (now < cfg.opensAt)     return res.status(403).json({ error: 'ยังไม่เปิดรับสมัคร' });
     if (now >= cfg.eventStart) return res.status(403).json({ error: 'ปิดรับสมัครแล้ว' });
 
@@ -128,6 +135,47 @@ router.post('/join', requireAuth, async (req, res) => {
 router.get('/registrations', requireAdmin, async (req, res) => {
   try {
     res.json(await db.listTheLastDayRegistrations());
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
+  }
+});
+
+// ── GET /api/the-last-day/admin/state  (admin) — registration/event flags ─────
+router.get('/admin/state', requireAdmin, async (req, res) => {
+  try {
+    const count = await db.countTheLastDayRegistrations(ACTIVE);
+    const state = await db.getTheLastDayState(ACTIVE);
+    res.json({ edition: ACTIVE, ...state, status: buildStatus(ACTIVE, count, state) });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
+  }
+});
+
+// ── POST /api/the-last-day/admin/registration  (admin) — open/close signup ────
+router.post('/admin/registration', requireAdmin, async (req, res) => {
+  try {
+    const state = await db.getTheLastDayState(ACTIVE);
+    if (state.event_completed) return res.status(409).json({ error: 'กิจกรรมสิ้นสุดแล้ว ไม่สามารถเปลี่ยนสถานะรับสมัครได้' });
+    const closed = !!req.body.closed;
+    const next = await db.setTheLastDayState(ACTIVE, { registration_closed: closed });
+    res.json({ ok: true, ...next });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
+  }
+});
+
+// ── POST /api/the-last-day/admin/complete  (admin) — finish event ─────────────
+// Marks the event completed and REMOVES everyone who was not checked in
+// (unchecked = did not attend = did not pass the activity).
+router.post('/admin/complete', requireAdmin, async (req, res) => {
+  try {
+    const deleted = await db.deleteUncheckedTheLastDay(ACTIVE);
+    const next = await db.setTheLastDayState(ACTIVE, { event_completed: true, registration_closed: true });
+    const remaining = await db.countTheLastDayRegistrations(ACTIVE);
+    res.json({ ok: true, deleted, remaining, ...next });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });

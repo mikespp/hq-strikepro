@@ -134,7 +134,19 @@ async function init() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
+  // The Last Day — per-edition admin state (registration closed / event completed).
+  await pool.execute(`
+    CREATE TABLE IF NOT EXISTS the_last_day_state (
+      edition             SMALLINT     NOT NULL PRIMARY KEY,
+      registration_closed TINYINT(1)   NOT NULL DEFAULT 0,
+      event_completed     TINYINT(1)   NOT NULL DEFAULT 0,
+      updated_at          DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
   // The Last Day — event registrations (one row per member per edition).
+  // confirmed = "checked in / attended" (admin marks it at the event; unchecked
+  // rows are removed when the event is completed).
   await pool.execute(`
     CREATE TABLE IF NOT EXISTS the_last_day_registrations (
       id          INT UNSIGNED  NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -966,13 +978,48 @@ async function listTheLastDayRegistrations() {
   return rows;
 }
 
-// Toggle the admin "confirmed / contacted" flag + stamp its time.
+// Toggle the admin check-in flag (confirmed = "attended") + stamp its time.
 async function setTheLastDayFlag(id, value) {
   const v = value ? 1 : 0;
   await pool.execute(
     `UPDATE the_last_day_registrations SET confirmed = ?, confirmed_at = ${v ? 'NOW()' : 'NULL'} WHERE id = ?`,
     [v, id]
   );
+}
+
+// Per-edition admin state (registration_closed / event_completed). Defaults to 0/0.
+async function getTheLastDayState(edition) {
+  const [rows] = await pool.execute(
+    'SELECT registration_closed, event_completed FROM the_last_day_state WHERE edition = ? LIMIT 1',
+    [edition]
+  );
+  const r = rows[0] || {};
+  return {
+    registration_closed: !!Number(r.registration_closed),
+    event_completed:     !!Number(r.event_completed),
+  };
+}
+
+async function setTheLastDayState(edition, { registration_closed, event_completed }) {
+  const cur = await getTheLastDayState(edition);
+  const rc = registration_closed === undefined ? (cur.registration_closed ? 1 : 0) : (registration_closed ? 1 : 0);
+  const ec = event_completed     === undefined ? (cur.event_completed ? 1 : 0)     : (event_completed ? 1 : 0);
+  await pool.execute(
+    `INSERT INTO the_last_day_state (edition, registration_closed, event_completed)
+     VALUES (?, ?, ?)
+     ON DUPLICATE KEY UPDATE registration_closed = VALUES(registration_closed), event_completed = VALUES(event_completed)`,
+    [edition, rc, ec]
+  );
+  return { registration_closed: !!rc, event_completed: !!ec };
+}
+
+// Remove registrations that were never checked in (did not attend). Returns count.
+async function deleteUncheckedTheLastDay(edition) {
+  const [r] = await pool.execute(
+    'DELETE FROM the_last_day_registrations WHERE edition = ? AND confirmed = 0',
+    [edition]
+  );
+  return r.affectedRows;
 }
 
 // ── Events (calendar) ─────────────────────────────────────────────────────────
@@ -1079,4 +1126,5 @@ module.exports = {
   searchUsers, deleteUserById, setUserRole, setUserPassword, updateUserProfile,
   countTheLastDayRegistrations, hasTheLastDayRegistration, createTheLastDayRegistration,
   listTheLastDayRegistrations, setTheLastDayFlag,
+  getTheLastDayState, setTheLastDayState, deleteUncheckedTheLastDay,
 };

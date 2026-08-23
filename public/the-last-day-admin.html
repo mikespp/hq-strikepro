@@ -59,6 +59,25 @@
     .v-badge.yes { background:rgba(34,197,94,.14); color:#4ade80; border:1px solid rgba(34,197,94,.35); }
     .v-badge.no { background:rgba(255,255,255,.05); color:var(--muted); border:1px solid var(--border); }
     .cell-sub { font-size:11px; color:var(--muted); }
+    /* Event control panel */
+    .control { display:flex; align-items:center; gap:14px; flex-wrap:wrap; background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:14px 18px; margin-bottom:16px; }
+    .c-status { display:inline-flex; align-items:center; gap:9px; font-size:14px; font-weight:800; }
+    .c-status .dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+    .c-status.open   { color:#4ade80; } .c-status.open .dot   { background:#4ade80; box-shadow:0 0 8px #4ade80; }
+    .c-status.closed { color:#fbbf24; } .c-status.closed .dot { background:#fbbf24; box-shadow:0 0 8px #fbbf24; }
+    .c-status.done   { color:#f87171; } .c-status.done .dot   { background:#f87171; box-shadow:0 0 8px #f87171; }
+    .c-sub { font-size:12px; color:var(--muted); font-weight:500; }
+    .c-actions { margin-left:auto; display:flex; gap:10px; flex-wrap:wrap; }
+    .ctrl-btn { display:inline-flex; align-items:center; gap:7px; border-radius:10px; padding:10px 16px; font-size:13px; font-weight:800; cursor:pointer; font-family:inherit; border:1px solid var(--border); background:var(--card2); color:var(--text); transition:all .15s; white-space:nowrap; }
+    .ctrl-btn:hover { border-color:var(--gold-border); }
+    .ctrl-btn.warn { border-color:rgba(251,191,36,.4); color:#fbbf24; }
+    .ctrl-btn.warn:hover { background:rgba(251,191,36,.12); }
+    .ctrl-btn.ok { border-color:rgba(34,197,94,.4); color:#4ade80; }
+    .ctrl-btn.ok:hover { background:rgba(34,197,94,.12); }
+    .ctrl-btn.danger { border-color:rgba(248,113,113,.4); color:#f87171; }
+    .ctrl-btn.danger:hover { background:rgba(248,113,113,.12); }
+    .ctrl-btn.arm { background:#dc2626; border-color:#dc2626; color:#fff; }
+    .ctrl-btn:disabled { opacity:.4; cursor:default; }
     .copy { cursor:pointer; color:var(--gold); text-decoration:none; }
     .copy:hover { text-decoration:underline; }
     .state { text-align:center; padding:60px 20px; color:var(--muted); font-size:14px; }
@@ -158,6 +177,8 @@
 <div class="wrap">
   <div class="stats" id="stats"></div>
 
+  <div class="control" id="control" style="display:none"></div>
+
   <div class="toolbar">
     <input id="search" placeholder="ค้นหา ชื่อ / เบอร์ / อีเมล / Line…" oninput="renderTable()" />
     <button class="btn" onclick="load()"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> รีเฟรช</button>
@@ -173,6 +194,8 @@
   const TOKEN_KEY = 'sp_token';
   const MAIN = 30, RESERVE = 10, CAP = MAIN + RESERVE;
   let rows = [];
+  let state = { registration_closed:false, event_completed:false };
+  let completeArmed = false;
 
   function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];}); }
   function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1800); }
@@ -199,14 +222,86 @@
     const token = localStorage.getItem(TOKEN_KEY);
     document.getElementById('content').innerHTML = '<div class="state">กำลังโหลด…</div>';
     try {
-      const r = await fetch('/api/the-last-day/registrations', { headers:{ Authorization:'Bearer '+token } });
-      if (!r.ok) throw new Error();
-      rows = await r.json();
+      const [rReg, rState] = await Promise.all([
+        fetch('/api/the-last-day/registrations', { headers:{ Authorization:'Bearer '+token } }),
+        fetch('/api/the-last-day/admin/state', { headers:{ Authorization:'Bearer '+token } }),
+      ]);
+      if (!rReg.ok) throw new Error();
+      rows = await rReg.json();
+      if (rState.ok) { const s = await rState.json(); state = { registration_closed: !!s.registration_closed, event_completed: !!s.event_completed }; }
       renderStats();
+      renderControl();
       renderTable();
     } catch {
       document.getElementById('content').innerHTML = '<div class="state">โหลดข้อมูลไม่สำเร็จ</div>';
     }
+  }
+
+  function renderControl() {
+    const el = document.getElementById('control');
+    el.style.display = 'flex';
+    let cls, txt, sub;
+    if (state.event_completed)        { cls='done';   txt='กิจกรรมสิ้นสุดแล้ว'; sub='ผู้ที่ไม่ถูกเช็คชื่อถูกลบออกแล้ว'; }
+    else if (state.registration_closed){ cls='closed'; txt='ปิดรับสมัครแล้ว';    sub='ไม่รับผู้ลงทะเบียนเพิ่ม'; }
+    else                              { cls='open';   txt='เปิดรับสมัครอยู่';    sub='ผู้ใช้ลงทะเบียนได้ตามที่นั่งที่เหลือ'; }
+
+    let actions = '';
+    if (!state.event_completed) {
+      actions += state.registration_closed
+        ? '<button class="ctrl-btn ok" onclick="toggleRegistration(false)">↻ เปิดรับสมัครอีกครั้ง</button>'
+        : '<button class="ctrl-btn warn" onclick="toggleRegistration(true)">⏸ ปิดรับสมัคร</button>';
+      const unchecked = rows.filter(r => !r.confirmed).length;
+      actions += '<button class="ctrl-btn danger" id="completeBtn" onclick="armComplete()">✔ สิ้นสุดกิจกรรม'
+        + (unchecked ? (' (ลบ ' + unchecked + ' ที่ไม่เช็คชื่อ)') : '') + '</button>';
+    }
+    el.innerHTML =
+      '<span class="c-status ' + cls + '"><span class="dot"></span>' + txt + '</span>' +
+      '<span class="c-sub">' + sub + '</span>' +
+      '<span class="c-actions">' + actions + '</span>';
+  }
+
+  async function toggleRegistration(closed) {
+    const token = localStorage.getItem(TOKEN_KEY);
+    try {
+      const r = await fetch('/api/the-last-day/admin/registration', {
+        method:'POST', headers:{ 'Content-Type':'application/json', Authorization:'Bearer '+token },
+        body: JSON.stringify({ closed })
+      });
+      const d = await r.json().catch(()=>({}));
+      if (!r.ok) throw new Error(d.error || '');
+      state.registration_closed = !!d.registration_closed;
+      renderControl();
+      toast(closed ? 'ปิดรับสมัครแล้ว' : 'เปิดรับสมัครอีกครั้ง');
+    } catch (e) { toast(e.message || 'อัปเดตไม่สำเร็จ'); }
+  }
+
+  // Two-step confirm: first click arms (shows what will be deleted), second completes.
+  function armComplete() {
+    const btn = document.getElementById('completeBtn');
+    if (!btn) return;
+    if (!completeArmed) {
+      completeArmed = true;
+      const unchecked = rows.filter(r => !r.confirmed).length;
+      btn.classList.add('arm');
+      btn.textContent = 'ยืนยัน? จะลบ ' + unchecked + ' คนที่ไม่เช็คชื่อถาวร — กดอีกครั้ง';
+      setTimeout(() => { if (completeArmed) { completeArmed = false; renderControl(); } }, 4000);
+      return;
+    }
+    completeArmed = false;
+    completeEvent();
+  }
+
+  async function completeEvent() {
+    const token = localStorage.getItem(TOKEN_KEY);
+    try {
+      const r = await fetch('/api/the-last-day/admin/complete', {
+        method:'POST', headers:{ Authorization:'Bearer '+token }
+      });
+      const d = await r.json().catch(()=>({}));
+      if (!r.ok) throw new Error(d.error || '');
+      toast('สิ้นสุดกิจกรรมแล้ว — ลบผู้ไม่เช็คชื่อ ' + (d.deleted || 0) + ' คน');
+      load();
+    } catch (e) { toast(e.message || 'ทำรายการไม่สำเร็จ'); }
   }
 
   function renderStats() {
@@ -218,7 +313,7 @@
       '<div class="stat"><div class="stat-num">' + total + '<small> / ' + CAP + '</small></div><div class="stat-lbl">ลงทะเบียนทั้งหมด</div></div>' +
       '<div class="stat"><div class="stat-num green">' + mainCount + '<small> / ' + MAIN + '</small></div><div class="stat-lbl">ที่นั่งหลัก</div></div>' +
       '<div class="stat"><div class="stat-num orange">' + reserveCount + '<small> / ' + RESERVE + '</small></div><div class="stat-lbl">ที่นั่งสำรอง</div></div>' +
-      '<div class="stat"><div class="stat-num green">' + confirmed + '</div><div class="stat-lbl">ติดต่อ / ผ่านเกณฑ์</div></div>';
+      '<div class="stat"><div class="stat-num green">' + confirmed + '</div><div class="stat-lbl">เช็คชื่อแล้ว</div></div>';
   }
 
   function fmtDate(s) {
@@ -242,16 +337,20 @@
       return;
     }
     let html = '<div class="table-wrap"><table><thead><tr>' +
-      '<th>#</th><th>ติดต่อ/ผ่านเกณฑ์</th><th>ลูกค้า</th><th>ชื่อ-นามสกุล</th><th>ชื่อเล่น</th><th>เบอร์โทร</th><th>Email</th><th>Line ID</th><th>ที่นั่ง</th><th>วันที่ลงทะเบียน</th>' +
+      '<th>#</th><th>เช็คชื่อเข้าร่วม</th><th>ลูกค้า</th><th>ชื่อ-นามสกุล</th><th>ชื่อเล่น</th><th>เบอร์โทร</th><th>Email</th><th>Line ID</th><th>ที่นั่ง</th><th>วันที่ลงทะเบียน</th>' +
       '</tr></thead><tbody>';
+    const locked = state.event_completed;
     list.forEach((r, i) => {
       const seat = r.seat_type === 'reserve'
         ? '<span class="seat-badge reserve">สำรอง</span>'
         : '<span class="seat-badge main">หลัก</span>';
       const vb = r.verified ? '<span class="v-badge yes">✓ ลูกค้า</span>' : '<span class="v-badge no">ยังไม่ยืนยัน</span>';
+      const checkin = locked
+        ? (r.confirmed ? '<span class="v-badge yes">✓ มาแล้ว</span>' : '<span class="v-badge no">ไม่มา</span>')
+        : '<button class="chk ' + (r.confirmed ? 'on' : '') + '" onclick="toggleConfirm(' + r.id + ',' + (r.confirmed ? 1 : 0) + ')">' + (r.confirmed ? '✓ มาแล้ว' : 'เช็คชื่อ') + '</button>';
       html += '<tr>' +
         '<td>' + (i+1) + '</td>' +
-        '<td><button class="chk ' + (r.confirmed ? 'on' : '') + '" onclick="toggleConfirm(' + r.id + ',' + (r.confirmed ? 1 : 0) + ')">' + (r.confirmed ? '✓ แล้ว' : 'ยังไม่ติดต่อ') + '</button></td>' +
+        '<td>' + checkin + '</td>' +
         '<td>' + vb + '</td>' +
         '<td>' + esc(r.first_name) + ' ' + esc(r.last_name) + '</td>' +
         '<td>' + esc(r.nickname) + '</td>' +
@@ -283,19 +382,19 @@
       if (!r.ok) throw new Error();
       const row = rows.find(x => x.id === id);
       if (row) row.confirmed = value;
-      renderStats(); renderTable();
-      toast(value ? 'ทำเครื่องหมายแล้ว ✓' : 'ยกเลิกแล้ว');
+      renderStats(); renderControl(); renderTable();
+      toast(value ? 'เช็คชื่อแล้ว ✓' : 'ยกเลิกการเช็คชื่อ');
     } catch { toast('อัปเดตไม่สำเร็จ'); }
   }
 
   function exportCSV() {
     const list = getFiltered();
     if (!list.length) { toast('ไม่มีข้อมูลให้ส่งออก'); return; }
-    const cols = ['ลำดับ','ติดต่อ/ผ่านเกณฑ์','ชื่อจริง','นามสกุล','ชื่อเล่น','เบอร์โทร','Email','Line ID','ประเภทที่นั่ง','วันที่ลงทะเบียน'];
+    const cols = ['ลำดับ','เช็คชื่อเข้าร่วม','ชื่อจริง','นามสกุล','ชื่อเล่น','เบอร์โทร','Email','Line ID','ประเภทที่นั่ง','วันที่ลงทะเบียน'];
     const q = v => '"' + String(v==null?'':v).replace(/"/g,'""') + '"';
     const lines = [cols.map(q).join(',')];
     list.forEach((r, i) => {
-      lines.push([i+1, (r.confirmed?'ใช่':'ไม่'), r.first_name, r.last_name, r.nickname,
+      lines.push([i+1, (r.confirmed?'มา':'ไม่มา'), r.first_name, r.last_name, r.nickname,
         r.phone, r.email, r.line_id, (r.seat_type==='reserve'?'สำรอง':'หลัก'), fmtDate(r.created_at)].map(q).join(','));
     });
     const blob = new Blob(['﻿' + lines.join('\r\n')], { type:'text/csv;charset=utf-8;' });
