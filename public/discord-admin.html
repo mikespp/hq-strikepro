@@ -1,51 +1,146 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Discord Verifications — HQ Strikepro</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;600;700;800&display=swap" rel="stylesheet">
-<style>
-  :root{--bg:#0d0d0d;--panel:#171717;--line:#2a2a2a;--text:#f1f1f1;--muted:#8b8b8b;--accent:#5865F2}
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--text);font-family:"IBM Plex Sans Thai",system-ui,sans-serif}
-  .wrap{max-width:1000px;margin:0 auto;padding:22px 20px 60px}
-  h1{font-size:22px;margin:0 0 4px}h1 span{color:#E63946}
-  .sub{color:var(--muted);font-size:13px;margin-bottom:18px}
-  .bar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
-  input{flex:1;min-width:220px;background:var(--panel);border:1px solid var(--line);color:var(--text);padding:11px 14px;border-radius:10px;font-size:14px}
-  input::placeholder{color:var(--muted)}
-  .count{color:var(--muted);font-size:13px;margin:6px 2px 10px}
-  table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
-  th{text-align:left;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.03em;padding:11px 12px;background:#1e1e1e;position:sticky;top:0}
-  td{padding:10px 12px;border-top:1px solid var(--line);font-size:14px;vertical-align:middle}
-  tr:hover td{background:#1d1d1d}
-  .dc{font-weight:700;color:#a9b0f5}
-  .mono{font-variant-numeric:tabular-nums;color:var(--muted);font-size:12px}
-  .empty{padding:36px;text-align:center;color:var(--muted)}
-  .banner{display:none;background:rgba(230,57,70,.1);border:1px solid rgba(230,57,70,.35);color:#ff6b76;border-radius:10px;padding:11px 14px;margin-bottom:14px;font-size:14px}
-  .banner.show{display:block}
-</style>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <meta name="theme-color" content="#5865F2" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Discord Verifications — HQ Strikepro (Admin)</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg:#060606;--card:#0f0f0f;--card2:#131313;--border:rgba(255,255,255,.08);
+      --text:#f0f0f0;--muted:#7a7a7a;--gold:#d4af37;--dc:#5865F2}
+    body{font-family:'IBM Plex Sans Thai',system-ui,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+    nav{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:12px;padding:14px 20px;
+      background:rgba(6,6,6,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+    .nav-back img{width:34px;height:34px;object-fit:contain;display:block}
+    .nav-title{font-size:15px;font-weight:800;color:var(--dc)}
+    .nav-user{margin-left:auto;font-size:12px;color:var(--muted)}
+    .wrap{max-width:1000px;margin:0 auto;padding:24px 20px 80px}
+    h1{font-size:20px;margin-bottom:4px}
+    .sub{color:var(--muted);font-size:13px;margin-bottom:18px}
+    .bar{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+    .bar input{flex:1;min-width:220px;background:var(--card2);border:1px solid var(--border);color:var(--text);padding:11px 14px;border-radius:10px;font-size:14px;font-family:inherit}
+    .bar input:focus{outline:none;border-color:var(--dc)}
+    .count{color:var(--muted);font-size:13px;margin:4px 2px 10px}
+    .table-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow-x:auto}
+    table{width:100%;border-collapse:collapse;min-width:640px}
+    th{text-align:left;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;padding:13px 14px;border-bottom:1px solid var(--border);background:var(--card2);position:sticky;top:0}
+    td{padding:12px 14px;border-bottom:1px solid var(--border);font-size:14px}
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:rgba(255,255,255,.02)}
+    .dc{font-weight:700;color:#a9b0f5}
+    .mono{font-variant-numeric:tabular-nums;color:var(--muted);font-size:12px}
+    .state{padding:40px;text-align:center;color:var(--muted)}
+    .banner{display:none;background:rgba(230,57,70,.1);border:1px solid rgba(230,57,70,.35);color:#ff6b76;border-radius:10px;padding:11px 14px;margin-bottom:14px;font-size:14px}
+    .banner.show{display:block}
+    /* Hamburger + drawer (shared) */
+    .hamburger{background:none;border:none;cursor:pointer;color:var(--text);padding:8px;display:flex;flex-direction:column;gap:5px;align-items:center;justify-content:center;border-radius:8px;transition:background .15s;flex-shrink:0}
+    .hamburger:hover{background:rgba(255,255,255,.08)}
+    .hamburger span{display:block;width:22px;height:2px;background:currentColor;border-radius:2px}
+    .drawer-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity .25s}
+    .drawer-overlay.open{opacity:1;pointer-events:all}
+    .drawer{position:fixed;top:0;left:0;bottom:0;z-index:201;width:275px;background:#1a1a1a;border-right:1px solid #2e2e2e;display:flex;flex-direction:column;transform:translateX(-100%);transition:transform .28s cubic-bezier(.4,0,.2,1)}
+    .drawer.open{transform:translateX(0)}
+    .drawer-header{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid #2e2e2e}
+    .drawer-logo-name{font-size:16px;font-weight:800;color:#f1f1f1;letter-spacing:-.3px}
+    .drawer-logo-name span{color:#E63946}
+    .drawer-nav{flex:1;padding:10px 0;overflow-y:auto;display:block}
+    .drawer-link{display:flex;align-items:center;gap:12px;padding:13px 20px;font-size:15px;font-weight:600;color:#777;text-decoration:none;transition:color .15s,background .15s;border-left:3px solid transparent}
+    .drawer-link:hover{color:#f1f1f1;background:#222}
+    .drawer-link-icon{font-size:18px}
+    .drawer-footer{padding:16px 18px;border-top:1px solid #2e2e2e}
+    .drawer-signout{width:100%;background:none;border:1px solid #2e2e2e;color:#777;border-radius:8px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;transition:border-color .15s,color .15s;font-family:inherit}
+    .drawer-signout:hover{border-color:#E63946;color:#E63946}
+    .drawer-section-label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#555;padding:14px 20px 6px}
+    .drawer-divider{border:none;border-top:1px solid #2e2e2e;margin:6px 0}
+    .drawer-accordion-btn{display:flex;align-items:center;gap:12px;width:100%;padding:13px 20px;font-size:15px;font-weight:600;color:#777;background:none;border:none;cursor:pointer;transition:color .15s,background .15s;text-align:left;font-family:inherit}
+    .drawer-accordion-btn:hover{color:#f1f1f1;background:#222}
+    .drawer-accordion-btn .acc-arrow{margin-left:auto;font-size:12px;transition:transform .22s}
+    .drawer-accordion.open .acc-arrow{transform:rotate(180deg)}
+    .drawer-accordion-body{display:none}
+    .drawer-accordion.open .drawer-accordion-body{display:block}
+    .drawer-sub-link{display:flex;align-items:center;gap:10px;padding:10px 20px 10px 52px;font-size:14px;font-weight:500;color:#777;text-decoration:none;transition:color .15s,background .15s}
+    .drawer-sub-link:hover{color:#f1f1f1;background:#222}
+    .drawer-sub-icon{font-size:15px}
+  </style>
 </head>
 <body>
+
+<nav>
+  <button class="hamburger" onclick="toggleDrawer()" aria-label="Menu"><span></span><span></span><span></span></button>
+  <a class="nav-back" href="/"><img src="/logo.png.png" alt="HQ Strikepro" /></a>
+  <span class="nav-title">🎮 Discord Verifications</span>
+  <span class="nav-user" id="navUser"></span>
+</nav>
+
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <img src="/logo.png.png" alt="HQ" style="width:34px;height:34px;object-fit:contain;" />
+    <span class="drawer-logo-name">HQ <span>STRIKEPRO</span></span>
+  </div>
+  <nav class="drawer-nav">
+    <a class="drawer-link" href="/reviews-admin"><span class="drawer-link-icon">⭐</span> Reviews</a>
+    <a class="drawer-link" href="/last-account-admin"><span class="drawer-link-icon">🏠</span> ผู้สมัคร Last Account</a>
+    <a class="drawer-link" href="/the-last-day-admin"><span class="drawer-link-icon">🌅</span> ผู้ลงทะเบียน The Last Day</a>
+    <a class="drawer-link" href="/users-admin"><span class="drawer-link-icon">👤</span> จัดการผู้ใช้</a>
+    <a class="drawer-link" href="/discord-admin" style="color:#a9b0f5;"><span class="drawer-link-icon">🎮</span> Discord Verify</a>
+    <hr class="drawer-divider" />
+    <div class="drawer-section-label">ข้อมูลเพิ่มเติม</div>
+    <div class="drawer-accordion" id="acc-events">
+      <button class="drawer-accordion-btn" onclick="toggleAcc('acc-events')"><span class="drawer-link-icon">🎟️</span> Upcoming Events <span class="acc-arrow">▾</span></button>
+      <div class="drawer-accordion-body">
+        <a class="drawer-sub-link" href="/events/unlock-your-wealth"><span class="drawer-sub-icon">👑</span> Unlock Your Wealth</a>
+        <a class="drawer-sub-link" href="/events/sbc"><span class="drawer-sub-icon">🔥</span> SBC</a>
+        <a class="drawer-sub-link" href="/events/last-account"><span class="drawer-sub-icon">🏠</span> บ้านหลังสุดท้าย</a>
+        <a class="drawer-sub-link" href="/events/the-last-day"><span class="drawer-sub-icon">🌅</span> The Last Day</a>
+      </div>
+    </div>
+    <div class="drawer-accordion" id="acc-community">
+      <button class="drawer-accordion-btn" onclick="toggleAcc('acc-community')"><span class="drawer-link-icon">🌐</span> Community <span class="acc-arrow">▾</span></button>
+      <div class="drawer-accordion-body">
+        <a class="drawer-sub-link" href="/ecosystem/stp-coin.html"><span class="drawer-sub-icon">🪙</span> STP Coin</a>
+        <a class="drawer-sub-link" href="/ecosystem/free-education.html"><span class="drawer-sub-icon">📚</span> Free Education</a>
+        <a class="drawer-sub-link" href="/ecosystem/trade-challenge.html"><span class="drawer-sub-icon">⚔️</span> Valhalla Dungeon</a>
+        <a class="drawer-sub-link" href="/ecosystem/charity-project.html"><span class="drawer-sub-icon">❤️</span> Charity Project</a>
+        <a class="drawer-sub-link" href="/ecosystem/world-champions.html"><span class="drawer-sub-icon">👑</span> World Champions 100</a>
+      </div>
+    </div>
+  </nav>
+  <div class="drawer-footer">
+    <div class="drawer-user" id="drawerUser" style="font-size:12px;color:#777;margin-bottom:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+    <button class="drawer-signout" onclick="drawerSignOut()">ออกจากระบบ</button>
+  </div>
+</div>
+
 <div class="wrap">
-  <h1>🎮 Discord Verifications — HQ <span>STRIKEPRO</span></h1>
+  <h1>🎮 Discord Verifications</h1>
   <div class="sub">ลูกค้าที่ยืนยันบัญชี Discord แล้ว · ค้นหาได้ทั้งอีเมล / ชื่อ Discord / ID</div>
   <div class="banner" id="banner"></div>
   <div class="bar"><input type="search" id="q" placeholder="🔍 ค้นหา อีเมล / Discord username / Discord ID …"></div>
   <div class="count" id="count">—</div>
-  <table>
-    <thead><tr><th>Discord</th><th>Discord ID</th><th>อีเมลลูกค้า</th><th>ยืนยันเมื่อ</th></tr></thead>
-    <tbody id="tb"></tbody>
-  </table>
-  <div class="empty" id="empty" style="display:none">— ไม่พบข้อมูล —</div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Discord</th><th>Discord ID</th><th>อีเมลลูกค้า</th><th>ยืนยันเมื่อ</th></tr></thead>
+      <tbody id="tb"></tbody>
+    </table>
+    <div class="state" id="empty" style="display:none">— ไม่พบข้อมูล —</div>
+  </div>
 </div>
+
 <script>
   const token = localStorage.getItem('sp_token');
   const $ = id => document.getElementById(id);
   let ROWS = [];
   const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const fmtDate = s => { if(!s) return '—'; const d=new Date(s); return isNaN(d)?esc(s):d.toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'}); };
+
+  function toggleDrawer(){ $('drawer').classList.toggle('open'); $('drawerOverlay').classList.toggle('open'); }
+  function closeDrawer(){ $('drawer').classList.remove('open'); $('drawerOverlay').classList.remove('open'); }
+  function toggleAcc(id){ $(id).classList.toggle('open'); }
+  function drawerSignOut(){ localStorage.removeItem('sp_token'); window.location.href='/login'; }
 
   function render(){
     const q = $('q').value.trim().toLowerCase();
@@ -65,6 +160,8 @@
   async function load(){
     if(!token){ location.href = '/login'; return; }
     try{
+      const me = await fetch('/api/auth/me', { headers:{ Authorization:'Bearer '+token } });
+      if(me.ok){ const { user } = await me.json(); $('navUser').textContent = user.email; $('drawerUser').textContent = user.email; }
       const r = await fetch('/api/discord/list', { headers:{ Authorization:'Bearer '+token } });
       if(r.status===401 || r.status===403){ $('banner').textContent='ต้องเข้าสู่ระบบด้วยบัญชีแอดมิน'; $('banner').classList.add('show'); return; }
       if(!r.ok) throw new Error('HTTP '+r.status);
