@@ -123,6 +123,11 @@ app.get('/users-admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'users-admin.html'));
 });
 
+// /discord-admin → serve Discord verifications lookup page
+app.get('/discord-admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'discord-admin.html'));
+});
+
 // /reviews → serve public reviews page
 app.get('/reviews', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'reviews.html'));

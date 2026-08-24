@@ -1209,9 +1209,17 @@ async function getDiscordVerification(discordId) {
   return rows[0] || null;
 }
 
+// All verified mappings (for the admin lookup + the VPS dashboard bridge).
+async function listDiscordVerifications() {
+  const [rows] = await pool.execute(
+    'SELECT discord_id, email, discord_username, guild_id, verified_at FROM discord_verifications ORDER BY verified_at DESC'
+  );
+  return rows;
+}
+
 module.exports = {
   init,
-  upsertDiscordVerification, getDiscordByEmail, getDiscordVerification,
+  upsertDiscordVerification, getDiscordByEmail, getDiscordVerification, listDiscordVerifications,
   findUserByEmail, findUserById, createUser, createUserFull, createMember,
   isEmailEligible, countEligible, addEligibleHashes, refreshVerifiedFromEligible,
   upsertOtp, getOtp, incOtpAttempts, deleteOtp,

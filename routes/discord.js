@@ -3,12 +3,26 @@
 // grant the Discord role, and show a result page.
 
 const express = require('express');
+const crypto = require('crypto');
 const db = require('../db/database');
 const { consumeToken } = require('../lib/discord-verify');
+const { requireAdmin } = require('./auth');
 const bot = require('../lib/discord-bot');
 
 const router = express.Router();
 const ROLE_ID = process.env.DISCORD_VERIFIED_ROLE_ID || '';
+
+function safeEqual(a, b) {
+  const ab = Buffer.from(String(a)), bb = Buffer.from(String(b));
+  if (ab.length !== bb.length) return false;
+  return crypto.timingSafeEqual(ab, bb);
+}
+function requireSyncKey(req, res, next) {
+  const key = process.env.ELIGIBILITY_SYNC_KEY;
+  const provided = req.get('X-Sync-Key');
+  if (!key || !provided || !safeEqual(provided, key)) return res.status(401).json({ error: 'Unauthorized' });
+  next();
+}
 
 function page(title, msg, color) {
   return `<!doctype html><html lang="th"><head><meta charset="utf-8">
@@ -39,6 +53,28 @@ router.get('/verify', async (req, res) => {
     return res.status(500).send(page('ยืนยันอีเมลแล้ว ⚠️',
       'ระบบยืนยันอีเมลของคุณแล้ว แต่ให้ยศอัตโนมัติไม่สำเร็จ กรุณาแจ้งแอดมิน (หรือลองกดลิงก์อีกครั้ง)', '#f59e0b'));
   }
+});
+
+// ── Admin lookup ───────────────────────────────────────────────────────────────
+// GET /api/discord/list                → all verified mappings (admin)
+router.get('/list', requireAdmin, async (req, res) => {
+  try { res.json(await db.listDiscordVerifications()); }
+  catch (e) { console.error(e); res.status(500).json({ error: 'failed' }); }
+});
+// GET /api/discord/lookup?email=  or  ?discord=   → one mapping (admin)
+router.get('/lookup', requireAdmin, async (req, res) => {
+  try {
+    const email = String(req.query.email || '').toLowerCase().trim();
+    const did   = String(req.query.discord || '').trim();
+    if (email) return res.json((await db.getDiscordByEmail(email)) || {});
+    if (did)   return res.json((await db.getDiscordVerification(did)) || {});
+    res.status(400).json({ error: 'email or discord required' });
+  } catch (e) { console.error(e); res.status(500).json({ error: 'failed' }); }
+});
+// GET /api/discord/sync-list  (sync key)  → for the VPS dashboard bridge
+router.get('/sync-list', requireSyncKey, async (req, res) => {
+  try { res.json(await db.listDiscordVerifications()); }
+  catch (e) { console.error(e); res.status(500).json({ error: 'failed' }); }
 });
 
 module.exports = router;

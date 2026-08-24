@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Discord Verifications — HQ Strikepro</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0d0d0d;--panel:#171717;--line:#2a2a2a;--text:#f1f1f1;--muted:#8b8b8b;--accent:#5865F2}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:"IBM Plex Sans Thai",system-ui,sans-serif}
+  .wrap{max-width:1000px;margin:0 auto;padding:22px 20px 60px}
+  h1{font-size:22px;margin:0 0 4px}h1 span{color:#E63946}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:18px}
+  .bar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+  input{flex:1;min-width:220px;background:var(--panel);border:1px solid var(--line);color:var(--text);padding:11px 14px;border-radius:10px;font-size:14px}
+  input::placeholder{color:var(--muted)}
+  .count{color:var(--muted);font-size:13px;margin:6px 2px 10px}
+  table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  th{text-align:left;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.03em;padding:11px 12px;background:#1e1e1e;position:sticky;top:0}
+  td{padding:10px 12px;border-top:1px solid var(--line);font-size:14px;vertical-align:middle}
+  tr:hover td{background:#1d1d1d}
+  .dc{font-weight:700;color:#a9b0f5}
+  .mono{font-variant-numeric:tabular-nums;color:var(--muted);font-size:12px}
+  .empty{padding:36px;text-align:center;color:var(--muted)}
+  .banner{display:none;background:rgba(230,57,70,.1);border:1px solid rgba(230,57,70,.35);color:#ff6b76;border-radius:10px;padding:11px 14px;margin-bottom:14px;font-size:14px}
+  .banner.show{display:block}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🎮 Discord Verifications — HQ <span>STRIKEPRO</span></h1>
+  <div class="sub">ลูกค้าที่ยืนยันบัญชี Discord แล้ว · ค้นหาได้ทั้งอีเมล / ชื่อ Discord / ID</div>
+  <div class="banner" id="banner"></div>
+  <div class="bar"><input type="search" id="q" placeholder="🔍 ค้นหา อีเมล / Discord username / Discord ID …"></div>
+  <div class="count" id="count">—</div>
+  <table>
+    <thead><tr><th>Discord</th><th>Discord ID</th><th>อีเมลลูกค้า</th><th>ยืนยันเมื่อ</th></tr></thead>
+    <tbody id="tb"></tbody>
+  </table>
+  <div class="empty" id="empty" style="display:none">— ไม่พบข้อมูล —</div>
+</div>
+<script>
+  const token = localStorage.getItem('sp_token');
+  const $ = id => document.getElementById(id);
+  let ROWS = [];
+  const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const fmtDate = s => { if(!s) return '—'; const d=new Date(s); return isNaN(d)?esc(s):d.toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'}); };
+
+  function render(){
+    const q = $('q').value.trim().toLowerCase();
+    const list = ROWS.filter(r => !q
+      || (r.email||'').toLowerCase().includes(q)
+      || (r.discord_username||'').toLowerCase().includes(q)
+      || String(r.discord_id||'').includes(q));
+    $('tb').innerHTML = list.map(r => `<tr>
+      <td class="dc">${esc(r.discord_username)||'—'}</td>
+      <td class="mono">${esc(r.discord_id)}</td>
+      <td>${esc(r.email)}</td>
+      <td class="mono">${fmtDate(r.verified_at)}</td></tr>`).join('');
+    $('empty').style.display = list.length ? 'none' : 'block';
+    $('count').textContent = `ยืนยันแล้ว ${ROWS.length} คน · แสดง ${list.length}`;
+  }
+
+  async function load(){
+    if(!token){ location.href = '/login'; return; }
+    try{
+      const r = await fetch('/api/discord/list', { headers:{ Authorization:'Bearer '+token } });
+      if(r.status===401 || r.status===403){ $('banner').textContent='ต้องเข้าสู่ระบบด้วยบัญชีแอดมิน'; $('banner').classList.add('show'); return; }
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      ROWS = await r.json(); render();
+    }catch(e){ $('banner').textContent='โหลดข้อมูลไม่ได้: '+(e.message||'error'); $('banner').classList.add('show'); }
+  }
+  $('q').addEventListener('input', render);
+  load();
+</script>
+</body>
+</html>
