@@ -179,7 +179,7 @@
 </div>
 
 <style>
-  .rm-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.7);display:none;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto}
+  .rm-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.82);backdrop-filter:blur(3px);display:none;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto}
   .rm-overlay.open{display:flex}
   .rm-box{width:100%;max-width:680px;background:var(--card,#0f0f0f);border:1px solid var(--gold-border,rgba(212,175,55,.22));border-radius:14px}
   .rm-head{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border,rgba(255,255,255,.08))}
@@ -194,6 +194,9 @@
   .rm-act{background:none;border:1px solid var(--border,rgba(255,255,255,.08));color:var(--muted,#7a7a7a);border-radius:7px;padding:4px 9px;font-size:12px;cursor:pointer;font-family:inherit}
   .rm-act:hover{border-color:var(--gold,#d4af37);color:var(--gold,#d4af37)}
   .rm-form{background:var(--card2,#131313);border:1px solid var(--border,rgba(255,255,255,.08));border-radius:10px;padding:14px 16px}
+  .rm-formhead{font-size:14px;font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .rm-formhead span{font-size:11px;font-weight:500;color:var(--muted,#7a7a7a)}
+  .rm-empty{color:var(--muted,#7a7a7a);text-align:center;padding:22px;font-size:13px}
   .rm-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   .rm-grid label{display:block;font-size:12px;font-weight:700;color:var(--muted,#7a7a7a);margin-bottom:5px}
   .rm-grid .full{grid-column:1 / -1}
@@ -210,9 +213,10 @@
     <div class="rm-body">
       <div id="rmList"><div class="state">กำลังโหลด…</div></div>
       <div class="rm-form">
+        <div class="rm-formhead" id="rmFormHead">➕ เพิ่มรุ่นใหม่ <span>(หรือกด"แก้" ที่รุ่นด้านบนเพื่อแก้ไข)</span></div>
         <div class="rm-grid">
-          <div><label>เลขรุ่น *</label><input type="number" id="rf-round" min="1" placeholder="6"></div>
-          <div><label>ชื่อรุ่น *</label><input type="text" id="rf-label" placeholder="รุ่นที่ 6"></div>
+          <div><label>เลขรุ่น *</label><input type="number" id="rf-round" min="1" placeholder="เลขรุ่น"></div>
+          <div><label>ชื่อรุ่น *</label><input type="text" id="rf-label" placeholder="เช่น รุ่นที่ …"></div>
           <div><label>เปิดรับสมัคร (วัน-เวลา) *</label><input type="datetime-local" id="rf-opens"></div>
           <div><label>วันจัดงาน (ลง calendar)</label><input type="date" id="rf-event"></div>
           <div><label>ที่นั่งหลัก</label><input type="number" id="rf-main" value="25" min="0"></div>
@@ -277,6 +281,7 @@
     rf('round',next); rf('label','รุ่นที่ '+next); rf('opens',''); rf('event',''); rf('main',25); rf('reserve',5); rf('offset',0);
     document.getElementById('rf-closed').checked=false;
     document.getElementById('rf-round').removeAttribute('readonly');
+    document.getElementById('rmFormHead').innerHTML = '➕ เพิ่มรุ่นใหม่ <span>(หรือกด "แก้" ที่รุ่นด้านบนเพื่อแก้ไข)</span>';
   }
   function editRound(round){
     const r = RM.find(x=>x.round===round); if(!r) return;
@@ -284,6 +289,8 @@
     rf('event',r.event_date||''); rf('main',r.main_seats); rf('reserve',r.reserve_seats); rf('offset',r.offset_count);
     document.getElementById('rf-closed').checked = !!r.closed;
     document.getElementById('rf-round').setAttribute('readonly','');
+    document.getElementById('rmFormHead').innerHTML = '✏️ แก้ไข ' + esc(r.label) + ' <span>(เปลี่ยนเลขรุ่นไม่ได้)</span>';
+    document.querySelector('.rm-form').scrollIntoView({ behavior:'smooth', block:'nearest' });
   }
   async function saveRound(){
     const token = localStorage.getItem(TOKEN_KEY);
