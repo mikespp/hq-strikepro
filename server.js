@@ -18,6 +18,8 @@ const theLastDayRouter       = require('./routes/the-last-day');
 const eventsRouter           = require('./routes/events');
 const usersRouter            = require('./routes/users');
 const eligibilityRouter      = require('./routes/eligibility');
+const discordRouter          = require('./routes/discord');
+const discordBot             = require('./lib/discord-bot');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -56,6 +58,7 @@ app.use('/api/the-last-day', theLastDayRouter);
 app.use('/api/events',    eventsRouter);
 app.use('/api/users',     usersRouter);
 app.use('/api/eligibility', eligibilityRouter);
+app.use('/api/discord',   discordRouter);
 
 // Health check
 app.get('/api/health', (_, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
@@ -156,6 +159,7 @@ db.init()
     app.listen(PORT, () => {
       console.log(`  HQ Strikepro running at http://localhost:${PORT}`);
       console.log(`  ✉  Mail provider: ${mailerStatus()}\n`);
+      discordBot.start();   // no-op if DISCORD_BOT_TOKEN is unset
     });
   })
   .catch(err => {

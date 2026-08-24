@@ -326,4 +326,4 @@ router.post('/logout', requireAuth, async (req, res) => {
   }
 });
 
-module.exports = { router, requireAuth, requireAdmin };
+module.exports = { router, requireAuth, requireAdmin, checkEligible };

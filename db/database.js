@@ -244,6 +244,18 @@ async function init() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
+  // Discord verifications — a Discord user proven to own a StrikePro-customer email.
+  await pool.execute(`
+    CREATE TABLE IF NOT EXISTS discord_verifications (
+      discord_id       VARCHAR(32)  NOT NULL PRIMARY KEY,
+      email            VARCHAR(255) NOT NULL,
+      discord_username VARCHAR(255) NOT NULL DEFAULT '',
+      guild_id         VARCHAR(32)  NOT NULL DEFAULT '',
+      verified_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      KEY (email)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
   // Add role column to users if it doesn't exist yet (idempotent migration)
   try {
     await pool.execute(`ALTER TABLE users ADD COLUMN role VARCHAR(20) NOT NULL DEFAULT 'user'`);
@@ -1169,8 +1181,37 @@ async function seedEventsIfEmpty() {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
+// ── Discord verification ───────────────────────────────────────────────────────
+
+async function upsertDiscordVerification(discordId, email, username, guildId) {
+  await pool.execute(
+    `INSERT INTO discord_verifications (discord_id, email, discord_username, guild_id, verified_at)
+     VALUES (?, ?, ?, ?, NOW())
+     ON DUPLICATE KEY UPDATE email=VALUES(email), discord_username=VALUES(discord_username),
+                             guild_id=VALUES(guild_id), verified_at=NOW()`,
+    [String(discordId), String(email || '').toLowerCase().trim(), String(username || ''), String(guildId || '')]
+  );
+}
+
+// Which Discord account (if any) already verified with this email?
+async function getDiscordByEmail(email) {
+  const [rows] = await pool.execute(
+    'SELECT discord_id, discord_username FROM discord_verifications WHERE email = ? LIMIT 1',
+    [String(email || '').toLowerCase().trim()]
+  );
+  return rows[0] || null;
+}
+
+async function getDiscordVerification(discordId) {
+  const [rows] = await pool.execute(
+    'SELECT * FROM discord_verifications WHERE discord_id = ? LIMIT 1', [String(discordId)]
+  );
+  return rows[0] || null;
+}
+
 module.exports = {
   init,
+  upsertDiscordVerification, getDiscordByEmail, getDiscordVerification,
   findUserByEmail, findUserById, createUser, createUserFull, createMember,
   isEmailEligible, countEligible, addEligibleHashes, refreshVerifiedFromEligible,
   upsertOtp, getOtp, incOtpAttempts, deleteOtp,
