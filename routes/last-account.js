@@ -384,7 +384,8 @@ async function syncRoundCalendar(round) {
   const row = rows.find(r => r.round === round);
   if (!row) return;
   if (row.event_date) {
-    const data = { title: `${row.label} — บ้านหลังสุดท้าย`, start: row.event_date, end: row.event_date,
+    const data = { title: `บ้านหลังสุดท้าย · The Last Account รุ่น ${row.round}`,
+                   start: row.event_date, end: row.event_end || row.event_date,
                    color: '#d4af37', href: '/events/last-account', live: false };
     let id = row.event_id;
     if (id) {
@@ -421,12 +422,17 @@ router.post('/admin/rounds', requireAdmin, async (req, res) => {
   if (!label)   return res.status(400).json({ error: 'กรุณากรอกชื่อรุ่น' });
   if (!opensAt) return res.status(400).json({ error: 'กรุณาระบุวันเวลาเปิดรับสมัคร' });
   const toSql = s => (s ? String(s).replace('T', ' ').slice(0, 19) : null);
+  const eventStart = b.event_date ? String(b.event_date).slice(0, 10) : null;
+  const eventEnd   = b.event_end  ? String(b.event_end).slice(0, 10)  : null;
+  if (eventStart && eventEnd && eventEnd < eventStart)
+    return res.status(400).json({ error: 'วันจบงานต้องไม่ก่อนวันเริ่ม' });
   try {
     await db.upsertLastAccountRound({
       round, label,
       opens_at:   toSql(opensAt),
       closes_at:  b.closes_at ? toSql(b.closes_at) : null,
-      event_date: b.event_date ? String(b.event_date).slice(0, 10) : null,
+      event_date: eventStart,
+      event_end:  eventEnd,
       main_seats:    parseInt(b.main_seats    ?? b.main,    10) || 25,
       reserve_seats: parseInt(b.reserve_seats ?? b.reserve, 10) || 5,
       offset_count:  parseInt(b.offset_count  ?? b.offset,  10) || 0,

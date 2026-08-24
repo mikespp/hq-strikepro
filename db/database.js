@@ -253,6 +253,7 @@ async function init() {
       opens_at      DATETIME     NOT NULL,
       closes_at     DATETIME     NULL,
       event_date    DATE         NULL,
+      event_end     DATE         NULL,
       main_seats    INT          NOT NULL DEFAULT 25,
       reserve_seats INT          NOT NULL DEFAULT 5,
       offset_count  INT          NOT NULL DEFAULT 0,
@@ -276,6 +277,10 @@ async function init() {
       );
     }
   }
+
+  // Add multi-day event end (idempotent) for tables created before it existed.
+  try { await pool.execute('ALTER TABLE last_account_rounds ADD COLUMN event_end DATE NULL AFTER event_date'); }
+  catch (err) { if (err.errno !== 1060) throw err; }
 
   // Discord verifications — a Discord user proven to own a StrikePro-customer email.
   await pool.execute(`
@@ -1258,6 +1263,7 @@ async function listLastAccountRounds() {
             DATE_FORMAT(opens_at,   '%Y-%m-%dT%H:%i:%s') AS opens_at,
             DATE_FORMAT(closes_at,  '%Y-%m-%dT%H:%i:%s') AS closes_at,
             DATE_FORMAT(event_date, '%Y-%m-%d')          AS event_date,
+            DATE_FORMAT(event_end,  '%Y-%m-%d')          AS event_end,
             main_seats, reserve_seats, offset_count, closed, event_id
        FROM last_account_rounds ORDER BY round`
   );
@@ -1267,12 +1273,12 @@ async function listLastAccountRounds() {
 async function upsertLastAccountRound(r) {
   await pool.execute(
     `INSERT INTO last_account_rounds
-       (round, label, opens_at, closes_at, event_date, main_seats, reserve_seats, offset_count, closed)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+       (round, label, opens_at, closes_at, event_date, event_end, main_seats, reserve_seats, offset_count, closed)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
      ON DUPLICATE KEY UPDATE label=VALUES(label), opens_at=VALUES(opens_at), closes_at=VALUES(closes_at),
-       event_date=VALUES(event_date), main_seats=VALUES(main_seats), reserve_seats=VALUES(reserve_seats),
-       offset_count=VALUES(offset_count), closed=VALUES(closed)`,
-    [r.round, r.label, r.opens_at, r.closes_at || null, r.event_date || null,
+       event_date=VALUES(event_date), event_end=VALUES(event_end), main_seats=VALUES(main_seats),
+       reserve_seats=VALUES(reserve_seats), offset_count=VALUES(offset_count), closed=VALUES(closed)`,
+    [r.round, r.label, r.opens_at, r.closes_at || null, r.event_date || null, r.event_end || null,
      r.main_seats, r.reserve_seats, r.offset_count || 0, r.closed ? 1 : 0]
   );
 }

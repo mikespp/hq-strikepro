@@ -220,8 +220,9 @@
         <div class="rm-grid">
           <div><label>เลขรุ่น *</label><input type="number" id="rf-round" min="1" placeholder="เลขรุ่น"></div>
           <div><label>ชื่อรุ่น *</label><input type="text" id="rf-label" placeholder="เช่น รุ่นที่ …"></div>
-          <div><label>เปิดรับสมัคร (วัน-เวลา) *</label><input type="datetime-local" id="rf-opens"></div>
-          <div><label>วันจัดงาน (ลง calendar)</label><input type="date" id="rf-event"></div>
+          <div class="full"><label>เปิดรับสมัคร (วัน-เวลา) *</label><input type="datetime-local" id="rf-opens"></div>
+          <div><label>วันจัดงาน — เริ่ม (ลง calendar)</label><input type="date" id="rf-event"></div>
+          <div><label>ถึง — วันจบงาน</label><input type="date" id="rf-eventend"></div>
           <div><label>ที่นั่งหลัก</label><input type="number" id="rf-main" value="25" min="0"></div>
           <div><label>ที่นั่งสำรอง</label><input type="number" id="rf-reserve" value="5" min="0"></div>
           <div><label>offset (สมัครหลังบ้าน)</label><input type="number" id="rf-offset" value="0" min="0"></div>
@@ -269,7 +270,7 @@
       h += '<tr>'
         + '<td><b>'+esc(r.label)+'</b><div style="color:var(--muted);font-size:11px">#'+r.round+'</div></td>'
         + '<td>'+esc(opens)+'</td>'
-        + '<td>'+(r.event_date?esc(r.event_date):'<span style="color:#555">—</span>')+'</td>'
+        + '<td>'+(r.event_date ? (esc(r.event_date)+(r.event_end && r.event_end!==r.event_date ? ' – '+esc(r.event_end) : '')) : '<span style="color:#555">—</span>')+'</td>'
         + '<td>'+r.main_seats+'+'+r.reserve_seats+'</td>'
         + '<td>'+r.total_count+'</td>'
         + '<td><span class="rm-tag '+(r.closed?'closed':'open')+'">'+(r.closed?'ปิด':'เปิด')+'</span></td>'
@@ -281,7 +282,7 @@
   }
   function resetRoundForm(){
     const next = RM.length ? Math.max.apply(null, RM.map(r=>r.round))+1 : 1;
-    rf('round',next); rf('label','รุ่นที่ '+next); rf('opens',''); rf('event',''); rf('main',25); rf('reserve',5); rf('offset',0);
+    rf('round',next); rf('label','รุ่นที่ '+next); rf('opens',''); rf('event',''); rf('eventend',''); rf('main',25); rf('reserve',5); rf('offset',0);
     document.getElementById('rf-closed').checked=false;
     document.getElementById('rf-round').removeAttribute('readonly');
     document.getElementById('rmFormHead').innerHTML = '➕ เพิ่มรุ่นใหม่ <span>(หรือกด "แก้" ที่รุ่นด้านบนเพื่อแก้ไข)</span>';
@@ -289,7 +290,7 @@
   function editRound(round){
     const r = RM.find(x=>x.round===round); if(!r) return;
     rf('round',r.round); rf('label',r.label); rf('opens',(r.opens_at||'').slice(0,16));
-    rf('event',r.event_date||''); rf('main',r.main_seats); rf('reserve',r.reserve_seats); rf('offset',r.offset_count);
+    rf('event',r.event_date||''); rf('eventend',r.event_end||''); rf('main',r.main_seats); rf('reserve',r.reserve_seats); rf('offset',r.offset_count);
     document.getElementById('rf-closed').checked = !!r.closed;
     document.getElementById('rf-round').setAttribute('readonly','');
     document.getElementById('rmFormHead').innerHTML = '✏️ แก้ไข ' + esc(r.label) + ' <span>(เปลี่ยนเลขรุ่นไม่ได้)</span>';
@@ -302,6 +303,7 @@
       label: document.getElementById('rf-label').value.trim(),
       opens_at: document.getElementById('rf-opens').value,
       event_date: document.getElementById('rf-event').value || null,
+      event_end: document.getElementById('rf-eventend').value || null,
       main_seats: parseInt(document.getElementById('rf-main').value,10)||25,
       reserve_seats: parseInt(document.getElementById('rf-reserve').value,10)||5,
       offset_count: parseInt(document.getElementById('rf-offset').value,10)||0,
