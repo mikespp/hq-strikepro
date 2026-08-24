@@ -160,7 +160,8 @@ app.use((err, req, res, _next) => {
 
 // Connect to MySQL first, then start server
 db.init()
-  .then(() => {
+  .then(async () => {
+    try { await lastAccountRouter.loadRounds(); } catch (e) { console.error('loadRounds failed:', e.message); }
     app.listen(PORT, () => {
       console.log(`  HQ Strikepro running at http://localhost:${PORT}`);
       console.log(`  ✉  Mail provider: ${mailerStatus()}\n`);

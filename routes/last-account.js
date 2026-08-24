@@ -19,13 +19,28 @@ function requireSyncKey(req, res, next) {
 // No VIP hold; 25 main seats + 5 reserve per round. Applicants stored per round.
 // A round opens Wed 12:00 and stays open until its seats fill (no time-based close).
 // closed:true (or a past closesAt) → registration ended: hidden from the selector, apply rejected.
-const ROUNDS = {
-  2: { label: 'รุ่นที่ 2', opensAt: new Date('2026-07-22T12:00:00+07:00'), main: 25, reserve: 5, closed: true },
-  3: { label: 'รุ่นที่ 3', opensAt: new Date('2026-07-29T12:00:00+07:00'), main: 25, reserve: 5, closed: true },
-  // offset: people already registered via the backend (counted toward the round's total)
-  4: { label: 'รุ่นที่ 4', opensAt: new Date('2026-08-05T12:00:00+07:00'), main: 25, reserve: 5, offset: 15, closed: true },
-  5: { label: 'รุ่นที่ 5', opensAt: new Date('2026-08-12T12:00:00+07:00'), main: 25, reserve: 5 },
-};
+// Rounds now live in the DB (last_account_rounds). This in-memory cache is loaded
+// at startup and refreshed after every admin edit, so the rest of the module stays
+// synchronous. `offset` = people already registered via the backend.
+let ROUNDS = {};
+async function loadRounds() {
+  const rows = await db.listLastAccountRounds();
+  const map = {};
+  for (const r of rows) {
+    map[r.round] = {
+      label:     r.label,
+      opensAt:   new Date(r.opens_at + '+07:00'),   // stored as Bangkok wall-clock
+      closesAt:  r.closes_at ? new Date(r.closes_at + '+07:00') : null,
+      eventDate: r.event_date || null,
+      main:      Number(r.main_seats),
+      reserve:   Number(r.reserve_seats),
+      offset:    Number(r.offset_count) || 0,
+      closed:    !!r.closed,
+      eventId:   r.event_id || null,
+    };
+  }
+  ROUNDS = map;
+}
 
 function parseRound(v) {
   const r = parseInt(v, 10);
@@ -363,4 +378,77 @@ router.get('/details', async (req, res) => {
   }
 });
 
+// Keep a calendar event in sync with a round's event_date (create / update / delete).
+async function syncRoundCalendar(round) {
+  const rows = await db.listLastAccountRounds();
+  const row = rows.find(r => r.round === round);
+  if (!row) return;
+  if (row.event_date) {
+    const data = { title: `${row.label} — บ้านหลังสุดท้าย`, start: row.event_date, end: row.event_date,
+                   color: '#d4af37', href: '/events/last-account', live: false };
+    let id = row.event_id;
+    if (id) {
+      const existing = await db.getEventById(id);   // don't trust updateEvent's affectedRows (0 when unchanged)
+      if (existing) await db.updateEvent(id, data); else id = null;
+    }
+    if (!id) { const ev = await db.createEvent(data); id = ev.id; }
+    if (id !== row.event_id) await db.setLastAccountRoundEventId(round, id);
+  } else if (row.event_id) {
+    try { await db.deleteEvent(row.event_id); } catch (_) {}
+    await db.setLastAccountRoundEventId(round, null);
+  }
+}
+
+// ── Admin: manage rounds without a code deploy ───────────────────────────────
+router.get('/admin/rounds', requireAdmin, async (req, res) => {
+  try {
+    const rows = await db.listLastAccountRounds();
+    const out = [];
+    for (const r of rows) {
+      const dbCount = await db.countLastAccountApplications(r.round);
+      out.push({ ...r, closed: !!r.closed, db_count: dbCount, total_count: dbCount + (Number(r.offset_count) || 0) });
+    }
+    res.json(out);
+  } catch (e) { console.error(e); res.status(500).json({ error: 'เกิดข้อผิดพลาด' }); }
+});
+
+router.post('/admin/rounds', requireAdmin, async (req, res) => {
+  const b = req.body || {};
+  const round = parseInt(b.round, 10);
+  const label = String(b.label || '').trim();
+  const opensAt = String(b.opens_at || b.opensAt || '').trim();
+  if (!Number.isInteger(round) || round < 1) return res.status(400).json({ error: 'เลขรุ่นไม่ถูกต้อง' });
+  if (!label)   return res.status(400).json({ error: 'กรุณากรอกชื่อรุ่น' });
+  if (!opensAt) return res.status(400).json({ error: 'กรุณาระบุวันเวลาเปิดรับสมัคร' });
+  const toSql = s => (s ? String(s).replace('T', ' ').slice(0, 19) : null);
+  try {
+    await db.upsertLastAccountRound({
+      round, label,
+      opens_at:   toSql(opensAt),
+      closes_at:  b.closes_at ? toSql(b.closes_at) : null,
+      event_date: b.event_date ? String(b.event_date).slice(0, 10) : null,
+      main_seats:    parseInt(b.main_seats    ?? b.main,    10) || 25,
+      reserve_seats: parseInt(b.reserve_seats ?? b.reserve, 10) || 5,
+      offset_count:  parseInt(b.offset_count  ?? b.offset,  10) || 0,
+      closed: b.closed ? 1 : 0,
+    });
+    await syncRoundCalendar(round);
+    await loadRounds();
+    res.json({ ok: true });
+  } catch (e) { console.error(e); res.status(500).json({ error: 'บันทึกไม่สำเร็จ' }); }
+});
+
+router.delete('/admin/rounds/:round', requireAdmin, async (req, res) => {
+  const round = parseInt(req.params.round, 10);
+  try {
+    const rows = await db.listLastAccountRounds();
+    const row = rows.find(r => r.round === round);
+    if (row && row.event_id) { try { await db.deleteEvent(row.event_id); } catch (_) {} }
+    await db.deleteLastAccountRound(round);
+    await loadRounds();
+    res.json({ ok: true });
+  } catch (e) { console.error(e); res.status(500).json({ error: 'ลบไม่สำเร็จ' }); }
+});
+
+router.loadRounds = loadRounds;
 module.exports = router;

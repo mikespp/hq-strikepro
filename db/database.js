@@ -244,6 +244,39 @@ async function init() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
+  // Last Account registration rounds — DB-driven so admins add/close rounds
+  // without a code deploy (replaces the old hardcoded ROUNDS object).
+  await pool.execute(`
+    CREATE TABLE IF NOT EXISTS last_account_rounds (
+      round         INT          NOT NULL PRIMARY KEY,
+      label         VARCHAR(100) NOT NULL,
+      opens_at      DATETIME     NOT NULL,
+      closes_at     DATETIME     NULL,
+      event_date    DATE         NULL,
+      main_seats    INT          NOT NULL DEFAULT 25,
+      reserve_seats INT          NOT NULL DEFAULT 5,
+      offset_count  INT          NOT NULL DEFAULT 0,
+      closed        TINYINT(1)   NOT NULL DEFAULT 0,
+      event_id      INT          NULL,
+      created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+  // Seed once from the previously hardcoded rounds (Bangkok wall-clock times).
+  {
+    const [c] = await pool.execute('SELECT COUNT(*) AS n FROM last_account_rounds');
+    if (Number(c[0].n) === 0) {
+      await pool.query(
+        `INSERT INTO last_account_rounds (round, label, opens_at, main_seats, reserve_seats, offset_count, closed) VALUES ?`,
+        [[
+          [2, 'รุ่นที่ 2', '2026-07-22 12:00:00', 25, 5, 0, 1],
+          [3, 'รุ่นที่ 3', '2026-07-29 12:00:00', 25, 5, 0, 1],
+          [4, 'รุ่นที่ 4', '2026-08-05 12:00:00', 25, 5, 15, 1],
+          [5, 'รุ่นที่ 5', '2026-08-12 12:00:00', 25, 5, 0, 0],
+        ]]
+      );
+    }
+  }
+
   // Discord verifications — a Discord user proven to own a StrikePro-customer email.
   await pool.execute(`
     CREATE TABLE IF NOT EXISTS discord_verifications (
@@ -1217,9 +1250,46 @@ async function listDiscordVerifications() {
   return rows;
 }
 
+// ── Last Account rounds (DB-driven — replaces the hardcoded ROUNDS) ─────────────
+
+async function listLastAccountRounds() {
+  const [rows] = await pool.query(
+    `SELECT round, label,
+            DATE_FORMAT(opens_at,   '%Y-%m-%dT%H:%i:%s') AS opens_at,
+            DATE_FORMAT(closes_at,  '%Y-%m-%dT%H:%i:%s') AS closes_at,
+            DATE_FORMAT(event_date, '%Y-%m-%d')          AS event_date,
+            main_seats, reserve_seats, offset_count, closed, event_id
+       FROM last_account_rounds ORDER BY round`
+  );
+  return rows;
+}
+
+async function upsertLastAccountRound(r) {
+  await pool.execute(
+    `INSERT INTO last_account_rounds
+       (round, label, opens_at, closes_at, event_date, main_seats, reserve_seats, offset_count, closed)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+     ON DUPLICATE KEY UPDATE label=VALUES(label), opens_at=VALUES(opens_at), closes_at=VALUES(closes_at),
+       event_date=VALUES(event_date), main_seats=VALUES(main_seats), reserve_seats=VALUES(reserve_seats),
+       offset_count=VALUES(offset_count), closed=VALUES(closed)`,
+    [r.round, r.label, r.opens_at, r.closes_at || null, r.event_date || null,
+     r.main_seats, r.reserve_seats, r.offset_count || 0, r.closed ? 1 : 0]
+  );
+}
+
+async function setLastAccountRoundEventId(round, eventId) {
+  await pool.execute('UPDATE last_account_rounds SET event_id = ? WHERE round = ?', [eventId || null, round]);
+}
+
+async function deleteLastAccountRound(round) {
+  const [res] = await pool.execute('DELETE FROM last_account_rounds WHERE round = ?', [round]);
+  return res.affectedRows > 0;
+}
+
 module.exports = {
   init,
   upsertDiscordVerification, getDiscordByEmail, getDiscordVerification, listDiscordVerifications,
+  listLastAccountRounds, upsertLastAccountRound, setLastAccountRoundEventId, deleteLastAccountRound,
   findUserByEmail, findUserById, createUser, createUserFull, createMember,
   isEmailEligible, countEligible, addEligibleHashes, refreshVerifiedFromEligible,
   upsertOtp, getOtp, incOtpAttempts, deleteOtp,

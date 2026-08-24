@@ -171,10 +171,62 @@
     <select id="roundFilter" onchange="roundFilter=this.value; renderTable()"><option value="all">ทุกรุ่น</option></select>
     <input id="search" placeholder="ค้นหา ชื่อ / เบอร์ / อีเมล / MT5 / Line / Discord…" oninput="renderTable()" />
     <button class="btn" onclick="load()"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> รีเฟรช</button>
+    <button class="btn" onclick="openRounds()">📅 จัดการรุ่น</button>
     <button class="btn gold" onclick="exportCSV()"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export CSV</button>
   </div>
 
   <div id="content"><div class="state">กำลังโหลด…</div></div>
+</div>
+
+<style>
+  .rm-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.7);display:none;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto}
+  .rm-overlay.open{display:flex}
+  .rm-box{width:100%;max-width:680px;background:var(--card,#0f0f0f);border:1px solid var(--gold-border,rgba(212,175,55,.22));border-radius:14px}
+  .rm-head{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border,rgba(255,255,255,.08))}
+  .rm-head h3{font-size:17px;font-weight:800}
+  .rm-x{background:var(--card2,#131313);border:1px solid var(--border,rgba(255,255,255,.08));color:var(--text,#f0f0f0);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:15px}
+  .rm-body{padding:16px 20px 22px}
+  .rm-tbl{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:16px}
+  .rm-tbl th{text-align:left;color:var(--muted,#7a7a7a);font-size:11px;text-transform:uppercase;padding:6px 8px;border-bottom:1px solid var(--border,rgba(255,255,255,.08))}
+  .rm-tbl td{padding:8px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
+  .rm-tag{font-size:11px;font-weight:800;padding:2px 8px;border-radius:20px}
+  .rm-tag.open{background:rgba(34,197,94,.15);color:#4ade80}.rm-tag.closed{background:rgba(255,255,255,.06);color:var(--muted,#7a7a7a)}
+  .rm-act{background:none;border:1px solid var(--border,rgba(255,255,255,.08));color:var(--muted,#7a7a7a);border-radius:7px;padding:4px 9px;font-size:12px;cursor:pointer;font-family:inherit}
+  .rm-act:hover{border-color:var(--gold,#d4af37);color:var(--gold,#d4af37)}
+  .rm-form{background:var(--card2,#131313);border:1px solid var(--border,rgba(255,255,255,.08));border-radius:10px;padding:14px 16px}
+  .rm-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .rm-grid label{display:block;font-size:12px;font-weight:700;color:var(--muted,#7a7a7a);margin-bottom:5px}
+  .rm-grid .full{grid-column:1 / -1}
+  .rm-form input,.rm-form select{width:100%;background:var(--bg,#060606);border:1px solid var(--border,rgba(255,255,255,.08));color:var(--text,#f0f0f0);border-radius:8px;padding:9px 11px;font-size:14px;font-family:inherit}
+  .rm-form input:focus{outline:none;border-color:var(--gold-border,rgba(212,175,55,.4))}
+  .rm-form .chkrow{display:flex;align-items:center;gap:8px}
+  .rm-form .chkrow input{width:auto}
+  .rm-actions{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px}
+</style>
+
+<div class="rm-overlay" id="rmOverlay" onclick="if(event.target===this)closeRounds()">
+  <div class="rm-box">
+    <div class="rm-head"><h3>📅 จัดการรุ่น Last Account</h3><button class="rm-x" onclick="closeRounds()">✕</button></div>
+    <div class="rm-body">
+      <div id="rmList"><div class="state">กำลังโหลด…</div></div>
+      <div class="rm-form">
+        <div class="rm-grid">
+          <div><label>เลขรุ่น *</label><input type="number" id="rf-round" min="1" placeholder="6"></div>
+          <div><label>ชื่อรุ่น *</label><input type="text" id="rf-label" placeholder="รุ่นที่ 6"></div>
+          <div><label>เปิดรับสมัคร (วัน-เวลา) *</label><input type="datetime-local" id="rf-opens"></div>
+          <div><label>วันจัดงาน (ลง calendar)</label><input type="date" id="rf-event"></div>
+          <div><label>ที่นั่งหลัก</label><input type="number" id="rf-main" value="25" min="0"></div>
+          <div><label>ที่นั่งสำรอง</label><input type="number" id="rf-reserve" value="5" min="0"></div>
+          <div><label>offset (สมัครหลังบ้าน)</label><input type="number" id="rf-offset" value="0" min="0"></div>
+          <div class="chkrow" style="align-self:end"><input type="checkbox" id="rf-closed"><label style="margin:0">ปิดรับสมัคร</label></div>
+        </div>
+        <div class="rm-actions">
+          <button class="rm-act" onclick="resetRoundForm()">＋ รุ่นใหม่</button>
+          <button class="btn gold" onclick="saveRound()">💾 บันทึกรุ่น</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -187,6 +239,81 @@
 
   function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];}); }
   function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1800); }
+
+  // ── Rounds manager (DB-driven; no code deploy needed) ──
+  let RM = [];
+  const rf = (id,v)=>{ document.getElementById('rf-'+id).value = v; };
+  function openRounds(){ document.getElementById('rmOverlay').classList.add('open'); loadRoundsAdmin(); }
+  function closeRounds(){ document.getElementById('rmOverlay').classList.remove('open'); }
+  async function loadRoundsAdmin(){
+    const token = localStorage.getItem(TOKEN_KEY);
+    document.getElementById('rmList').innerHTML = '<div class="state">กำลังโหลด…</div>';
+    try{
+      const r = await fetch('/api/last-account/admin/rounds',{ headers:{ Authorization:'Bearer '+token } });
+      if(!r.ok) throw new Error();
+      RM = await r.json(); renderRoundsList();
+    }catch{ document.getElementById('rmList').innerHTML='<div class="state">โหลดไม่สำเร็จ</div>'; }
+  }
+  function renderRoundsList(){
+    if(!RM.length){ document.getElementById('rmList').innerHTML='<div class="state" style="padding:18px">ยังไม่มีรุ่น</div>'; return; }
+    let h = '<table class="rm-tbl"><thead><tr><th>รุ่น</th><th>เปิดรับ</th><th>วันจัดงาน</th><th>ที่นั่ง</th><th>สมัคร</th><th>สถานะ</th><th></th></tr></thead><tbody>';
+    RM.forEach(r=>{
+      const opens = (r.opens_at||'').replace('T',' ').slice(0,16);
+      h += '<tr>'
+        + '<td><b>'+esc(r.label)+'</b><div style="color:var(--muted);font-size:11px">#'+r.round+'</div></td>'
+        + '<td>'+esc(opens)+'</td>'
+        + '<td>'+(r.event_date?esc(r.event_date):'<span style="color:#555">—</span>')+'</td>'
+        + '<td>'+r.main_seats+'+'+r.reserve_seats+'</td>'
+        + '<td>'+r.total_count+'</td>'
+        + '<td><span class="rm-tag '+(r.closed?'closed':'open')+'">'+(r.closed?'ปิด':'เปิด')+'</span></td>'
+        + '<td style="white-space:nowrap"><button class="rm-act" onclick="editRound('+r.round+')">แก้</button> '
+        + '<button class="rm-act" style="border-color:rgba(248,113,113,.4);color:#f87171" onclick="deleteRound('+r.round+')">ลบ</button></td>'
+        + '</tr>';
+    });
+    document.getElementById('rmList').innerHTML = h + '</tbody></table>';
+  }
+  function resetRoundForm(){
+    const next = RM.length ? Math.max.apply(null, RM.map(r=>r.round))+1 : 1;
+    rf('round',next); rf('label','รุ่นที่ '+next); rf('opens',''); rf('event',''); rf('main',25); rf('reserve',5); rf('offset',0);
+    document.getElementById('rf-closed').checked=false;
+    document.getElementById('rf-round').removeAttribute('readonly');
+  }
+  function editRound(round){
+    const r = RM.find(x=>x.round===round); if(!r) return;
+    rf('round',r.round); rf('label',r.label); rf('opens',(r.opens_at||'').slice(0,16));
+    rf('event',r.event_date||''); rf('main',r.main_seats); rf('reserve',r.reserve_seats); rf('offset',r.offset_count);
+    document.getElementById('rf-closed').checked = !!r.closed;
+    document.getElementById('rf-round').setAttribute('readonly','');
+  }
+  async function saveRound(){
+    const token = localStorage.getItem(TOKEN_KEY);
+    const body = {
+      round: parseInt(document.getElementById('rf-round').value,10),
+      label: document.getElementById('rf-label').value.trim(),
+      opens_at: document.getElementById('rf-opens').value,
+      event_date: document.getElementById('rf-event').value || null,
+      main_seats: parseInt(document.getElementById('rf-main').value,10)||25,
+      reserve_seats: parseInt(document.getElementById('rf-reserve').value,10)||5,
+      offset_count: parseInt(document.getElementById('rf-offset').value,10)||0,
+      closed: document.getElementById('rf-closed').checked,
+    };
+    if(!body.round||!body.label||!body.opens_at){ toast('กรอกเลขรุ่น / ชื่อ / วันเปิดให้ครบ'); return; }
+    try{
+      const r = await fetch('/api/last-account/admin/rounds',{ method:'POST', headers:{ 'Content-Type':'application/json', Authorization:'Bearer '+token }, body:JSON.stringify(body) });
+      const d = await r.json().catch(()=>({}));
+      if(!r.ok) throw new Error(d.error||'');
+      toast('บันทึกรุ่นแล้ว'); resetRoundForm(); loadRoundsAdmin(); load();
+    }catch(e){ toast('บันทึกไม่สำเร็จ'+(e.message?': '+e.message:'')); }
+  }
+  async function deleteRound(round){
+    if(!confirm('ลบรุ่นนี้? (ใบสมัครในรุ่นยังอยู่ในระบบ)')) return;
+    const token = localStorage.getItem(TOKEN_KEY);
+    try{
+      const r = await fetch('/api/last-account/admin/rounds/'+round,{ method:'DELETE', headers:{ Authorization:'Bearer '+token } });
+      if(!r.ok) throw new Error();
+      toast('ลบรุ่นแล้ว'); loadRoundsAdmin(); load();
+    }catch{ toast('ลบไม่สำเร็จ'); }
+  }
 
   (async () => {
     const token = localStorage.getItem(TOKEN_KEY);
