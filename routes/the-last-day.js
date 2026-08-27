@@ -1,5 +1,6 @@
 const express = require('express');
 const db      = require('../db/database');
+const bot     = require('../lib/discord-bot');
 const { requireAuth, requireAdmin } = require('./auth');
 
 const router = express.Router();
@@ -128,6 +129,9 @@ router.post('/join', requireAuth, async (req, res) => {
     }
     if (result.full)
       return res.status(409).json({ error: 'ที่นั่งเต็มแล้ว', status: 'full' });
+
+    // Auto-grant the Discord role if this member has linked their Discord (no-op otherwise).
+    bot.grantRoleByEmail(user.email, process.env.DISCORD_THE_LAST_DAY_ROLE_ID);
 
     res.status(201).json({ success: true, label: cfg.label, seat_type: result.seat_type, position: result.position });
   } catch (err) {

@@ -24,6 +24,20 @@ function requireSyncKey(req, res, next) {
   next();
 }
 
+// Grant event roles the email already qualifies for. Each grant is best-effort
+// (a missing role id or a Discord error never breaks verification).
+async function backfillEventRoles(guildId, discordId, email) {
+  const grants = [
+    { roleId: process.env.DISCORD_LAST_ACCOUNT_ROLE_ID, has: () => db.emailInLastAccount(email) },
+    { roleId: process.env.DISCORD_THE_LAST_DAY_ROLE_ID, has: () => db.emailInTheLastDay(email) },
+  ];
+  for (const g of grants) {
+    if (!g.roleId) continue;
+    try { if (await g.has()) await bot.grantRole(guildId, discordId, g.roleId); }
+    catch (e) { console.error('backfill role failed:', e.message); }
+  }
+}
+
 function page(title, msg, color) {
   return `<!doctype html><html lang="th"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1"><title>${title}</title>
@@ -47,6 +61,8 @@ router.get('/verify', async (req, res) => {
   try {
     await db.upsertDiscordVerification(payload.discordId, payload.email, payload.username, payload.guildId);
     await bot.grantRole(payload.guildId, payload.discordId, ROLE_ID);
+    // Back-fill event roles the user already earned (joined before verifying Discord).
+    await backfillEventRoles(payload.guildId, payload.discordId, payload.email);
     return res.send(page('ยืนยันสำเร็จ ✅', 'คุณได้รับยศใน Discord เรียบร้อยแล้ว — กลับไปที่ Discord ได้เลย', '#22c55e'));
   } catch (e) {
     console.error('discord verify finalize failed:', e.message);

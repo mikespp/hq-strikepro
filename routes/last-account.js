@@ -1,6 +1,7 @@
 const express = require('express');
 const crypto  = require('crypto');
 const db      = require('../db/database');
+const bot     = require('../lib/discord-bot');
 const { requireAuth, requireAdmin } = require('./auth');
 
 const router = express.Router();
@@ -202,6 +203,8 @@ router.post('/apply', async (req, res) => {
     if (result.full) {
       return res.status(409).json({ error: 'เต็มแล้ว ไม่สามารถสมัครได้ กรุณารอรอบถัดไป', status: 'full' });
     }
+    // Auto-grant the Discord role if this email has linked their Discord (no-op otherwise).
+    bot.grantRoleByEmail(data.email, process.env.DISCORD_LAST_ACCOUNT_ROLE_ID);
     res.status(201).json({
       success:   true,
       round,
@@ -274,6 +277,9 @@ router.post('/join', requireAuth, async (req, res) => {
     const result = await db.createLastAccountApplication(data, round, cfg.main, cfg.reserve, cfg.offset || 0);
     if (result.full)
       return res.status(409).json({ error: 'รุ่นนี้เต็มแล้ว กรุณารอรอบถัดไป', status: 'full' });
+
+    // Auto-grant the Discord role if this member has linked their Discord (no-op otherwise).
+    bot.grantRoleByEmail(user.email, process.env.DISCORD_LAST_ACCOUNT_ROLE_ID);
 
     res.status(201).json({ success: true, round, label: cfg.label, seat_type: result.seat_type, position: result.position });
   } catch (err) {
