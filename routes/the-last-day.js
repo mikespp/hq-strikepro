@@ -130,9 +130,6 @@ router.post('/join', requireAuth, async (req, res) => {
     if (result.full)
       return res.status(409).json({ error: 'ที่นั่งเต็มแล้ว', status: 'full' });
 
-    // Auto-grant the Discord role if this member has linked their Discord (no-op otherwise).
-    bot.grantRoleByEmail(user.email, process.env.DISCORD_THE_LAST_DAY_ROLE_ID);
-
     res.status(201).json({ success: true, label: cfg.label, seat_type: result.seat_type, position: result.position });
   } catch (err) {
     console.error(err);
@@ -244,9 +241,15 @@ router.post('/admin/next-edition', requireAdmin, async (req, res) => {
 router.patch('/registrations/:id/confirm', requireAdmin, async (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (!id) return res.status(400).json({ error: 'invalid id' });
+  const value = req.body.value ? 1 : 0;
   try {
-    await db.setTheLastDayFlag(id, req.body.value ? 1 : 0);
-    res.json({ ok: true, id, value: req.body.value ? 1 : 0 });
+    await db.setTheLastDayFlag(id, value);
+    // On staff check-in, grant the Discord role to this attendee (no-op if not linked / role unset).
+    if (value) {
+      const email = await db.getTheLastDayEmailById(id);
+      if (email) bot.grantRoleByEmail(email, process.env.DISCORD_THE_LAST_DAY_ROLE_ID);
+    }
+    res.json({ ok: true, id, value });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });

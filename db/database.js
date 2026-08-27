@@ -1232,21 +1232,31 @@ async function upsertDiscordVerification(discordId, email, username, guildId) {
 }
 
 // Which Discord account (if any) already verified with this email?
-// Does this email appear in an event's registrations? (for back-filling Discord
-// roles when a user verifies AFTER they already joined an event.)
+// Is this email CONFIRMED by staff in an event? (Discord event roles are granted
+// on staff confirmation; used to back-fill roles when a user verifies later.)
 async function emailInLastAccount(email) {
   const [rows] = await pool.execute(
-    'SELECT 1 FROM last_account_applications WHERE LOWER(TRIM(email)) = LOWER(TRIM(?)) LIMIT 1',
+    'SELECT 1 FROM last_account_applications WHERE LOWER(TRIM(email)) = LOWER(TRIM(?)) AND confirmed = 1 LIMIT 1',
     [String(email || '')]
   );
   return rows.length > 0;
 }
 async function emailInTheLastDay(email) {
   const [rows] = await pool.execute(
-    'SELECT 1 FROM the_last_day_registrations WHERE LOWER(TRIM(email)) = LOWER(TRIM(?)) LIMIT 1',
+    'SELECT 1 FROM the_last_day_registrations WHERE LOWER(TRIM(email)) = LOWER(TRIM(?)) AND confirmed = 1 LIMIT 1',
     [String(email || '')]
   );
   return rows.length > 0;
+}
+
+// Look up the email on a single registration/application (to grant a role on confirm).
+async function getLastAccountEmailById(id) {
+  const [rows] = await pool.execute('SELECT email FROM last_account_applications WHERE id = ? LIMIT 1', [id]);
+  return rows[0] ? rows[0].email : null;
+}
+async function getTheLastDayEmailById(id) {
+  const [rows] = await pool.execute('SELECT email FROM the_last_day_registrations WHERE id = ? LIMIT 1', [id]);
+  return rows[0] ? rows[0].email : null;
 }
 
 async function getDiscordByEmail(email) {
@@ -1312,7 +1322,7 @@ async function deleteLastAccountRound(round) {
 module.exports = {
   init,
   upsertDiscordVerification, getDiscordByEmail, getDiscordVerification, listDiscordVerifications,
-  emailInLastAccount, emailInTheLastDay,
+  emailInLastAccount, emailInTheLastDay, getLastAccountEmailById, getTheLastDayEmailById,
   listLastAccountRounds, upsertLastAccountRound, setLastAccountRoundEventId, deleteLastAccountRound,
   findUserByEmail, findUserById, createUser, createUserFull, createMember,
   isEmailEligible, countEligible, addEligibleHashes, refreshVerifiedFromEligible,
