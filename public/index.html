@@ -671,7 +671,7 @@
   <a class="event-banner" href="/events/the-last-day" style="margin-top:10px; background: linear-gradient(135deg, rgba(129,140,248,.10) 0%, rgba(129,140,248,.03) 100%);">
     <div class="event-banner-icon">🌅</div>
     <div class="event-banner-body">
-      <div class="event-banner-tag">Event · 23 ส.ค. 2026 · เฉพาะผู้ผ่าน SBC</div>
+      <div class="event-banner-tag" id="tldBannerTag">Event · เฉพาะผู้ผ่าน SBC</div>
       <div class="event-banner-title">The Last Day</div>
       <div class="event-banner-sub">Workshop บริหารเงินจริง + session พิเศษชาว Bussay</div>
     </div>
@@ -866,6 +866,22 @@
       document.getElementById('passcodeInput').focus();
     }
   }
+</script>
+<script>
+  // The Last Day banner — show the active edition's date (from the DB), not a fixed one.
+  (function () {
+    var el = document.getElementById('tldBannerTag');
+    if (!el) return;
+    fetch('/api/the-last-day/status')
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (s) {
+        if (!s || !s.eventStart) return;
+        var date = new Date(s.eventStart).toLocaleDateString('th-TH-u-ca-gregory',
+          { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Bangkok' });
+        el.textContent = 'Event · ' + date + ' · เฉพาะผู้ผ่าน SBC';
+      })
+      .catch(function () {});
+  })();
 </script>
 </body>
 </html>

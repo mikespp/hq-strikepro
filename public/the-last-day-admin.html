@@ -208,8 +208,8 @@
 <!-- Next-edition modal -->
 <div class="modal-overlay" id="nextOverlay">
   <div class="modal">
-    <h3>เปิดรับสมัครรุ่นถัดไป</h3>
-    <p class="modal-sub">สร้างรุ่นใหม่และเปิดรับสมัครทันที (หน้าเว็บจะอัปเดตวันที่/สถานที่ให้อัตโนมัติ)</p>
+    <h3 id="nfTitle">เปิดรับสมัครรุ่นถัดไป</h3>
+    <p class="modal-sub" id="nfSub">สร้างรุ่นใหม่และเปิดรับสมัครทันที (หน้าเว็บ + ปฏิทินอัปเดตให้อัตโนมัติ)</p>
     <label for="nfDate">วันที่จัดงาน</label>
     <input type="date" id="nfDate" />
     <div class="row2">
@@ -233,6 +233,8 @@
   const TOKEN_KEY = 'sp_token';
   let caps = { main: 30, reserve: 10 };
   let editionLabel = '';
+  let curStatus = null;   // full status object of the active edition
+  let editMode = false;   // next-edition form is in "edit" mode
   let rows = [];
   let state = { registration_closed:false, event_completed:false };
   let completeArmed = false;
@@ -271,7 +273,7 @@
       if (rState.ok) {
         const s = await rState.json();
         state = { registration_closed: !!s.registration_closed, event_completed: !!s.event_completed };
-        if (s.status) { caps = { main: s.status.mainSeats, reserve: s.status.reserveSeats }; editionLabel = s.status.label || ''; }
+        if (s.status) { curStatus = s.status; caps = { main: s.status.mainSeats, reserve: s.status.reserveSeats }; editionLabel = s.status.label || ''; }
       }
       renderStats();
       renderControl();
@@ -298,7 +300,8 @@
       actions += '<button class="ctrl-btn danger" id="completeBtn" onclick="armComplete()">✔ สิ้นสุดกิจกรรม'
         + (unchecked ? (' (ลบ ' + unchecked + ' ที่ไม่เช็คชื่อ)') : '') + '</button>';
     }
-    // Always available: open the next edition (new date/time/venue).
+    // Always available: edit the current edition, or open the next one.
+    actions += '<button class="ctrl-btn" onclick="openEditForm()">✏️ แก้ไขรุ่นนี้</button>';
     actions += '<button class="ctrl-btn primary" onclick="openNextForm()">➕ เปิดรับสมัครรุ่นถัดไป</button>';
     el.innerHTML =
       '<span class="c-status ' + cls + '"><span class="dot"></span>' + (editionLabel ? esc(editionLabel) + ' · ' : '') + txt + '</span>' +
@@ -337,7 +340,35 @@
     completeEvent();
   }
 
-  function openNextForm() { document.getElementById('nextOverlay').classList.add('open'); }
+  const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+  // Convert an ISO datetime to Thai-local date (YYYY-MM-DD) and time (HH:MM).
+  function thaiParts(iso) {
+    const d = new Date(iso);
+    return {
+      date: d.toLocaleDateString('en-CA', { timeZone:'Asia/Bangkok' }),
+      time: d.toLocaleTimeString('en-GB', { timeZone:'Asia/Bangkok', hour:'2-digit', minute:'2-digit', hour12:false }),
+    };
+  }
+  function openNextForm() {
+    editMode = false;
+    setVal('nfDate',''); setVal('nfStart','10:00'); setVal('nfEnd','18:00');
+    setVal('nfVenue','Strike Pro Head Office'); setVal('nfMain',30); setVal('nfReserve',10);
+    document.getElementById('nfTitle').textContent = 'เปิดรับสมัครรุ่นถัดไป';
+    document.getElementById('nfSub').textContent   = 'สร้างรุ่นใหม่และเปิดรับสมัครทันที (หน้าเว็บ + ปฏิทินอัปเดตให้อัตโนมัติ)';
+    document.getElementById('nfSubmit').textContent = 'เปิดรับสมัคร';
+    document.getElementById('nextOverlay').classList.add('open');
+  }
+  function openEditForm() {
+    if (!curStatus) { toast('ยังไม่มีรุ่นให้แก้ไข'); return; }
+    editMode = true;
+    const s = thaiParts(curStatus.eventStart), e = thaiParts(curStatus.eventEnd);
+    setVal('nfDate', s.date); setVal('nfStart', s.time); setVal('nfEnd', e.time);
+    setVal('nfVenue', curStatus.venue || ''); setVal('nfMain', curStatus.mainSeats || 30); setVal('nfReserve', curStatus.reserveSeats || 10);
+    document.getElementById('nfTitle').textContent = 'แก้ไข ' + (curStatus.label || 'รุ่นปัจจุบัน');
+    document.getElementById('nfSub').textContent   = 'แก้วันที่ / เวลา / สถานที่ / ที่นั่ง — หน้าเว็บ + ปฏิทินจะอัปเดตตาม';
+    document.getElementById('nfSubmit').textContent = 'บันทึกการแก้ไข';
+    document.getElementById('nextOverlay').classList.add('open');
+  }
   function closeNextForm() { document.getElementById('nextOverlay').classList.remove('open'); }
 
   async function submitNextEdition() {
@@ -347,12 +378,13 @@
     if (!body.date || !body.start || !body.end || !body.venue) { toast('กรอกวันที่ / เวลา / สถานที่ ให้ครบ'); return; }
     const btn = document.getElementById('nfSubmit'); btn.disabled = true;
     try {
-      const r = await fetch('/api/the-last-day/admin/next-edition', {
-        method:'POST', headers:{ 'Content-Type':'application/json', Authorization:'Bearer '+token }, body: JSON.stringify(body)
+      const r = await fetch('/api/the-last-day/admin/' + (editMode ? 'edition' : 'next-edition'), {
+        method: editMode ? 'PATCH' : 'POST',
+        headers:{ 'Content-Type':'application/json', Authorization:'Bearer '+token }, body: JSON.stringify(body)
       });
       const d = await r.json().catch(()=>({}));
       if (!r.ok) throw new Error(d.error || 'ทำรายการไม่สำเร็จ');
-      toast('เปิด ' + (d.label || 'รุ่นถัดไป') + ' แล้ว ✓');
+      toast(editMode ? 'บันทึกการแก้ไขแล้ว ✓' : ('เปิด ' + (d.label || 'รุ่นถัดไป') + ' แล้ว ✓'));
       closeNextForm();
       load();
     } catch (e) { toast(e.message || 'ทำรายการไม่สำเร็จ'); }

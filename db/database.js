@@ -1083,6 +1083,35 @@ async function getTheLastDayEditionRow(edition) {
   return rows[0] || null;
 }
 
+// Edit an existing edition's date/time/venue/seats.
+async function updateTheLastDayEdition(edition, d) {
+  await pool.execute(
+    `UPDATE the_last_day_editions
+       SET event_start = ?, event_end = ?, venue = ?, main_seats = ?, reserve_seats = ?
+     WHERE edition = ?`,
+    [d.event_start, d.event_end, String(d.venue || '').slice(0, 255), d.main_seats || 30, d.reserve_seats || 10, edition]
+  );
+  return getTheLastDayEditionRow(edition);
+}
+
+// Mirror an edition onto the shared `events` calendar (home + dashboard).
+// Idempotent by title ("The Last Day ครั้งที่ N") so editing updates the same row.
+async function upsertTheLastDayCalendarEvent(edition, dateYMD) {
+  const title = 'The Last Day ครั้งที่ ' + edition;
+  const href  = '/events/the-last-day';
+  const color = '#818cf8';
+  const [rows] = await pool.execute('SELECT id FROM events WHERE title = ? LIMIT 1', [title]);
+  if (rows.length) {
+    await pool.execute('UPDATE events SET start_date = ?, end_date = ?, color = ?, href = ? WHERE id = ?',
+      [dateYMD, dateYMD, color, href, rows[0].id]);
+    return rows[0].id;
+  }
+  const [r] = await pool.execute(
+    'INSERT INTO events (title, start_date, end_date, color, href, live) VALUES (?, ?, ?, ?, ?, 0)',
+    [title, dateYMD, dateYMD, color, href]);
+  return r.insertId;
+}
+
 // Create the next edition (max+1) and return its row. Registration opens immediately.
 async function createNextTheLastDayEdition(d) {
   const [m] = await pool.execute('SELECT COALESCE(MAX(edition), 1) AS mx FROM the_last_day_editions');
@@ -1341,4 +1370,5 @@ module.exports = {
   listTheLastDayRegistrations, setTheLastDayFlag,
   getTheLastDayState, setTheLastDayState, deleteUncheckedTheLastDay,
   getActiveTheLastDayEdition, getTheLastDayEditionRow, createNextTheLastDayEdition,
+  updateTheLastDayEdition, upsertTheLastDayCalendarEvent,
 };

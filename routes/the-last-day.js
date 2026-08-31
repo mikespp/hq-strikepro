@@ -195,42 +195,76 @@ router.post('/admin/complete', requireAdmin, async (req, res) => {
   }
 });
 
+// Validate + normalise an edition form. Returns { error } or the parsed fields.
+function parseEditionInput(b) {
+  b = b || {};
+  const date  = String(b.date  || '').trim();
+  const start = String(b.start || '').trim();
+  const end   = String(b.end   || '').trim();
+  const venue = String(b.venue || '').trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return { error: 'กรุณาเลือกวันที่ให้ถูกต้อง' };
+  if (!/^\d{2}:\d{2}$/.test(start) || !/^\d{2}:\d{2}$/.test(end))
+    return { error: 'กรุณากรอกเวลาให้ถูกต้อง (HH:MM)' };
+  if (!venue) return { error: 'กรุณากรอกสถานที่' };
+  const event_start = `${date}T${start}:00+07:00`;
+  const event_end   = `${date}T${end}:00+07:00`;
+  const sd = new Date(event_start), ed = new Date(event_end);
+  if (isNaN(sd) || isNaN(ed)) return { error: 'วัน/เวลาไม่ถูกต้อง' };
+  if (ed <= sd)               return { error: 'เวลาสิ้นสุดต้องหลังเวลาเริ่ม' };
+  return {
+    event_start, event_end, venue, dateYMD: date,
+    main:    Math.max(1, Math.min(1000, parseInt(b.main, 10)    || 30)),
+    reserve: Math.max(0, Math.min(1000, parseInt(b.reserve, 10) || 10)),
+  };
+}
+
 // ── POST /api/the-last-day/admin/next-edition  (admin) — open the next edition ─
 // Body: { date:'YYYY-MM-DD', start:'HH:MM', end:'HH:MM', venue, main?, reserve? }
 router.post('/admin/next-edition', requireAdmin, async (req, res) => {
   try {
-    const b = req.body || {};
-    const date  = String(b.date  || '').trim();
-    const start = String(b.start || '').trim();
-    const end   = String(b.end   || '').trim();
-    const venue = String(b.venue || '').trim();
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date))  return res.status(400).json({ error: 'กรุณาเลือกวันที่ให้ถูกต้อง' });
-    if (!/^\d{2}:\d{2}$/.test(start) || !/^\d{2}:\d{2}$/.test(end))
-      return res.status(400).json({ error: 'กรุณากรอกเวลาให้ถูกต้อง (HH:MM)' });
-    if (!venue) return res.status(400).json({ error: 'กรุณากรอกสถานที่' });
-
-    const eventStartIso = `${date}T${start}:00+07:00`;
-    const eventEndIso   = `${date}T${end}:00+07:00`;
-    const sd = new Date(eventStartIso), ed = new Date(eventEndIso);
-    if (isNaN(sd) || isNaN(ed)) return res.status(400).json({ error: 'วัน/เวลาไม่ถูกต้อง' });
-    if (ed <= sd)               return res.status(400).json({ error: 'เวลาสิ้นสุดต้องหลังเวลาเริ่ม' });
-
-    const main    = Math.max(1, Math.min(1000, parseInt(b.main, 10)    || 30));
-    const reserve = Math.max(0, Math.min(1000, parseInt(b.reserve, 10) || 10));
+    const p = parseEditionInput(req.body);
+    if (p.error) return res.status(400).json({ error: p.error });
 
     const row = await db.createNextTheLastDayEdition({
       opens_at:    new Date().toISOString(), // open immediately
-      event_start: eventStartIso,
-      event_end:   eventEndIso,
-      venue,
-      main_seats:    main,
-      reserve_seats: reserve,
+      event_start: p.event_start,
+      event_end:   p.event_end,
+      venue:       p.venue,
+      main_seats:    p.main,
+      reserve_seats: p.reserve,
     });
+    // Mirror onto the home + dashboard calendar.
+    await db.upsertTheLastDayCalendarEvent(row.edition, p.dateYMD);
 
     const cfg   = await activeCfg();
     const count = await db.countTheLastDayRegistrations(cfg.edition);
     const state = await db.getTheLastDayState(cfg.edition);
     res.status(201).json({ ok: true, edition: row.edition, label: row.label, status: buildStatus(cfg, count, state) });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
+  }
+});
+
+// ── PATCH /api/the-last-day/admin/edition  (admin) — edit the active edition ───
+router.patch('/admin/edition', requireAdmin, async (req, res) => {
+  try {
+    const cfg = await activeCfg();
+    if (!cfg) return res.status(404).json({ error: 'ยังไม่มีรุ่นให้แก้ไข' });
+    const p = parseEditionInput(req.body);
+    if (p.error) return res.status(400).json({ error: p.error });
+
+    await db.updateTheLastDayEdition(cfg.edition, {
+      event_start: p.event_start, event_end: p.event_end, venue: p.venue,
+      main_seats: p.main, reserve_seats: p.reserve,
+    });
+    // Keep the calendar entry in sync.
+    await db.upsertTheLastDayCalendarEvent(cfg.edition, p.dateYMD);
+
+    const cfg2  = await activeCfg();
+    const count = await db.countTheLastDayRegistrations(cfg2.edition);
+    const state = await db.getTheLastDayState(cfg2.edition);
+    res.json({ ok: true, edition: cfg2.edition, label: cfg2.label, status: buildStatus(cfg2, count, state) });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
