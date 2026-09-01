@@ -113,6 +113,11 @@ app.get('/events/the-last-day', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'events', 'the-last-day.html'));
 });
 
+// /events/dinner → serve กินข้าวบ้านจารย์ info page
+app.get('/events/dinner', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'events', 'dinner.html'));
+});
+
 // /the-last-day-admin → serve The Last Day registrants admin page
 app.get('/the-last-day-admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'the-last-day-admin.html'));

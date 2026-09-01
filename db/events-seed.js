@@ -30,7 +30,7 @@ module.exports = [
   { s:[2026,12,6],  e:[2026,12,11], t:'บ้านหลังสุดท้าย · The Last Account รุ่น 21', c:'#d4af37', h:'/events/last-account', live:false },
   { s:[2026,12,13], e:[2026,12,18], t:'บ้านหลังสุดท้าย · The Last Account รุ่น 22', c:'#d4af37', h:'/events/last-account', live:false },
   { s:[2026,12,20], e:[2026,12,25], t:'บ้านหลังสุดท้าย · The Last Account รุ่น 23', c:'#d4af37', h:'/events/last-account', live:false },
-  { s:[2026,7,31],  e:[2026,7,31],  t:'กินข้าวบ้านจารย์',                          c:'#4ade80', h:null,                    live:false },
+  { s:[2026,7,31],  e:[2026,7,31],  t:'กินข้าวบ้านจารย์',                          c:'#4ade80', h:'/events/dinner',        live:false },
   { s:[2026,8,1],   e:[2026,8,3],   t:'SBC 25',                                    c:'#fb923c', h:'/events/sbc',           live:false },
   { s:[2026,8,1],   e:[2026,8,14],  t:'ศึกชนช้าง Season 3',                        c:'#E63946', h:null,                    live:false },
   { s:[2026,8,17],  e:[2026,8,28],  t:'ศึกชนช้าง Season 4',                        c:'#E63946', h:null,                    live:false },

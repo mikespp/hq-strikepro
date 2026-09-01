@@ -381,6 +381,11 @@ async function init() {
   // an already-populated DB (idempotent — matched by title + start_date).
   await ensureEvent({ title: 'The Last Day ครั้งที่ 2', start: '2026-08-23', end: '2026-08-23', color: '#818cf8', href: '/events/the-last-day', live: false });
 
+  // Link the existing "กินข้าวบ้านจารย์" calendar entry to its new info page.
+  await pool.execute(
+    `UPDATE events SET href = '/events/dinner' WHERE title = 'กินข้าวบ้านจารย์' AND (href IS NULL OR href = '')`
+  );
+
   console.log('  MySQL connected & schema ready.\n');
 }
 
