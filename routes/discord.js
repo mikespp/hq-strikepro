@@ -30,6 +30,7 @@ async function backfillEventRoles(guildId, discordId, email) {
   const grants = [
     { roleId: process.env.DISCORD_LAST_ACCOUNT_ROLE_ID, has: () => db.emailInLastAccount(email) },
     { roleId: process.env.DISCORD_THE_LAST_DAY_ROLE_ID, has: () => db.emailInTheLastDay(email) },
+    { roleId: process.env.DISCORD_DINNER_ROLE_ID,       has: () => db.emailInDinner(email) },
   ];
   for (const g of grants) {
     if (!g.roleId) continue;

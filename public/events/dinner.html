@@ -623,7 +623,12 @@
     <div class="cta-section fade fade-d3">
       <span class="cta-icon">🍽️</span>
       <h2 class="cta-title">มาเจอกันที่บ้านจารย์</h2>
-      <p class="cta-sub">แจ้งเข้าร่วม / สอบถามวันเวลาและสถานที่ผ่าน LINE ได้เลย</p>
+      <p class="cta-sub">ลงทะเบียนเข้าร่วมด้วยคลิกเดียว หรือสอบถามผ่าน LINE</p>
+      <div id="dinnerJoinStatus" style="font-size:14px;color:var(--gold);margin-bottom:14px;min-height:20px;font-weight:600;position:relative;z-index:1;"></div>
+      <button class="cta-btn" id="dinnerJoinBtn" type="button" onclick="dinnerJoin()">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm-1 15-4-4 1.41-1.41L11 14.17l5.59-5.59L18 10z"/></svg>
+        <span id="dinnerJoinText">ลงทะเบียนเข้าร่วม</span>
+      </button>
       <a class="line-btn" href="https://lin.ee/8WkoRmL" target="_blank">
         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.070 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
         สอบถาม / ติดต่อ Admin
@@ -735,6 +740,60 @@
   }
   </script>
 <script>
+  /* ── One-click RSVP ── */
+  const DINNER_SELF = '/events/dinner';
+  let dinnerRegistered = false;
+  async function loadDinnerJoin() {
+    const btn = document.getElementById('dinnerJoinBtn');
+    const txt = document.getElementById('dinnerJoinText');
+    const st  = document.getElementById('dinnerJoinStatus');
+    if (!btn) return;
+    try {
+      const s = await (await fetch('/api/dinner/status')).json();
+      if (!s || !s.round) { btn.disabled = true; txt.textContent = 'ยังไม่เปิดรับลงทะเบียน'; return; }
+      if (s.ended)        { btn.disabled = true; txt.textContent = 'กิจกรรมนี้จบแล้ว'; return; }
+      const token = localStorage.getItem('sp_token');
+      if (token) {
+        try { const me = await (await fetch('/api/dinner/me', { headers:{ Authorization:'Bearer '+token } })).json(); dinnerRegistered = !!(me && me.registered); } catch {}
+      }
+      if (dinnerRegistered) {
+        btn.disabled = true; txt.textContent = '✓ คุณลงทะเบียนแล้ว'; btn.style.background = '#22c55e';
+        st.style.color = '#4ade80'; st.textContent = '🎉 คุณลงทะเบียนเข้าร่วมแล้ว';
+        return;
+      }
+      btn.disabled = false; txt.textContent = 'ลงทะเบียนเข้าร่วม';
+      if (s.count) st.textContent = s.count + ' คนลงทะเบียนแล้ว';
+    } catch {}
+  }
+  async function dinnerJoin() {
+    const token = localStorage.getItem('sp_token');
+    if (!token) { window.location.href = '/login?next=' + encodeURIComponent(DINNER_SELF); return; }
+    const btn = document.getElementById('dinnerJoinBtn');
+    const txt = document.getElementById('dinnerJoinText');
+    const st  = document.getElementById('dinnerJoinStatus');
+    const prev = txt.textContent;
+    btn.disabled = true; txt.textContent = 'กำลังลงทะเบียน…'; st.textContent = '';
+    try {
+      const r = await fetch('/api/dinner/join', { method:'POST', headers:{ Authorization:'Bearer '+token } });
+      if (r.status === 401) { localStorage.removeItem('sp_token'); window.location.href = '/login?next=' + encodeURIComponent(DINNER_SELF); return; }
+      const d = await r.json().catch(()=>({}));
+      if (r.status === 400 && d.code === 'profile') {
+        st.style.color = '#f5d96b'; st.textContent = 'กรุณากรอกข้อมูลส่วนตัวให้ครบก่อน กำลังพาไป…';
+        setTimeout(()=>{ window.location.href = '/update-profile?reason=register&next=' + encodeURIComponent(DINNER_SELF); }, 1200);
+        return;
+      }
+      if (r.status === 409 && d.code === 'joined') {
+        dinnerRegistered = true; txt.textContent = '✓ คุณลงทะเบียนแล้ว'; btn.style.background = '#22c55e';
+        st.style.color = '#4ade80'; st.textContent = '🎉 คุณลงทะเบียนไว้แล้ว';
+        return;
+      }
+      if (!r.ok) throw new Error(d.error || 'ลงทะเบียนไม่สำเร็จ');
+      txt.textContent = '✓ ลงทะเบียนสำเร็จแล้ว'; btn.style.background = '#22c55e';
+      st.style.color = '#4ade80'; st.textContent = '🎉 ลงทะเบียนเข้าร่วมสำเร็จ — แล้วเจอกัน!';
+    } catch (e) { st.style.color = '#ff6b76'; st.textContent = e.message; btn.disabled = false; txt.textContent = prev; }
+  }
+  loadDinnerJoin();
+
   // Show the current round's date/time/venue (NEVER the round number). No round → RSVP via LINE.
   (function () {
     var el = document.getElementById('dinnerMeta'); if (!el) return;

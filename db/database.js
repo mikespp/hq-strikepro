@@ -176,6 +176,25 @@ async function init() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
+  // กินข้าวบ้านจารย์ — RSVP registrations (one-click join; no seat cap).
+  await pool.execute(`
+    CREATE TABLE IF NOT EXISTS dinner_registrations (
+      id           INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      round        SMALLINT     NOT NULL DEFAULT 3,
+      user_id      INT UNSIGNED NULL,
+      first_name   VARCHAR(120) NOT NULL DEFAULT '',
+      last_name    VARCHAR(120) NOT NULL DEFAULT '',
+      nickname     VARCHAR(120) NOT NULL DEFAULT '',
+      phone        VARCHAR(50)  NOT NULL DEFAULT '',
+      email        VARCHAR(255) NOT NULL DEFAULT '',
+      line_id      VARCHAR(120) NOT NULL DEFAULT '',
+      confirmed    TINYINT(1)   NOT NULL DEFAULT 0,
+      confirmed_at DATETIME     NULL,
+      created_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE KEY uniq_dinner_round_email (round, email)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
   // The Last Day — per-edition admin state (registration closed / event completed).
   await pool.execute(`
     CREATE TABLE IF NOT EXISTS the_last_day_state (
@@ -1114,6 +1133,51 @@ async function updateDinnerEdition(round, d) {
   );
   return getDinnerEditionRow(round);
 }
+// ── กินข้าวบ้านจารย์ RSVP registrations ────────────────────────────────────────
+async function countDinnerRegistrations(round) {
+  const [r] = await pool.execute('SELECT COUNT(*) AS c FROM dinner_registrations WHERE round = ?', [round]);
+  return Number(r[0].c);
+}
+async function hasDinnerRegistration(email, round) {
+  const [r] = await pool.execute(
+    'SELECT 1 FROM dinner_registrations WHERE email = ? AND round = ? LIMIT 1',
+    [String(email || '').toLowerCase().trim(), round]);
+  return r.length > 0;
+}
+async function createDinnerRegistration(data, round) {
+  const [r] = await pool.execute(
+    `INSERT INTO dinner_registrations (round, user_id, first_name, last_name, nickname, phone, email, line_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    [round, data.user_id || null, data.first_name, data.last_name, data.nickname, data.phone, data.email, data.line_id]);
+  return { id: r.insertId };
+}
+async function listDinnerRegistrations(round) {
+  const where = round == null ? '' : 'WHERE r.round = ?';
+  const args  = round == null ? [] : [round];
+  const [rows] = await pool.execute(
+    `SELECT r.id, r.round, r.first_name, r.last_name, r.nickname, r.phone, r.email, r.line_id,
+            r.confirmed, r.confirmed_at, r.created_at, COALESCE(u.verified, 0) AS verified
+     FROM dinner_registrations r
+     LEFT JOIN users u ON LOWER(TRIM(u.email)) = LOWER(TRIM(r.email))
+     ${where} ORDER BY r.created_at ASC`, args);
+  return rows;
+}
+async function setDinnerFlag(id, value) {
+  const v = value ? 1 : 0;
+  await pool.execute(
+    `UPDATE dinner_registrations SET confirmed = ?, confirmed_at = ${v ? 'NOW()' : 'NULL'} WHERE id = ?`, [v, id]);
+}
+async function getDinnerEmailById(id) {
+  const [rows] = await pool.execute('SELECT email FROM dinner_registrations WHERE id = ? LIMIT 1', [id]);
+  return rows[0] ? rows[0].email : null;
+}
+async function emailInDinner(email) {
+  const [rows] = await pool.execute(
+    'SELECT 1 FROM dinner_registrations WHERE LOWER(TRIM(email)) = LOWER(TRIM(?)) AND confirmed = 1 LIMIT 1',
+    [String(email || '')]);
+  return rows.length > 0;
+}
+
 // One shared calendar entry "กินข้าวบ้านจารย์" (no round number) that moves to the
 // current round's date on home + dashboard.
 async function upsertDinnerCalendarEvent(dateYMD) {
@@ -1433,4 +1497,6 @@ module.exports = {
   updateTheLastDayEdition, upsertTheLastDayCalendarEvent,
   getActiveDinnerEdition, getDinnerEditionRow, createNextDinnerEdition,
   updateDinnerEdition, upsertDinnerCalendarEvent,
+  countDinnerRegistrations, hasDinnerRegistration, createDinnerRegistration,
+  listDinnerRegistrations, setDinnerFlag, getDinnerEmailById, emailInDinner,
 };

@@ -61,6 +61,22 @@
       color:#f0f0f0; padding:10px 20px; border-radius:10px; font-size:13px; font-weight:600; z-index:999; opacity:0; transition:opacity .2s; pointer-events:none; }
     .toast.show { opacity:1; }
 
+    /* Registrant list */
+    .list-head { display:flex; align-items:center; gap:10px; margin:0 0 12px; }
+    .lh-title { font-size:15px; font-weight:800; }
+    .lh-count { font-size:12px; font-weight:800; color:var(--gold); background:var(--gold-dim); border:1px solid var(--gold-border); padding:3px 10px; border-radius:50px; }
+    .table-wrap { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; min-width:640px; }
+    th { font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--muted); text-align:left; font-weight:700; padding:12px 14px; border-bottom:1px solid var(--border); white-space:nowrap; background:var(--card2); }
+    td { font-size:13px; padding:12px 14px; border-bottom:1px solid var(--border); white-space:nowrap; }
+    tr:last-child td { border-bottom:none; }
+    .chk { background:var(--card2); border:1px solid var(--border); border-radius:8px; padding:6px 12px; font-size:13px; font-weight:700; color:var(--muted); cursor:pointer; font-family:inherit; white-space:nowrap; }
+    .chk.on { background:rgba(34,197,94,.16); border-color:rgba(34,197,94,.4); color:#4ade80; }
+    .v-badge { font-size:11px; font-weight:800; padding:3px 9px; border-radius:50px; white-space:nowrap; }
+    .v-badge.yes { background:rgba(34,197,94,.14); color:#4ade80; border:1px solid rgba(34,197,94,.35); }
+    .v-badge.no { background:rgba(255,255,255,.05); color:var(--muted); border:1px solid var(--border); }
+    .empty { text-align:center; padding:32px; color:var(--muted); font-size:13px; background:var(--card); border:1px solid var(--border); border-radius:var(--radius); }
+
     /* Hamburger + drawer */
     .hamburger { background:none; border:none; cursor:pointer; color:var(--text); padding:8px; display:flex; flex-direction:column; gap:5px; align-items:center; justify-content:center; border-radius:8px; transition:background .15s; flex-shrink:0; }
     .hamburger:hover { background:rgba(255,255,255,.08); }
@@ -72,7 +88,7 @@
     .drawer-header { display:flex; align-items:center; gap:10px; padding:14px 18px; border-bottom:1px solid #2e2e2e; }
     .drawer-logo-name { font-size:16px; font-weight:800; color:#f1f1f1; letter-spacing:-.3px; }
     .drawer-logo-name span { color:#E63946; }
-    .drawer-nav { flex:1; padding:10px 0; overflow-y:auto; }
+    .drawer-nav { flex:1; padding:10px 0; overflow-y:auto; display:block !important; position:static !important; background:transparent !important; border:none !important; backdrop-filter:none !important; }
     .drawer-link { display:flex; align-items:center; gap:12px; padding:13px 20px; font-size:15px; font-weight:600; color:#777; text-decoration:none; transition:color .15s, background .15s; }
     .drawer-link:hover { color:#f1f1f1; background:#222; }
     .drawer-link-icon { font-size:18px; }
@@ -110,6 +126,7 @@
 
 <div class="wrap">
   <div id="content"><div class="state">กำลังโหลด…</div></div>
+  <div id="list" style="margin-top:22px;"></div>
 </div>
 
 <!-- Round modal -->
@@ -138,6 +155,7 @@
   const TOKEN_KEY = 'sp_token';
   let cur = null;        // { round, status } of the active round
   let editMode = false;
+  let regs = [];         // RSVP list of the active round
 
   const $ = id => document.getElementById(id);
   function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1800); }
@@ -169,11 +187,61 @@
     const token = localStorage.getItem(TOKEN_KEY);
     $('content').innerHTML = '<div class="state">กำลังโหลด…</div>';
     try {
-      const r = await fetch('/api/dinner/admin/state', { headers:{ Authorization:'Bearer '+token } });
-      if (!r.ok) throw new Error();
-      cur = await r.json();
+      const [rState, rReg] = await Promise.all([
+        fetch('/api/dinner/admin/state', { headers:{ Authorization:'Bearer '+token } }),
+        fetch('/api/dinner/registrations', { headers:{ Authorization:'Bearer '+token } }),
+      ]);
+      if (!rState.ok) throw new Error();
+      cur = await rState.json();
+      regs = rReg.ok ? await rReg.json() : [];
       render();
+      renderList();
     } catch { $('content').innerHTML = '<div class="state">โหลดข้อมูลไม่สำเร็จ</div>'; }
+  }
+
+  function fmtShort(s){ if(!s) return ''; const d=new Date(s); if(isNaN(d)) return ''; const p=n=>(n<10?'0':'')+n; return p(d.getDate())+'/'+p(d.getMonth()+1)+' '+p(d.getHours())+':'+p(d.getMinutes()); }
+
+  function renderList() {
+    const el = $('list');
+    if (!cur || !cur.round) { el.innerHTML = ''; return; }
+    const checked = regs.filter(r => r.confirmed).length;
+    let html = '<div class="list-head"><span class="lh-title">ผู้ลงทะเบียนเข้าร่วม</span>'
+      + '<span class="lh-count">' + regs.length + ' คน</span>'
+      + '<span class="lh-count" style="color:#4ade80;background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.35)">เช็คชื่อแล้ว ' + checked + '</span></div>';
+    if (!regs.length) { el.innerHTML = html + '<div class="empty">ยังไม่มีผู้ลงทะเบียน</div>'; return; }
+    html += '<div class="table-wrap"><table><thead><tr>'
+      + '<th>#</th><th>เช็คชื่อ</th><th>ลูกค้า</th><th>ชื่อ-นามสกุล</th><th>ชื่อเล่น</th><th>เบอร์โทร</th><th>Email</th><th>Line ID</th><th>ลงทะเบียน</th>'
+      + '</tr></thead><tbody>';
+    regs.forEach((r, i) => {
+      const vb = r.verified ? '<span class="v-badge yes">✓ ลูกค้า</span>' : '<span class="v-badge no">ยังไม่ยืนยัน</span>';
+      html += '<tr>'
+        + '<td>' + (i+1) + '</td>'
+        + '<td><button class="chk ' + (r.confirmed ? 'on' : '') + '" onclick="toggleCheckin(' + r.id + ',' + (r.confirmed ? 1 : 0) + ')">' + (r.confirmed ? '✓ มาแล้ว' : 'เช็คชื่อ') + '</button></td>'
+        + '<td>' + vb + '</td>'
+        + '<td>' + esc(r.first_name) + ' ' + esc(r.last_name) + '</td>'
+        + '<td>' + esc(r.nickname) + '</td>'
+        + '<td>' + esc(r.phone) + '</td>'
+        + '<td>' + esc(r.email) + '</td>'
+        + '<td>' + esc(r.line_id) + '</td>'
+        + '<td style="color:var(--muted)">' + fmtShort(r.created_at) + '</td>'
+        + '</tr>';
+    });
+    html += '</tbody></table></div>';
+    el.innerHTML = html;
+  }
+
+  async function toggleCheckin(id, current) {
+    const token = localStorage.getItem(TOKEN_KEY);
+    const value = current ? 0 : 1;
+    try {
+      const r = await fetch('/api/dinner/registrations/' + id + '/confirm', {
+        method:'PATCH', headers:{ 'Content-Type':'application/json', Authorization:'Bearer '+token }, body: JSON.stringify({ value })
+      });
+      if (!r.ok) throw new Error();
+      const row = regs.find(x => x.id === id); if (row) row.confirmed = value;
+      renderList();
+      toast(value ? 'เช็คชื่อแล้ว ✓' : 'ยกเลิกการเช็คชื่อ');
+    } catch { toast('อัปเดตไม่สำเร็จ'); }
   }
 
   function render() {
