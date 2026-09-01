@@ -448,6 +448,9 @@
     .nav-share:hover { color: var(--text); background: rgba(255,255,255,.08); }
     .nav-share svg { width: 19px; height: 19px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
       .nav-back img{width:34px;height:34px;object-fit:contain;display:block;}
+    .hero-meta { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-bottom:14px; position:relative; z-index:1; }
+    .hero-pill { display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); border-radius:50px; padding:8px 18px; font-size:14px; font-weight:700; color:var(--text); letter-spacing:.3px; }
+    .hero-pill .p-gold { color:var(--gold); }
   </style>
 </head>
 <body>
@@ -486,6 +489,7 @@
     <a class="drawer-link" href="/the-last-day-admin">
       <span class="drawer-link-icon">🌅</span> ผู้ลงทะเบียน The Last Day
     </a>
+    <a class="drawer-link" href="/dinner-admin"><span class="drawer-link-icon">🍽️</span> รอบ กินข้าวบ้านจารย์</a>
     <a class="drawer-link" href="/users-admin">
       <span class="drawer-link-icon">👤</span> จัดการผู้ใช้
     </a>
@@ -559,6 +563,7 @@
     <p class="hero-label">Family Gathering</p>
     <h1 class="hero-title">กินข้าวบ้านจารย์</h1>
     <p class="hero-sub">พบปะเพื่อนนักเทรด อาจารย์บัส และทีมโค้ช ในบรรยากาศครอบครัว</p>
+    <div class="hero-meta" id="dinnerMeta" style="display:none;"></div>
     <div class="hero-duration">
       <span class="dur-icon">🍽️</span>
       <span>เตรียมอาหารมา <span class="dur-gold">คนละ 1 อย่าง</span></span>
@@ -729,5 +734,22 @@
     } catch {}
   }
   </script>
+<script>
+  // Show the current round's date/time/venue (NEVER the round number). No round → RSVP via LINE.
+  (function () {
+    var el = document.getElementById('dinnerMeta'); if (!el) return;
+    var TZ = 'Asia/Bangkok';
+    fetch('/api/dinner/status').then(function (r){ return r.ok ? r.json() : null; }).then(function (s){
+      if (!s || !s.eventStart) return;
+      var d = new Date(s.eventStart), e = new Date(s.eventEnd);
+      var date = d.toLocaleDateString('th-TH-u-ca-gregory', { day:'numeric', month:'short', year:'numeric', timeZone:TZ });
+      var t = function (x){ return x.toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit', hour12:false, timeZone:TZ }); };
+      el.innerHTML = '<span class="hero-pill">🗓️ <span class="p-gold">' + date + '</span></span>'
+        + '<span class="hero-pill">⏰ ' + t(d) + '–' + t(e) + '</span>'
+        + '<span class="hero-pill">📍 ' + (s.venue || '') + '</span>';
+      el.style.display = 'flex';
+    }).catch(function(){});
+  })();
+</script>
 </body>
 </html>

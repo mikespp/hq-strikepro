@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#d4af37" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>รอบ กินข้าวบ้านจารย์ (Admin)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --gold:#d4af37; --gold-pale:#ffe99a; --gold-dim:rgba(212,175,55,.12); --gold-border:rgba(212,175,55,.22);
+      --bg:#060606; --card:#0f0f0f; --card2:#131313; --border:rgba(255,255,255,.08);
+      --text:#f0f0f0; --muted:#7a7a7a; --green:#4ade80; --radius:14px;
+    }
+    body { font-family:'IBM Plex Sans Thai','Inter',sans-serif; background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; }
+    nav { position:sticky; top:0; z-index:50; display:flex; align-items:center; gap:12px; padding:14px 20px;
+      background:rgba(6,6,6,.85); backdrop-filter:blur(20px); border-bottom:1px solid var(--border); }
+    .nav-back { display:inline-flex; align-items:center; }
+    .nav-back img { width:34px; height:34px; object-fit:contain; display:block; }
+    .nav-title { font-size:15px; font-weight:800; color:var(--gold); }
+    .nav-user { margin-left:auto; font-size:12px; color:var(--muted); }
+    .wrap { max-width:760px; margin:0 auto; padding:28px 20px 80px; }
+    .state { text-align:center; padding:60px 20px; color:var(--muted); font-size:14px; }
+
+    .card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:22px 22px; }
+    .c-status { display:inline-flex; align-items:center; gap:10px; font-size:17px; font-weight:800; }
+    .c-status .dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; background:#4ade80; box-shadow:0 0 8px #4ade80; }
+    .c-status.none .dot { background:var(--muted); box-shadow:none; }
+    .round-badge { font-size:12px; font-weight:800; color:var(--gold); background:var(--gold-dim); border:1px solid var(--gold-border); padding:3px 10px; border-radius:50px; }
+    .detail { margin-top:16px; display:flex; flex-direction:column; gap:10px; }
+    .drow { display:flex; align-items:flex-start; gap:12px; font-size:15px; }
+    .drow .k { color:var(--muted); font-size:13px; min-width:74px; padding-top:1px; }
+    .drow .v { font-weight:600; }
+    .actions { margin-top:22px; display:flex; gap:10px; flex-wrap:wrap; }
+    .ctrl-btn { display:inline-flex; align-items:center; gap:7px; border-radius:10px; padding:11px 18px; font-size:14px; font-weight:800; cursor:pointer; font-family:inherit; border:1px solid var(--border); background:var(--card2); color:var(--text); transition:all .15s; }
+    .ctrl-btn:hover { border-color:var(--gold-border); }
+    .ctrl-btn.primary { background:var(--gold); border-color:var(--gold); color:#080808; }
+    .ctrl-btn.primary:hover { background:var(--gold-pale); }
+    .ctrl-btn:disabled { opacity:.4; cursor:default; }
+    .note { margin-top:18px; font-size:12.5px; color:var(--muted); line-height:1.6; }
+
+    /* Modal */
+    .modal-overlay { position:fixed; inset:0; z-index:300; background:rgba(0,0,0,.65); display:none; align-items:center; justify-content:center; padding:20px; }
+    .modal-overlay.open { display:flex; }
+    .modal { width:100%; max-width:420px; background:var(--card); border:1px solid var(--gold-border); border-radius:var(--radius); padding:24px 22px; }
+    .modal h3 { font-size:18px; font-weight:800; margin-bottom:4px; }
+    .modal .modal-sub { font-size:13px; color:var(--muted); margin-bottom:18px; }
+    .modal label { display:block; font-size:12px; font-weight:700; color:var(--muted); margin:12px 0 6px; }
+    .modal input { width:100%; background:var(--card2); border:1px solid var(--border); border-radius:10px; padding:11px 13px; font-size:14px; color:var(--text); font-family:inherit; }
+    .modal input:focus { outline:none; border-color:var(--gold-border); }
+    .modal input[type=date], .modal input[type=time] { color-scheme:dark; }
+    .modal .row2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .modal-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:22px; }
+
+    .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#222; border:1px solid rgba(255,255,255,.12);
+      color:#f0f0f0; padding:10px 20px; border-radius:10px; font-size:13px; font-weight:600; z-index:999; opacity:0; transition:opacity .2s; pointer-events:none; }
+    .toast.show { opacity:1; }
+
+    /* Hamburger + drawer */
+    .hamburger { background:none; border:none; cursor:pointer; color:var(--text); padding:8px; display:flex; flex-direction:column; gap:5px; align-items:center; justify-content:center; border-radius:8px; transition:background .15s; flex-shrink:0; }
+    .hamburger:hover { background:rgba(255,255,255,.08); }
+    .hamburger span { display:block; width:22px; height:2px; background:currentColor; border-radius:2px; }
+    .drawer-overlay { position:fixed; inset:0; z-index:200; background:rgba(0,0,0,.6); opacity:0; pointer-events:none; transition:opacity .25s; }
+    .drawer-overlay.open { opacity:1; pointer-events:all; }
+    .drawer { position:fixed; top:0; left:0; bottom:0; z-index:201; width:275px; background:#1a1a1a; border-right:1px solid #2e2e2e; display:flex; flex-direction:column; transform:translateX(-100%); transition:transform .28s cubic-bezier(.4,0,.2,1); }
+    .drawer.open { transform:translateX(0); }
+    .drawer-header { display:flex; align-items:center; gap:10px; padding:14px 18px; border-bottom:1px solid #2e2e2e; }
+    .drawer-logo-name { font-size:16px; font-weight:800; color:#f1f1f1; letter-spacing:-.3px; }
+    .drawer-logo-name span { color:#E63946; }
+    .drawer-nav { flex:1; padding:10px 0; overflow-y:auto; }
+    .drawer-link { display:flex; align-items:center; gap:12px; padding:13px 20px; font-size:15px; font-weight:600; color:#777; text-decoration:none; transition:color .15s, background .15s; }
+    .drawer-link:hover { color:#f1f1f1; background:#222; }
+    .drawer-link-icon { font-size:18px; }
+    .drawer-footer { padding:16px 18px; border-top:1px solid #2e2e2e; }
+    .drawer-signout { width:100%; background:none; border:1px solid #2e2e2e; color:#777; border-radius:8px; padding:10px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
+    .drawer-signout:hover { border-color:#E63946; color:#E63946; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <button class="hamburger" onclick="toggleDrawer()" aria-label="Menu"><span></span><span></span><span></span></button>
+  <a class="nav-back" href="/" aria-label="หน้าหลัก"><img src="/logo.png.png" alt="HQ Strikepro" /></a>
+  <span class="nav-title">🍽️ รอบ กินข้าวบ้านจารย์</span>
+  <span class="nav-user" id="navUser"></span>
+</nav>
+
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <img src="/logo.png.png" alt="HQ" style="width:34px;height:34px;object-fit:contain;" />
+    <span class="drawer-logo-name">HQ <span>STRIKEPRO</span></span>
+  </div>
+  <nav class="drawer-nav">
+    <a class="drawer-link" href="/reviews-admin"><span class="drawer-link-icon">⭐</span> Reviews</a>
+    <a class="drawer-link" href="/last-account-admin"><span class="drawer-link-icon">🏠</span> ผู้สมัคร Last Account</a>
+    <a class="drawer-link" href="/the-last-day-admin"><span class="drawer-link-icon">🌅</span> ผู้ลงทะเบียน The Last Day</a>
+    <a class="drawer-link" href="/dinner-admin" style="color:#d4af37;"><span class="drawer-link-icon">🍽️</span> รอบ กินข้าวบ้านจารย์</a>
+    <a class="drawer-link" href="/users-admin"><span class="drawer-link-icon">👤</span> จัดการผู้ใช้</a>
+  </nav>
+  <div class="drawer-footer">
+    <button class="drawer-signout" onclick="drawerSignOut()">ออกจากระบบ</button>
+  </div>
+</div>
+
+<div class="wrap">
+  <div id="content"><div class="state">กำลังโหลด…</div></div>
+</div>
+
+<!-- Round modal -->
+<div class="modal-overlay" id="roundOverlay">
+  <div class="modal">
+    <h3 id="mTitle">เปิดรอบถัดไป</h3>
+    <p class="modal-sub" id="mSub">ตั้งวัน/เวลา/สถานที่ — หน้าเว็บ + ปฏิทินจะอัปเดตให้ (หน้าบ้านไม่แสดงเลขรอบ)</p>
+    <label for="mDate">วันที่จัดงาน</label>
+    <input type="date" id="mDate" />
+    <div class="row2">
+      <div><label for="mStart">เวลาเริ่ม</label><input type="time" id="mStart" value="18:00" /></div>
+      <div><label for="mEnd">เวลาสิ้นสุด</label><input type="time" id="mEnd" value="21:00" /></div>
+    </div>
+    <label for="mVenue">สถานที่</label>
+    <input type="text" id="mVenue" value="Strike Pro Head Office" />
+    <div class="modal-actions">
+      <button class="ctrl-btn" onclick="closeRound()">ยกเลิก</button>
+      <button class="ctrl-btn primary" id="mSubmit" onclick="submitRound()">เปิดรอบ</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const TOKEN_KEY = 'sp_token';
+  let cur = null;        // { round, status } of the active round
+  let editMode = false;
+
+  const $ = id => document.getElementById(id);
+  function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1800); }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  function toggleDrawer(){ $('drawer').classList.toggle('open'); $('drawerOverlay').classList.toggle('open'); }
+  function closeDrawer(){ $('drawer').classList.remove('open'); $('drawerOverlay').classList.remove('open'); }
+  function drawerSignOut(){ localStorage.removeItem(TOKEN_KEY); window.location.href='/login'; }
+
+  const TZ = 'Asia/Bangkok';
+  function fmtDate(iso){ return new Date(iso).toLocaleDateString('th-TH-u-ca-gregory',{weekday:'long',day:'numeric',month:'short',year:'numeric',timeZone:TZ}); }
+  function fmtTime(iso){ return new Date(iso).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:TZ}); }
+  function thaiParts(iso){ const d=new Date(iso); return { date:d.toLocaleDateString('en-CA',{timeZone:TZ}), time:d.toLocaleTimeString('en-GB',{timeZone:TZ,hour:'2-digit',minute:'2-digit',hour12:false}) }; }
+
+  (async () => {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) { window.location.href = '/login'; return; }
+    try {
+      const r = await fetch('/api/auth/me', { headers:{ Authorization:'Bearer '+token } });
+      if (!r.ok) { window.location.href = '/login'; return; }
+      const { user } = await r.json();
+      $('navUser').textContent = user.email;
+      if (user.role !== 'admin') { $('content').innerHTML = '<div class="state">🔒 หน้านี้สำหรับผู้ดูแลระบบ (admin) เท่านั้น</div>'; return; }
+      load();
+    } catch { window.location.href = '/login'; }
+  })();
+
+  async function load() {
+    const token = localStorage.getItem(TOKEN_KEY);
+    $('content').innerHTML = '<div class="state">กำลังโหลด…</div>';
+    try {
+      const r = await fetch('/api/dinner/admin/state', { headers:{ Authorization:'Bearer '+token } });
+      if (!r.ok) throw new Error();
+      cur = await r.json();
+      render();
+    } catch { $('content').innerHTML = '<div class="state">โหลดข้อมูลไม่สำเร็จ</div>'; }
+  }
+
+  function render() {
+    const s = cur && cur.status;
+    let html = '<div class="card">';
+    if (s) {
+      html += '<span class="c-status"><span class="dot"></span>รอบปัจจุบัน <span class="round-badge">รอบที่ ' + cur.round + '</span></span>'
+        + '<div class="detail">'
+        + '<div class="drow"><span class="k">📅 วันที่</span><span class="v">' + esc(fmtDate(s.eventStart)) + '</span></div>'
+        + '<div class="drow"><span class="k">⏰ เวลา</span><span class="v">' + esc(fmtTime(s.eventStart)) + ' – ' + esc(fmtTime(s.eventEnd)) + ' น.</span></div>'
+        + '<div class="drow"><span class="k">📍 สถานที่</span><span class="v">' + esc(s.venue) + '</span></div>'
+        + (s.ended ? '<div class="drow"><span class="k">สถานะ</span><span class="v" style="color:#f87171">จบไปแล้ว</span></div>' : '')
+        + '</div>'
+        + '<div class="actions">'
+        + '<button class="ctrl-btn" onclick="openEdit()">✏️ แก้ไขรอบนี้</button>'
+        + '<button class="ctrl-btn primary" onclick="openNext()">➕ เปิดรอบถัดไป</button>'
+        + '</div>';
+    } else {
+      html += '<span class="c-status none"><span class="dot"></span>ยังไม่มีรอบที่เปิด</span>'
+        + '<div class="note">กดปุ่มด้านล่างเพื่อเปิดรอบแรก (จะเป็น <b>รอบที่ 3</b>)</div>'
+        + '<div class="actions"><button class="ctrl-btn primary" onclick="openNext()">➕ เปิดรอบ</button></div>';
+    }
+    html += '<div class="note">🔒 เลขรอบแสดงเฉพาะหน้านี้ — หน้าเว็บสาธารณะและปฏิทินจะโชว์เฉพาะวัน/เวลา/สถานที่ ไม่มีเลขรอบ</div>';
+    html += '</div>';
+    $('content').innerHTML = html;
+  }
+
+  function openNext() {
+    editMode = false;
+    $('mDate').value=''; $('mStart').value='18:00'; $('mEnd').value='21:00'; $('mVenue').value='Strike Pro Head Office';
+    $('mTitle').textContent = 'เปิดรอบถัดไป';
+    $('mSub').textContent = 'ตั้งวัน/เวลา/สถานที่ — หน้าเว็บ + ปฏิทินจะอัปเดตให้ (หน้าบ้านไม่แสดงเลขรอบ)';
+    $('mSubmit').textContent = 'เปิดรอบ';
+    $('roundOverlay').classList.add('open');
+  }
+  function openEdit() {
+    if (!cur || !cur.status) { toast('ยังไม่มีรอบให้แก้ไข'); return; }
+    editMode = true;
+    const s = thaiParts(cur.status.eventStart), e = thaiParts(cur.status.eventEnd);
+    $('mDate').value=s.date; $('mStart').value=s.time; $('mEnd').value=e.time; $('mVenue').value=cur.status.venue||'';
+    $('mTitle').textContent = 'แก้ไขรอบที่ ' + cur.round;
+    $('mSub').textContent = 'แก้วัน/เวลา/สถานที่ — หน้าเว็บ + ปฏิทินจะอัปเดตตาม';
+    $('mSubmit').textContent = 'บันทึกการแก้ไข';
+    $('roundOverlay').classList.add('open');
+  }
+  function closeRound(){ $('roundOverlay').classList.remove('open'); }
+
+  async function submitRound() {
+    const token = localStorage.getItem(TOKEN_KEY);
+    const body = { date:$('mDate').value.trim(), start:$('mStart').value.trim(), end:$('mEnd').value.trim(), venue:$('mVenue').value.trim() };
+    if (!body.date || !body.start || !body.end || !body.venue) { toast('กรอกวันที่ / เวลา / สถานที่ ให้ครบ'); return; }
+    const btn = $('mSubmit'); btn.disabled = true;
+    try {
+      const r = await fetch('/api/dinner/admin/' + (editMode ? 'edition' : 'next-edition'), {
+        method: editMode ? 'PATCH' : 'POST',
+        headers:{ 'Content-Type':'application/json', Authorization:'Bearer '+token }, body: JSON.stringify(body)
+      });
+      const d = await r.json().catch(()=>({}));
+      if (!r.ok) throw new Error(d.error || 'ทำรายการไม่สำเร็จ');
+      toast(editMode ? 'บันทึกการแก้ไขแล้ว ✓' : ('เปิดรอบที่ ' + (d.round||'') + ' แล้ว ✓'));
+      closeRound(); load();
+    } catch (e) { toast(e.message || 'ทำรายการไม่สำเร็จ'); }
+    finally { btn.disabled = false; }
+  }
+</script>
+</body>
+</html>

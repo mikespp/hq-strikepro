@@ -163,6 +163,19 @@ async function init() {
     }
   }
 
+  // กินข้าวบ้านจารย์ — recurring dinner "rounds" (date/time/venue only; no seats).
+  // The public page never shows the round number; admin does. Counter starts at 3.
+  await pool.execute(`
+    CREATE TABLE IF NOT EXISTS dinner_editions (
+      round        SMALLINT     NOT NULL PRIMARY KEY,
+      opens_at     VARCHAR(40)  NOT NULL,
+      event_start  VARCHAR(40)  NOT NULL,
+      event_end    VARCHAR(40)  NOT NULL,
+      venue        VARCHAR(255) NOT NULL DEFAULT '',
+      created_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
   // The Last Day — per-edition admin state (registration closed / event completed).
   await pool.execute(`
     CREATE TABLE IF NOT EXISTS the_last_day_state (
@@ -1075,6 +1088,48 @@ async function setTheLastDayFlag(id, value) {
   );
 }
 
+// ── กินข้าวบ้านจารย์ (dinner) rounds ───────────────────────────────────────────
+async function getActiveDinnerEdition() {
+  const [rows] = await pool.execute('SELECT * FROM dinner_editions ORDER BY round DESC LIMIT 1');
+  return rows[0] || null;
+}
+async function getDinnerEditionRow(round) {
+  const [rows] = await pool.execute('SELECT * FROM dinner_editions WHERE round = ? LIMIT 1', [round]);
+  return rows[0] || null;
+}
+// First round created = 3 (COALESCE(MAX,2)+1); then 4, 5, …
+async function createNextDinnerEdition(d) {
+  const [m] = await pool.execute('SELECT COALESCE(MAX(round), 2) AS mx FROM dinner_editions');
+  const next = Number(m[0].mx) + 1;
+  await pool.execute(
+    'INSERT INTO dinner_editions (round, opens_at, event_start, event_end, venue) VALUES (?, ?, ?, ?, ?)',
+    [next, d.opens_at, d.event_start, d.event_end, String(d.venue || '').slice(0, 255)]
+  );
+  return getDinnerEditionRow(next);
+}
+async function updateDinnerEdition(round, d) {
+  await pool.execute(
+    'UPDATE dinner_editions SET event_start = ?, event_end = ?, venue = ? WHERE round = ?',
+    [d.event_start, d.event_end, String(d.venue || '').slice(0, 255), round]
+  );
+  return getDinnerEditionRow(round);
+}
+// One shared calendar entry "กินข้าวบ้านจารย์" (no round number) that moves to the
+// current round's date on home + dashboard.
+async function upsertDinnerCalendarEvent(dateYMD) {
+  const title = 'กินข้าวบ้านจารย์', href = '/events/dinner', color = '#4ade80';
+  const [rows] = await pool.execute('SELECT id FROM events WHERE title = ? LIMIT 1', [title]);
+  if (rows.length) {
+    await pool.execute('UPDATE events SET start_date = ?, end_date = ?, color = ?, href = ? WHERE id = ?',
+      [dateYMD, dateYMD, color, href, rows[0].id]);
+    return rows[0].id;
+  }
+  const [r] = await pool.execute(
+    'INSERT INTO events (title, start_date, end_date, color, href, live) VALUES (?, ?, ?, ?, ?, 0)',
+    [title, dateYMD, dateYMD, color, href]);
+  return r.insertId;
+}
+
 // The active edition = the highest edition number (the newest one opened).
 async function getActiveTheLastDayEdition() {
   const [rows] = await pool.execute(
@@ -1376,4 +1431,6 @@ module.exports = {
   getTheLastDayState, setTheLastDayState, deleteUncheckedTheLastDay,
   getActiveTheLastDayEdition, getTheLastDayEditionRow, createNextTheLastDayEdition,
   updateTheLastDayEdition, upsertTheLastDayCalendarEvent,
+  getActiveDinnerEdition, getDinnerEditionRow, createNextDinnerEdition,
+  updateDinnerEdition, upsertDinnerCalendarEvent,
 };
