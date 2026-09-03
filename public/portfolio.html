@@ -62,7 +62,7 @@
 <div class="wrap">
   <div class="head">
     <h1>พอร์ต Master</h1>
-    <p>ผลการเทรดรวมของพอร์ต Master · คำนวณผลตอบแทนแบบถ่วงเวลา (เหมือน Myfxbook)</p>
+    <p>ผลตอบแทนจากการเทรดจริง — ไม่รวมผลของการฝาก/ถอนเงิน</p>
     <div class="updated" id="updated"></div>
   </div>
   <div id="content"><div class="state">กำลังโหลด…</div></div>
@@ -113,7 +113,7 @@
           + '<td class="r ' + cls(a.gainMonth) + '">' + pct(a.gainMonth) + '</td>'
           + '<td class="r ' + cls(a.gainCumulative) + '">' + pct(a.gainCumulative) + '</td></tr>').join('')
       + '</tbody></table></div>'
-      + '<p class="disclaimer">* ผลตอบแทนคำนวณแบบถ่วงเวลา (time-weighted) โดยตัดผลของการฝาก/ถอนออก เพื่อสะท้อนผลการเทรดจริง · ผลการดำเนินงานในอดีตไม่ได้รับประกันผลในอนาคต การเทรดมีความเสี่ยง</p>';
+      + '<p class="disclaimer">* ตัวเลข % คิดเฉพาะกำไรจากการเทรด ไม่นับเงินฝากหรือถอน เพื่อสะท้อนผลการเทรดจริง · ผลการดำเนินงานในอดีตไม่ได้รับประกันผลในอนาคต การเทรดมีความเสี่ยง</p>';
 
     drawCurve(d.curve);
     drawMonths(d.monthly);
