@@ -61,14 +61,54 @@
       background:var(--card2); border:1px solid var(--blue-border); color:var(--text); padding:11px 20px; border-radius:12px; font-size:13px; z-index:200; }
     .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
     .sec-note { font-size:11px; color:var(--muted); margin-top:14px; line-height:1.7; }
+
+    /* shared admin drawer (matches the other admin pages) */
+    .hamburger { background:none; border:none; cursor:pointer; color:var(--text); padding:8px; display:flex; flex-direction:column; gap:5px; align-items:center; justify-content:center; border-radius:8px; transition:background .15s; flex-shrink:0; }
+    .hamburger:hover { background:rgba(255,255,255,.08); }
+    .hamburger span { display:block; width:22px; height:2px; background:currentColor; border-radius:2px; }
+    .drawer-overlay { position:fixed; inset:0; z-index:200; background:rgba(0,0,0,.6); opacity:0; pointer-events:none; transition:opacity .25s; }
+    .drawer-overlay.open { opacity:1; pointer-events:all; }
+    .drawer { position:fixed; top:0; left:0; bottom:0; z-index:201; width:275px; background:#1a1a1a; border-right:1px solid #2e2e2e; display:flex; flex-direction:column; transform:translateX(-100%); transition:transform .28s cubic-bezier(.4,0,.2,1); }
+    .drawer.open { transform:translateX(0); }
+    .drawer-header { display:flex; align-items:center; gap:10px; padding:14px 18px; border-bottom:1px solid #2e2e2e; }
+    .drawer-logo-name { font-size:16px; font-weight:800; color:#f1f1f1; letter-spacing:-.3px; }
+    .drawer-logo-name span { color:#E63946; }
+    .drawer-nav { flex:1; padding:10px 0; overflow-y:auto; display:block !important; position:static !important; background:transparent !important; border:none !important; backdrop-filter:none !important; }
+    .drawer-link { display:flex; align-items:center; gap:12px; padding:13px 20px; font-size:15px; font-weight:600; color:#777; text-decoration:none; transition:color .15s, background .15s; border-left:3px solid transparent; }
+    .drawer-link:hover { color:#f1f1f1; background:#222; }
+    .drawer-link-icon { font-size:18px; }
+    .drawer-footer { padding:16px 18px; border-top:1px solid #2e2e2e; }
+    .drawer-signout { width:100%; background:none; border:1px solid #2e2e2e; color:#777; border-radius:8px; padding:10px; font-size:13px; font-weight:600; cursor:pointer; transition:border-color .15s, color .15s; font-family:inherit; }
+    .drawer-signout:hover { border-color:#E63946; color:#E63946; }
   </style>
 </head>
 <body>
 <nav>
+  <button class="hamburger" onclick="toggleDrawer()" aria-label="Menu"><span></span><span></span><span></span></button>
   <a class="nav-logo" href="/" aria-label="หน้าหลัก"><img src="/logo.png.png" alt="HQ Strikepro" /></a>
   <span class="nav-title">จัดการพอร์ต Master</span>
   <span class="nav-user" id="navUser"></span>
 </nav>
+
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <img src="/logo.png.png" alt="HQ" style="width:34px;height:34px;object-fit:contain;" />
+    <span class="drawer-logo-name">HQ <span>STRIKEPRO</span></span>
+  </div>
+  <nav class="drawer-nav">
+    <a class="drawer-link" href="/reviews-admin"><span class="drawer-link-icon">⭐</span> Reviews</a>
+    <a class="drawer-link" href="/last-account-admin"><span class="drawer-link-icon">🏠</span> ผู้สมัคร Last Account</a>
+    <a class="drawer-link" href="/the-last-day-admin"><span class="drawer-link-icon">🌅</span> ผู้ลงทะเบียน The Last Day</a>
+    <a class="drawer-link" href="/dinner-admin"><span class="drawer-link-icon">🍽️</span> รอบ กินข้าวบ้านจารย์</a>
+    <a class="drawer-link" href="/users-admin"><span class="drawer-link-icon">👤</span> จัดการผู้ใช้</a>
+    <a class="drawer-link" href="/discord-admin"><span class="drawer-link-icon">🎮</span> Discord Verify</a>
+    <a class="drawer-link" href="/portfolio-admin" style="color:#d4af37;"><span class="drawer-link-icon">📈</span> จัดการพอร์ต Master</a>
+  </nav>
+  <div class="drawer-footer">
+    <button class="drawer-signout" onclick="drawerSignOut()">ออกจากระบบ</button>
+  </div>
+</div>
 
 <div class="wrap" id="wrap" style="display:none">
   <h1>จัดการพอร์ต Master</h1>
@@ -105,6 +145,10 @@
   const TOKEN_KEY = 'sp_token';
   const $ = id => document.getElementById(id);
   let editing = null;   // login being edited, or null
+
+  function toggleDrawer(){ $('drawer').classList.toggle('open'); $('drawerOverlay').classList.toggle('open'); }
+  function closeDrawer(){ $('drawer').classList.remove('open'); $('drawerOverlay').classList.remove('open'); }
+  function drawerSignOut(){ localStorage.removeItem(TOKEN_KEY); window.location.href='/login'; }
   const esc = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1900); }
   const auth = () => ({ Authorization:'Bearer '+localStorage.getItem(TOKEN_KEY) });
