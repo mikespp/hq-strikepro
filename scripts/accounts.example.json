@@ -1,0 +1,6 @@
+[
+  { "login": 1000001, "password": "INVESTOR_PASSWORD", "server": "YourBroker-Live", "label": "PPVP #1" },
+  { "login": 1000002, "password": "INVESTOR_PASSWORD", "server": "YourBroker-Live", "label": "PPVP #2" },
+  { "login": 1000003, "password": "INVESTOR_PASSWORD", "server": "YourBroker-Live", "label": "HQ บางระจัน #1" },
+  { "login": 1000004, "password": "INVESTOR_PASSWORD", "server": "YourBroker-Live", "label": "กุมารทอง #1" }
+]

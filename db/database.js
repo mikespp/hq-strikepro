@@ -195,6 +195,32 @@ async function init() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
+  // Fund portfolios — MT5 accounts + their daily equity snapshots (for Myfxbook-
+  // style time-weighted returns). Fed by the VPS fetcher that loops each login.
+  await pool.execute(`
+    CREATE TABLE IF NOT EXISTS pf_accounts (
+      login      BIGINT       NOT NULL PRIMARY KEY,
+      label      VARCHAR(120) NOT NULL DEFAULT '',
+      server     VARCHAR(120) NOT NULL DEFAULT '',
+      currency   VARCHAR(10)  NOT NULL DEFAULT 'USD',
+      active     TINYINT(1)   NOT NULL DEFAULT 1,
+      sort_order SMALLINT     NOT NULL DEFAULT 0,
+      updated_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+  await pool.execute(`
+    CREATE TABLE IF NOT EXISTS pf_daily (
+      login      BIGINT   NOT NULL,
+      d          DATE     NOT NULL,
+      balance    DOUBLE   NOT NULL DEFAULT 0,
+      equity     DOUBLE   NOT NULL DEFAULT 0,
+      deposit    DOUBLE   NOT NULL DEFAULT 0,
+      withdrawal DOUBLE   NOT NULL DEFAULT 0,
+      updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      PRIMARY KEY (login, d)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
   // The Last Day — per-edition admin state (registration closed / event completed).
   await pool.execute(`
     CREATE TABLE IF NOT EXISTS the_last_day_state (
@@ -1285,6 +1311,41 @@ async function deleteUncheckedTheLastDay(edition) {
   return r.affectedRows;
 }
 
+// ── Fund portfolios (MT5) ───────────────────────────────────────────────────────
+async function upsertPortfolioAccount(login, d) {
+  await pool.execute(
+    `INSERT INTO pf_accounts (login, label, server, currency)
+     VALUES (?, ?, ?, ?)
+     ON DUPLICATE KEY UPDATE
+       label    = COALESCE(NULLIF(VALUES(label), ''), label),
+       server   = COALESCE(NULLIF(VALUES(server), ''), server),
+       currency = COALESCE(NULLIF(VALUES(currency), ''), currency)`,
+    [login, String(d.label || '').slice(0, 120), String(d.server || '').slice(0, 120), String(d.currency || 'USD').slice(0, 10)]
+  );
+}
+async function upsertPortfolioDaily(login, s) {
+  await pool.execute(
+    `INSERT INTO pf_daily (login, d, balance, equity, deposit, withdrawal)
+     VALUES (?, ?, ?, ?, ?, ?)
+     ON DUPLICATE KEY UPDATE balance=VALUES(balance), equity=VALUES(equity),
+       deposit=VALUES(deposit), withdrawal=VALUES(withdrawal)`,
+    [login, s.d, Number(s.balance) || 0, Number(s.equity) || 0, Number(s.deposit) || 0, Number(s.withdrawal) || 0]
+  );
+}
+async function listPortfolioAccounts() {
+  const [rows] = await pool.execute('SELECT login, label, currency, active FROM pf_accounts ORDER BY sort_order ASC, login ASC');
+  return rows;
+}
+async function getPortfolioDaily() {
+  const [rows] = await pool.execute(
+    `SELECT login, DATE_FORMAT(d, '%Y-%m-%d') AS d, balance, equity, deposit, withdrawal
+     FROM pf_daily
+     WHERE login IN (SELECT login FROM pf_accounts WHERE active = 1)
+     ORDER BY login ASC, d ASC`
+  );
+  return rows;
+}
+
 // ── Events (calendar) ─────────────────────────────────────────────────────────
 
 // DB row -> API shape used by the calendar frontend: { id, t, s:[y,m,d], e:[y,m,d], c, h, live }
@@ -1499,4 +1560,5 @@ module.exports = {
   updateDinnerEdition, upsertDinnerCalendarEvent,
   countDinnerRegistrations, hasDinnerRegistration, createDinnerRegistration,
   listDinnerRegistrations, setDinnerFlag, getDinnerEmailById, emailInDinner,
+  upsertPortfolioAccount, upsertPortfolioDaily, listPortfolioAccounts, getPortfolioDaily,
 };

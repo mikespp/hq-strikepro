@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#d4af37" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>พอร์ตกองทุนรวม — StrikePro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --gold:#d4af37; --gold-pale:#ffe99a; --gold-dim:rgba(212,175,55,.12); --gold-border:rgba(212,175,55,.22);
+      --bg:#060606; --card:#0f0f0f; --card2:#131313; --border:rgba(255,255,255,.08);
+      --text:#f0f0f0; --muted:#7a7a7a; --green:#4ade80; --red:#f87171; --radius:16px;
+    }
+    body { font-family:'IBM Plex Sans Thai','Inter',sans-serif; background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; }
+    nav { position:sticky; top:0; z-index:50; display:flex; align-items:center; gap:12px; padding:14px 20px;
+      background:rgba(6,6,6,.85); backdrop-filter:blur(20px); border-bottom:1px solid var(--border); }
+    .nav-logo img { width:34px; height:34px; object-fit:contain; display:block; }
+    .nav-title { font-size:15px; font-weight:800; color:var(--gold); }
+    .wrap { max-width:960px; margin:0 auto; padding:28px 20px 80px; }
+    .head { text-align:center; margin-bottom:26px; }
+    .head h1 { font-size:clamp(26px,6vw,40px); font-weight:900; letter-spacing:-1px;
+      background:linear-gradient(160deg,#fff 20%,var(--gold-pale) 55%,var(--gold) 85%);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; line-height:1.3; padding-top:.1em; }
+    .head p { color:var(--muted); font-size:14px; margin-top:6px; }
+    .updated { font-size:12px; color:var(--muted); margin-top:8px; }
+
+    .cards { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px; }
+    @media (max-width:720px){ .cards { grid-template-columns:repeat(2,1fr); } }
+    .c { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:18px 18px; }
+    .c .lbl { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px; }
+    .c .val { font-size:24px; font-weight:900; letter-spacing:-.5px; }
+    .c .val.big { font-size:28px; }
+    .pos { color:var(--green); } .neg { color:var(--red); } .gold { color:var(--gold); }
+
+    .panel { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:20px; margin-bottom:20px; }
+    .panel h2 { font-size:14px; font-weight:800; color:var(--gold); margin-bottom:14px; letter-spacing:.3px; }
+    .chart-box { position:relative; height:300px; }
+    .month-box { position:relative; height:200px; }
+
+    table { width:100%; border-collapse:collapse; }
+    th { font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--muted); text-align:left; font-weight:700; padding:10px 12px; border-bottom:1px solid var(--border); }
+    td { font-size:14px; padding:12px; border-bottom:1px solid var(--border); }
+    th.r, td.r { text-align:right; }
+    tr:last-child td { border-bottom:none; }
+    .acc-name { font-weight:700; }
+    .state { text-align:center; padding:60px 20px; color:var(--muted); font-size:14px; }
+    .disclaimer { font-size:11px; color:rgba(122,122,122,.7); line-height:1.6; margin-top:18px; }
+  </style>
+</head>
+<body>
+<nav>
+  <a class="nav-logo" href="/" aria-label="หน้าหลัก"><img src="/logo.png.png" alt="HQ Strikepro" /></a>
+  <span class="nav-title">📊 พอร์ตกองทุนรวม</span>
+</nav>
+
+<div class="wrap">
+  <div class="head">
+    <h1>พอร์ตกองทุนรวม</h1>
+    <p>ผลการเทรดรวมของกองทุน · คำนวณผลตอบแทนแบบถ่วงเวลา (เหมือน Myfxbook)</p>
+    <div class="updated" id="updated"></div>
+  </div>
+  <div id="content"><div class="state">กำลังโหลด…</div></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+  const $ = id => document.getElementById(id);
+  const money = n => (Number(n)||0).toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 });
+  const pct = n => (n>=0?'+':'') + (Number(n)||0).toFixed(2) + '%';
+  const cls = n => n>0 ? 'pos' : n<0 ? 'neg' : 'gold';
+
+  (async function () {
+    let d;
+    try {
+      const r = await fetch('/api/portfolio');
+      d = await r.json();
+      if (!r.ok) throw new Error();
+    } catch { $('content').innerHTML = '<div class="state">โหลดข้อมูลไม่สำเร็จ</div>'; return; }
+
+    if (!d.curve || !d.curve.length) {
+      $('content').innerHTML = '<div class="state">ยังไม่มีข้อมูลพอร์ต — รอการซิงค์จากระบบ</div>';
+      return;
+    }
+    const f = d.fund;
+    $('updated').textContent = 'ข้อมูลล่าสุด ' + (d.curve[d.curve.length-1].d || '');
+
+    $('content').innerHTML =
+      '<div class="cards">'
+      + card('กำไรสะสม', pct(f.gainCumulative), cls(f.gainCumulative), true)
+      + card('เดือนนี้', pct(f.gainMonth), cls(f.gainMonth))
+      + card('วันนี้', pct(f.gainToday), cls(f.gainToday))
+      + card('Drawdown สูงสุด', f.maxDrawdown.toFixed(2) + '%', 'neg')
+      + '</div>'
+      + '<div class="cards">'
+      + card('มูลค่าพอร์ตรวม', '$' + money(f.equity), 'gold')
+      + card('เงินทุนรวม (ฝาก)', '$' + money(f.deposits), '')
+      + card('ถอนสะสม', '$' + money(f.withdrawals), '')
+      + card('จำนวนบัญชี', String(f.accounts), '')
+      + '</div>'
+      + '<div class="panel"><h2>กราฟกำไรสะสม (%)</h2><div class="chart-box"><canvas id="curve"></canvas></div></div>'
+      + '<div class="panel"><h2>กำไรรายเดือน (%)</h2><div class="month-box"><canvas id="months"></canvas></div></div>'
+      + '<div class="panel"><h2>รายบัญชี</h2>'
+      + '<table><thead><tr><th>บัญชี</th><th class="r">มูลค่า</th><th class="r">เดือนนี้</th><th class="r">กำไรสะสม</th></tr></thead><tbody>'
+      + d.accounts.map(a =>
+          '<tr><td class="acc-name">' + esc(a.label) + '</td>'
+          + '<td class="r">$' + money(a.equity) + '</td>'
+          + '<td class="r ' + cls(a.gainMonth) + '">' + pct(a.gainMonth) + '</td>'
+          + '<td class="r ' + cls(a.gainCumulative) + '">' + pct(a.gainCumulative) + '</td></tr>').join('')
+      + '</tbody></table></div>'
+      + '<p class="disclaimer">* ผลตอบแทนคำนวณแบบถ่วงเวลา (time-weighted) โดยตัดผลของการฝาก/ถอนออก เพื่อสะท้อนผลการเทรดจริง · ผลการดำเนินงานในอดีตไม่ได้รับประกันผลในอนาคต การเทรดมีความเสี่ยง</p>';
+
+    drawCurve(d.curve);
+    drawMonths(d.monthly);
+  })();
+
+  function card(lbl, val, c, big) {
+    return '<div class="c"><div class="lbl">' + lbl + '</div><div class="val ' + (big?'big ':'') + (c||'') + '">' + val + '</div></div>';
+  }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+  function drawCurve(curve) {
+    const grad = document.createElement('canvas').getContext('2d');
+    new Chart($('curve'), {
+      type:'line',
+      data:{ labels:curve.map(p=>p.d), datasets:[{ data:curve.map(p=>p.gain), borderColor:'#d4af37', backgroundColor:'rgba(212,175,55,.12)', fill:true, tension:.25, pointRadius:0, borderWidth:2 }] },
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:c=>' '+(c.parsed.y>=0?'+':'')+c.parsed.y.toFixed(2)+'%' } } },
+        scales:{ x:{ ticks:{ color:'#7a7a7a', maxTicksLimit:8 }, grid:{ color:'rgba(255,255,255,.05)' } },
+                 y:{ ticks:{ color:'#7a7a7a', callback:v=>v+'%' }, grid:{ color:'rgba(255,255,255,.05)' } } } }
+    });
+  }
+  function drawMonths(monthly) {
+    new Chart($('months'), {
+      type:'bar',
+      data:{ labels:monthly.map(m=>m.month), datasets:[{ data:monthly.map(m=>m.gain),
+        backgroundColor:monthly.map(m=>m.gain>=0?'rgba(74,222,128,.7)':'rgba(248,113,113,.7)'),
+        borderColor:monthly.map(m=>m.gain>=0?'#4ade80':'#f87171'), borderWidth:1, borderRadius:4 }] },
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:c=>' '+(c.parsed.y>=0?'+':'')+c.parsed.y.toFixed(2)+'%' } } },
+        scales:{ x:{ ticks:{ color:'#7a7a7a' }, grid:{ display:false } },
+                 y:{ ticks:{ color:'#7a7a7a', callback:v=>v+'%' }, grid:{ color:'rgba(255,255,255,.05)' } } } }
+    });
+  }
+</script>
+</body>
+</html>

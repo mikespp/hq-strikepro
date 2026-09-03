@@ -16,6 +16,7 @@ const reviewsRouter          = require('./routes/reviews');
 const lastAccountRouter      = require('./routes/last-account');
 const theLastDayRouter       = require('./routes/the-last-day');
 const dinnerRouter           = require('./routes/dinner');
+const portfolioRouter        = require('./routes/portfolio');
 const eventsRouter           = require('./routes/events');
 const usersRouter            = require('./routes/users');
 const eligibilityRouter      = require('./routes/eligibility');
@@ -57,6 +58,7 @@ app.use('/api/reviews',   reviewsRouter);
 app.use('/api/last-account', lastAccountRouter);
 app.use('/api/the-last-day', theLastDayRouter);
 app.use('/api/dinner',    dinnerRouter);
+app.use('/api/portfolio', portfolioRouter);
 app.use('/api/events',    eventsRouter);
 app.use('/api/users',     usersRouter);
 app.use('/api/eligibility', eligibilityRouter);
@@ -123,6 +125,11 @@ app.get('/events/dinner', (req, res) => {
 // /dinner-admin → serve กินข้าวบ้านจารย์ round manager
 app.get('/dinner-admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'dinner-admin.html'));
+});
+
+// /portfolio → serve fund portfolio performance page
+app.get('/portfolio', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'portfolio.html'));
 });
 
 // /the-last-day-admin → serve The Last Day registrants admin page
