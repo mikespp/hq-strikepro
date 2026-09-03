@@ -100,6 +100,40 @@
     .mrow { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-top:10px; }
     .mrow .mk { font-size:9px; letter-spacing:.5px; text-transform:uppercase; color:var(--muted); }
     .mrow .mv { font-size:13px; font-weight:800; margin-top:3px; }
+    .mcard { cursor:pointer; }
+    .mtag { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:800; padding:3px 9px; border-radius:50px;
+      background:var(--blue-dim); border:1px solid var(--blue-border); color:var(--blue-light); margin-top:6px; }
+    .mtag .d { width:5px; height:5px; border-radius:50%; background:currentColor; }
+    .mmore { text-align:center; font-size:11px; color:var(--muted); margin-top:11px; letter-spacing:.3px; }
+
+    /* daily-results calendar modal */
+    .modal { position:fixed; inset:0; z-index:100; display:none; align-items:center; justify-content:center; padding:18px;
+      background:rgba(3,5,10,.72); backdrop-filter:blur(4px); }
+    .modal.on { display:flex; }
+    .cal { width:100%; max-width:480px; background:var(--card); border:1px solid var(--border); border-radius:20px; padding:20px 20px 22px; position:relative; }
+    .cal::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--blue-border),transparent); }
+    .cal-x { position:absolute; top:14px; right:14px; width:30px; height:30px; border-radius:50%; border:1px solid var(--border);
+      background:var(--card2); color:var(--muted); font-size:16px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+    .cal-name { font-size:17px; font-weight:800; }
+    .cal-sub { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1.5px; margin-top:2px; }
+    .cal-nav { display:flex; align-items:center; justify-content:space-between; margin:16px 0 10px; }
+    .cal-nav .mo { font-size:14px; font-weight:800; }
+    .cal-nav button { width:30px; height:30px; border-radius:9px; border:1px solid var(--border); background:var(--card2); color:var(--text); cursor:pointer; font-size:15px; }
+    .cal-nav button:disabled { opacity:.3; cursor:default; }
+    .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; }
+    .cal-dow { font-size:9px; text-transform:uppercase; letter-spacing:.5px; color:var(--muted); text-align:center; padding:4px 0; font-weight:700; }
+    .cell { aspect-ratio:1; border-radius:9px; border:1px solid transparent; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; }
+    .cell.empty { }
+    .cell .dn { font-size:11px; color:var(--muted); font-weight:600; }
+    .cell .dg { font-size:10px; font-weight:800; }
+    .cell.up { background:rgba(74,222,128,.13); border-color:rgba(74,222,128,.28); }
+    .cell.up .dn { color:#bbf7d0; } .cell.up .dg { color:var(--green); }
+    .cell.dn2 { background:rgba(248,113,113,.12); border-color:rgba(248,113,113,.26); }
+    .cell.dn2 .dn { color:#fecaca; } .cell.dn2 .dg { color:var(--red); }
+    .cell.flat { background:var(--card2); border-color:var(--border); }
+    .cell.today { outline:2px solid var(--blue); outline-offset:1px; }
+    .cal-foot { display:flex; justify-content:space-between; gap:12px; margin-top:14px; padding-top:12px; border-top:1px solid var(--border); font-size:12px; }
+    .cal-foot .fk { color:var(--muted); } .cal-foot .fv { font-weight:800; }
   </style>
 </head>
 <body>
@@ -123,6 +157,25 @@
   <div id="content"><div class="state">กำลังโหลด…</div></div>
 </div>
 
+<div class="modal" id="modal">
+  <div class="cal">
+    <button class="cal-x" id="calClose" aria-label="ปิด">✕</button>
+    <div class="cal-name" id="calName"></div>
+    <div class="cal-sub">Daily Results</div>
+    <div class="cal-nav">
+      <button id="calPrev" aria-label="เดือนก่อน">‹</button>
+      <div class="mo" id="calMonth"></div>
+      <button id="calNext" aria-label="เดือนถัดไป">›</button>
+    </div>
+    <div class="cal-grid" id="calDow"></div>
+    <div class="cal-grid" id="calBody"></div>
+    <div class="cal-foot">
+      <div><span class="fk">เดือนนี้ </span><span class="fv" id="calMTD"></span></div>
+      <div><span class="fk">รวมทั้งหมด </span><span class="fv" id="calAll"></span></div>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
   const $ = id => document.getElementById(id);
@@ -131,6 +184,8 @@
   const cls = n => n>0 ? 'pos' : n<0 ? 'neg' : 'blue';
   const esc = s => String(s==null?'':s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
   const fmtDate = ts => { const d = new Date(ts*1000); return isNaN(d) ? '' : d.toLocaleDateString('th-TH', { day:'numeric', month:'short', year:'2-digit' }); };
+
+  let MASTERS = {};   // login -> master (for the modal)
 
   (async function () {
     let d;
@@ -141,25 +196,28 @@
       $('content').innerHTML = '<div class="state">ยังไม่มีข้อมูลพอร์ต — รอการซิงค์จากระบบ</div>';
       return;
     }
+    d.masters.forEach(m => { MASTERS[m.login] = m; });
     const f = d.fund;
-    const lastT = d.fundCurve && d.fundCurve.length ? d.fundCurve[d.fundCurve.length-1].t : 0;
-    $('updated').textContent = lastT ? 'ข้อมูลล่าสุด ' + fmtDate(lastT) : '';
+    $('updated').textContent = f.lastDate ? 'ข้อมูลล่าสุด ' + fmtYmd(f.lastDate) : '';
     $('hstrip').innerHTML =
-      hstat('ผลตอบแทนรวมทั้งหมด', pct(f.profitAll), cls(f.profitAll))
-      + hstat('เงินลงทุนภายใต้การดูแล', '$' + money(f.aum), 'white')
+      hstat('ผลตอบแทนรวมทั้งหมด', pct(f.gainAll), cls(f.gainAll))
+      + hstat('มูลค่าพอร์ตรวม', '$' + money(f.equity), 'white')
       + hstat('Max drawdown', (Number(f.maxDrawdown)||0).toFixed(1) + '%', 'neg')
       + hstat('จำนวนพอร์ต', String(f.masters), 'blue');
 
     $('content').innerHTML =
       '<div class="panel"><h2>ผลตอบแทนรวม (ถ่วงน้ำหนักตามขนาดพอร์ต)</h2>'
       + '<div class="periods">'
-      + per('สัปดาห์', f.profitWeek) + per('เดือน', f.profitMonth) + per('3 เดือน', f.profit3m)
-      + per('6 เดือน', f.profit6m) + per('12 เดือน', f.profit12m) + per('ทั้งหมด', f.profitAll)
+      + per('วันนี้', f.gainToday) + per('สัปดาห์', f.gainWeek) + per('เดือนนี้', f.gainMonth)
+      + per('3 เดือน', f.gain3m) + per('ปีนี้', f.gainYtd) + per('ทั้งหมด', f.gainAll)
       + '</div></div>'
       + '<div class="panel"><h2>กราฟผลตอบแทนสะสม (%)</h2><div class="chart-box"><canvas id="curve"></canvas></div></div>'
       + '<div class="sec-title">พอร์ต Master ทั้งหมด (' + f.masters + ')</div>'
       + '<div class="mgrid">' + d.masters.map(mcard).join('') + '</div>'
       + '<p class="disclaimer">* ตัวเลข % คิดเฉพาะผลตอบแทนจากการเทรด ไม่นับเงินฝากหรือถอน เพื่อสะท้อนผลการเทรดจริง · ผลการดำเนินงานในอดีตไม่ได้รับประกันผลในอนาคต การเทรดมีความเสี่ยง โปรดพิจารณาก่อนตัดสินใจลงทุน</p>';
+
+    // click a card → open its daily-results calendar
+    document.querySelectorAll('.mcard').forEach(el => el.addEventListener('click', () => openCal(el.dataset.login)));
 
     if (d.fundCurve && d.fundCurve.length > 1) drawCurve(d.fundCurve);
     else { const p = $('curve').closest('.panel'); if (p) p.style.display = 'none'; }
@@ -169,22 +227,69 @@
       d.masters.forEach(m => drawSpark('sp_' + m.accountId, m.curve)), 150); });
   })();
 
+  const fmtYmd = s => { const p = String(s).split('-'); return p.length===3 ? (+p[2])+' '+['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'][+p[1]-1]+' '+(((+p[0])+543)%100) : s; };
   function hstat(k, v, c) { return '<div class="hstat"><div class="k">' + k + '</div><div class="v ' + (c||'') + '">' + v + '</div></div>'; }
   function per(k, v) { return '<div class="per"><div class="pk">' + k + '</div><div class="pv ' + cls(v) + '">' + pct(v) + '</div></div>'; }
 
   function mcard(m) {
-    return '<div class="mcard">'
+    return '<div class="mcard" data-login="' + m.login + '">'
       + '<div class="mhead"><div><div class="mname">' + esc(m.name) + '</div>'
-      +   '<div class="mmeta">$' + money(m.aum) + ' · ' + m.followers + ' ผู้ติดตาม</div></div>'
-      +   '<div class="mall"><div class="lbl">ทั้งหมด</div><div class="v ' + cls(m.profitAll) + '">' + pct(m.profitAll) + '</div></div></div>'
+      +   '<div class="mmeta">มูลค่าพอร์ต $' + money(m.equity) + '</div>'
+      +   '<div class="mtag ' + cls(m.gainToday) + '"><span class="d"></span>วันนี้ ' + pct(m.gainToday) + '</div></div>'
+      +   '<div class="mall"><div class="lbl">ทั้งหมด</div><div class="v ' + cls(m.gainAll) + '">' + pct(m.gainAll) + '</div></div></div>'
       + '<canvas class="mspark" id="sp_' + m.accountId + '"></canvas>'
       + '<div class="mrow">'
-      +   '<div><div class="mk">เดือน</div><div class="mv ' + cls(m.profitMonth) + '">' + pct(m.profitMonth) + '</div></div>'
-      +   '<div><div class="mk">12 เดือน</div><div class="mv ' + cls(m.profit12m) + '">' + pct(m.profit12m) + '</div></div>'
+      +   '<div><div class="mk">สัปดาห์</div><div class="mv ' + cls(m.gainWeek) + '">' + pct(m.gainWeek) + '</div></div>'
+      +   '<div><div class="mk">เดือนนี้</div><div class="mv ' + cls(m.gainMonth) + '">' + pct(m.gainMonth) + '</div></div>'
+      +   '<div><div class="mk">ปีนี้</div><div class="mv ' + cls(m.gainYtd) + '">' + pct(m.gainYtd) + '</div></div>'
       +   '<div><div class="mk">Max DD</div><div class="mv neg">' + (Number(m.maxDrawdown)||0).toFixed(1) + '%</div></div>'
-      +   '<div><div class="mk">PF</div><div class="mv white">' + (Number(m.profitFactor)||0).toFixed(2) + '</div></div>'
-      + '</div></div>';
+      + '</div>'
+      + '<div class="mmore">แตะเพื่อดูปฏิทินกำไรรายวัน →</div></div>';
   }
+
+  // ── daily-results calendar modal ──────────────────────────────────────────────
+  const THMON = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+  let calState = null;   // { m, byDay:Map<'YYYY-MM-DD',r>, months:[], idx }
+
+  function openCal(login) {
+    const m = MASTERS[login]; if (!m) return;
+    const byDay = new Map((m.daily||[]).map(x => [x.d, x.r]));
+    const months = [...new Set((m.daily||[]).map(x => x.d.slice(0,7)))].sort();
+    calState = { m, byDay, months, idx: Math.max(0, months.length - 1), last: m.lastDate };
+    $('calName').textContent = m.name;
+    $('calMTD').textContent = pct(m.gainMonth); $('calMTD').className = 'fv ' + cls(m.gainMonth);
+    $('calAll').textContent = pct(m.gainAll);   $('calAll').className = 'fv ' + cls(m.gainAll);
+    $('calDow').innerHTML = ['MON','TUE','WED','THU','FRI','SAT','SUN'].map(x=>'<div class="cal-dow">'+x+'</div>').join('');
+    renderCal();
+    $('modal').classList.add('on');
+  }
+  function renderCal() {
+    const { byDay, months, idx, last } = calState;
+    const ym = months.length ? months[idx] : new Date().toISOString().slice(0,7);
+    const [Y, M] = ym.split('-').map(Number);
+    $('calMonth').textContent = THMON[M-1] + ' ' + ((Y+543)%100);
+    $('calPrev').disabled = idx <= 0;
+    $('calNext').disabled = idx >= months.length - 1;
+    const first = new Date(Date.UTC(Y, M-1, 1));
+    const lead = (first.getUTCDay() + 6) % 7;    // Mon=0
+    const days = new Date(Date.UTC(Y, M, 0)).getUTCDate();
+    let html = '';
+    for (let i=0;i<lead;i++) html += '<div class="cell empty"></div>';
+    for (let dd=1; dd<=days; dd++) {
+      const key = ym + '-' + String(dd).padStart(2,'0');
+      const has = byDay.has(key); const r = has ? byDay.get(key) : null;
+      const k = !has ? '' : r>0 ? 'up' : r<0 ? 'dn2' : 'flat';
+      const today = key === last ? ' today' : '';
+      html += '<div class="cell ' + k + today + '"><div class="dn">' + dd + '</div>'
+            + (has ? '<div class="dg">' + (r>0?'+':'') + r.toFixed(1) + '</div>' : '') + '</div>';
+    }
+    $('calBody').innerHTML = html;
+  }
+  $('calClose').addEventListener('click', () => $('modal').classList.remove('on'));
+  $('modal').addEventListener('click', e => { if (e.target === $('modal')) $('modal').classList.remove('on'); });
+  $('calPrev').addEventListener('click', () => { if (calState.idx>0){ calState.idx--; renderCal(); } });
+  $('calNext').addEventListener('click', () => { if (calState.idx<calState.months.length-1){ calState.idx++; renderCal(); } });
+  document.addEventListener('keydown', e => { if (e.key==='Escape') $('modal').classList.remove('on'); });
 
   function drawCurve(curve) {
     new Chart($('curve'), {

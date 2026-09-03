@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <meta name="theme-color" content="#3d7bff" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>จัดการพอร์ต Master</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    :root {
+      --bg:#060810; --card:#0e1424; --card2:#131a2e; --border:rgba(255,255,255,.08);
+      --blue:#3d7bff; --blue-light:#6fa8ff; --blue-border:rgba(61,123,255,.26); --blue-dim:rgba(61,123,255,.12);
+      --text:#eef2f8; --muted:#8a93a6; --green:#4ade80; --red:#f87171; --radius:16px;
+    }
+    body { font-family:'IBM Plex Sans Thai',sans-serif; background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; }
+    a { color:inherit; text-decoration:none; }
+    nav { position:sticky; top:0; z-index:50; display:flex; align-items:center; gap:12px; padding:14px 20px;
+      background:rgba(6,8,16,.82); backdrop-filter:blur(20px); border-bottom:1px solid var(--border); }
+    .nav-logo img { width:34px; height:34px; object-fit:contain; display:block; }
+    .nav-title { font-size:15px; font-weight:800; color:var(--blue-light); }
+    .nav-user { margin-left:auto; font-size:12px; color:var(--muted); }
+
+    .wrap { max-width:920px; margin:0 auto; padding:26px 20px 80px; }
+    h1 { font-size:22px; font-weight:900; letter-spacing:-.4px; }
+    .lead { color:var(--muted); font-size:13px; margin-top:6px; line-height:1.6; }
+
+    .panel { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:20px; margin-top:20px; position:relative; overflow:hidden; }
+    .panel::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--blue-border),transparent); }
+    .panel h2 { font-size:12px; font-weight:800; color:var(--blue-light); margin-bottom:16px; letter-spacing:2px; text-transform:uppercase; }
+
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    @media (max-width:640px){ .grid { grid-template-columns:1fr; } }
+    .field { display:flex; flex-direction:column; gap:6px; }
+    .field.full { grid-column:1 / -1; }
+    label { font-size:12px; color:var(--muted); font-weight:600; }
+    input, select { background:var(--card2); border:1px solid var(--border); border-radius:10px; padding:11px 13px; color:var(--text); font-size:14px; font-family:inherit; }
+    input:focus, select:focus { outline:none; border-color:var(--blue-border); }
+    .hint { font-size:11px; color:var(--muted); }
+    .row-btns { display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; }
+    button { font-family:inherit; cursor:pointer; border:none; border-radius:10px; font-weight:700; font-size:14px; padding:11px 20px; }
+    .btn-primary { background:var(--blue); color:#fff; }
+    .btn-ghost { background:var(--card2); color:var(--text); border:1px solid var(--border); }
+    .btn-danger { background:rgba(248,113,113,.14); color:var(--red); border:1px solid rgba(248,113,113,.3); padding:7px 12px; font-size:12px; }
+    .btn-mini { background:var(--card2); color:var(--text); border:1px solid var(--border); padding:7px 12px; font-size:12px; }
+
+    table { width:100%; border-collapse:collapse; }
+    th { font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); text-align:left; font-weight:700; padding:10px 10px; border-bottom:1px solid var(--border); }
+    td { font-size:13px; padding:12px 10px; border-bottom:1px solid var(--border); vertical-align:middle; }
+    tr:last-child td { border-bottom:none; }
+    .pill { font-size:11px; font-weight:700; padding:3px 9px; border-radius:50px; display:inline-block; }
+    .pill.on { background:rgba(74,222,128,.14); color:var(--green); }
+    .pill.off { background:rgba(138,147,166,.14); color:var(--muted); }
+    .pill.yes { background:var(--blue-dim); color:var(--blue-light); border:1px solid var(--blue-border); }
+    .acts { display:flex; gap:7px; justify-content:flex-end; }
+    .state { text-align:center; padding:40px 20px; color:var(--muted); font-size:14px; }
+    .toast { position:fixed; left:50%; bottom:26px; transform:translateX(-50%) translateY(20px); opacity:0; transition:.25s;
+      background:var(--card2); border:1px solid var(--blue-border); color:var(--text); padding:11px 20px; border-radius:12px; font-size:13px; z-index:200; }
+    .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+    .sec-note { font-size:11px; color:var(--muted); margin-top:14px; line-height:1.7; }
+  </style>
+</head>
+<body>
+<nav>
+  <a class="nav-logo" href="/" aria-label="หน้าหลัก"><img src="/logo.png.png" alt="HQ Strikepro" /></a>
+  <span class="nav-title">จัดการพอร์ต Master</span>
+  <span class="nav-user" id="navUser"></span>
+</nav>
+
+<div class="wrap" id="wrap" style="display:none">
+  <h1>จัดการพอร์ต Master</h1>
+  <p class="lead">เพิ่มพอร์ตโดยกรอก <b>MT5 ID</b> และ <b>Investor Password</b> (รหัสสำหรับดูอย่างเดียว — เทรด/ถอนไม่ได้).
+    ระบบบน VPS จะ login เข้าแต่ละพอร์ตทุก 1 ชั่วโมงเพื่อดึง equity แล้วคำนวณผลตอบแทน. รหัสถูกเก็บแบบเข้ารหัสและไม่แสดงกลับ.</p>
+
+  <div class="panel">
+    <h2 id="formTitle">เพิ่มพอร์ตใหม่</h2>
+    <div class="grid">
+      <div class="field"><label>ชื่อพอร์ต (แสดงบนหน้าเว็บ)</label><input id="fLabel" placeholder="เช่น กุมารเงิน" /></div>
+      <div class="field"><label>MT5 ID</label><input id="fLogin" inputmode="numeric" placeholder="เช่น 2121968661" /></div>
+      <div class="field"><label>Investor Password</label><input id="fPw" type="password" placeholder="รหัสสำหรับดูอย่างเดียว" autocomplete="off" /></div>
+      <div class="field"><label>MT5 Server</label><input id="fServer" placeholder="เช่น StrikePro-Live" /></div>
+      <div class="field"><label>สกุลเงิน</label><input id="fCcy" value="USD" /></div>
+      <div class="field"><label>ลำดับการแสดง</label><input id="fSort" inputmode="numeric" value="0" /></div>
+    </div>
+    <div class="row-btns">
+      <button class="btn-primary" id="saveBtn" onclick="save()">บันทึกพอร์ต</button>
+      <button class="btn-ghost" id="cancelBtn" onclick="resetForm()" style="display:none">ยกเลิกการแก้ไข</button>
+    </div>
+    <p class="sec-note" id="pwNote"></p>
+  </div>
+
+  <div class="panel">
+    <h2>พอร์ตทั้งหมด</h2>
+    <div id="list"><div class="state">กำลังโหลด…</div></div>
+  </div>
+</div>
+
+<div class="state" id="gate" style="display:none"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+  const TOKEN_KEY = 'sp_token';
+  const $ = id => document.getElementById(id);
+  let editing = null;   // login being edited, or null
+  const esc = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1900); }
+  const auth = () => ({ Authorization:'Bearer '+localStorage.getItem(TOKEN_KEY) });
+
+  (async () => {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) { window.location.href = '/login'; return; }
+    try {
+      const r = await fetch('/api/auth/me', { headers: auth() });
+      if (!r.ok) { window.location.href = '/login'; return; }
+      const { user } = await r.json();
+      $('navUser').textContent = user.email;
+      if (user.role !== 'admin') { $('gate').style.display='block'; $('gate').innerHTML='🔒 หน้านี้สำหรับผู้ดูแลระบบ (admin) เท่านั้น'; return; }
+      $('wrap').style.display = 'block';
+      load();
+    } catch { window.location.href = '/login'; }
+  })();
+
+  async function load() {
+    try {
+      const r = await fetch('/api/portfolio/admin/accounts', { headers: auth() });
+      const rows = r.ok ? await r.json() : [];
+      renderList(rows);
+    } catch { $('list').innerHTML = '<div class="state">โหลดรายการไม่สำเร็จ</div>'; }
+  }
+
+  function renderList(rows) {
+    if (!rows.length) { $('list').innerHTML = '<div class="state">ยังไม่มีพอร์ต — เพิ่มพอร์ตแรกด้านบน</div>'; return; }
+    $('list').innerHTML =
+      '<table><thead><tr><th>ชื่อพอร์ต</th><th>MT5 ID</th><th>Server</th><th>รหัส</th><th>สถานะ</th><th>อัปเดต</th><th></th></tr></thead><tbody>'
+      + rows.map(r =>
+        '<tr>'
+        + '<td><b>' + esc(r.label) + '</b></td>'
+        + '<td>' + r.login + '</td>'
+        + '<td>' + (esc(r.server) || '<span style="color:var(--muted)">—</span>') + '</td>'
+        + '<td>' + (Number(r.has_pw) ? '<span class="pill yes">ตั้งแล้ว</span>' : '<span class="pill off">ยังไม่มี</span>') + '</td>'
+        + '<td>' + (Number(r.active) ? '<span class="pill on">แสดง</span>' : '<span class="pill off">ซ่อน</span>') + '</td>'
+        + '<td style="color:var(--muted)">' + (r.updated_at || '—') + '</td>'
+        + '<td><div class="acts">'
+        +   '<button class="btn-mini" onclick="edit(' + r.login + ')">แก้ไข</button>'
+        +   '<button class="btn-mini" onclick="toggleActive(' + r.login + ',' + (Number(r.active)?0:1) + ')">' + (Number(r.active)?'ซ่อน':'แสดง') + '</button>'
+        +   '<button class="btn-danger" onclick="del(' + r.login + ",'" + esc(r.label).replace(/'/g,"\\'") + "'" + ')">ลบ</button>'
+        + '</div></td></tr>').join('')
+      + '</tbody></table>';
+    // stash for edit()
+    window.__rows = {}; rows.forEach(r => window.__rows[r.login] = r);
+  }
+
+  async function save() {
+    const login = parseInt($('fLogin').value, 10);
+    const label = $('fLabel').value.trim();
+    const pw = $('fPw').value;
+    if (!login) { toast('กรอก MT5 ID ให้ถูกต้อง'); return; }
+    if (!label) { toast('กรอกชื่อพอร์ต'); return; }
+    if (!editing && !pw) { toast('กรอก Investor Password'); return; }
+    const body = { login, label, server: $('fServer').value.trim(), currency: $('fCcy').value.trim() || 'USD',
+      sort_order: parseInt($('fSort').value, 10) || 0, active: 1 };
+    if (pw) body.investor_password = pw;
+    $('saveBtn').disabled = true;
+    try {
+      const r = await fetch('/api/portfolio/admin/accounts', { method:'POST',
+        headers:{ 'Content-Type':'application/json', ...auth() }, body: JSON.stringify(body) });
+      const j = await r.json();
+      if (!r.ok) { toast(j.error || 'บันทึกไม่สำเร็จ'); return; }
+      toast(editing ? 'อัปเดตแล้ว' : 'เพิ่มพอร์ตแล้ว');
+      resetForm(); load();
+    } catch { toast('บันทึกไม่สำเร็จ'); }
+    finally { $('saveBtn').disabled = false; }
+  }
+
+  function edit(login) {
+    const r = window.__rows[login]; if (!r) return;
+    editing = login;
+    $('formTitle').textContent = 'แก้ไขพอร์ต: ' + r.label;
+    $('fLabel').value = r.label; $('fLogin').value = r.login; $('fLogin').disabled = true;
+    $('fServer').value = r.server || ''; $('fCcy').value = r.currency || 'USD'; $('fSort').value = r.sort_order || 0;
+    $('fPw').value = ''; $('fPw').placeholder = Number(r.has_pw) ? 'เว้นว่างไว้ = ใช้รหัสเดิม' : 'ยังไม่ได้ตั้งรหัส';
+    $('cancelBtn').style.display = ''; $('pwNote').textContent = 'เว้นช่อง Investor Password ไว้ ถ้าไม่ต้องการเปลี่ยนรหัสเดิม';
+    window.scrollTo({ top:0, behavior:'smooth' });
+  }
+  function resetForm() {
+    editing = null;
+    $('formTitle').textContent = 'เพิ่มพอร์ตใหม่';
+    ['fLabel','fLogin','fServer','fSort','fPw'].forEach(id => $(id).value = '');
+    $('fCcy').value = 'USD'; $('fSort').value = '0'; $('fLogin').disabled = false;
+    $('fPw').placeholder = 'รหัสสำหรับดูอย่างเดียว';
+    $('cancelBtn').style.display = 'none'; $('pwNote').textContent = '';
+  }
+  async function toggleActive(login, active) {
+    try {
+      const r = await fetch('/api/portfolio/admin/accounts/' + login, { method:'PATCH',
+        headers:{ 'Content-Type':'application/json', ...auth() }, body: JSON.stringify({ active }) });
+      if (!r.ok) throw new Error();
+      toast(active ? 'แสดงบนหน้าเว็บแล้ว' : 'ซ่อนแล้ว'); load();
+    } catch { toast('ทำรายการไม่สำเร็จ'); }
+  }
+  async function del(login, label) {
+    if (!confirm('ลบพอร์ต "' + label + '" และข้อมูลผลตอบแทนทั้งหมด?')) return;
+    try {
+      const r = await fetch('/api/portfolio/admin/accounts/' + login, { method:'DELETE', headers: auth() });
+      if (!r.ok) throw new Error();
+      toast('ลบแล้ว'); load();
+    } catch { toast('ลบไม่สำเร็จ'); }
+  }
+</script>
+</body>
+</html>

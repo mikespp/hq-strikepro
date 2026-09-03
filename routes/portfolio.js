@@ -1,7 +1,9 @@
 const express = require('express');
 const crypto  = require('crypto');
 const db      = require('../db/database');
-const { computeMasters } = require('../lib/portfolio-calc');
+const secret  = require('../lib/secret');
+const { requireAdmin } = require('./auth');
+const { computePortfolio } = require('../lib/portfolio-calc');
 
 const router = express.Router();
 
@@ -15,32 +17,97 @@ function requireSyncKey(req, res, next) {
   next();
 }
 
-// ── POST /api/portfolio/sync  (sync key) — VPS pushes the master figures ───────
-// Body: { masters: [{ account_id, name, currency, aum, balance, equity, followers,
-//   score, risk, max_dd, profit_factor, p_week, p_month, p_3m, p_6m, p_12m, p_18m,
-//   p_all, sort_order, minichart:[{timestamp,etwr,btwr,balance,equity}] }] }
-// These are the StrikePro widget API's own deposit/withdrawal-neutral returns.
-router.post('/sync', requireSyncKey, async (req, res) => {
-  const masters = Array.isArray(req.body.masters) ? req.body.masters : [];
+// ── GET /api/portfolio/accounts  (sync key) — creds for the VPS loop-login fetcher ─
+// Returns decrypted investor passwords ONLY over the sync-key-authenticated channel.
+router.get('/accounts', requireSyncKey, async (req, res) => {
   try {
+    const rows = await db.listMasterAccountsForFetch();
+    res.json(rows.map(r => ({
+      login: Number(r.login), server: r.server || '', currency: r.currency || 'USD',
+      investor_password: secret.decrypt(r.inv_pw),
+    })));
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to list accounts.' });
+  }
+});
+
+// ── POST /api/portfolio/sync  (sync key) — VPS pushes hourly snapshots ──────────
+// Body: { snapshots:[{login,d,balance,equity,deposit,withdrawal}], accounts?:[{login,label,server,currency}] }
+router.post('/sync', requireSyncKey, async (req, res) => {
+  const accounts  = Array.isArray(req.body.accounts)  ? req.body.accounts  : [];
+  const snapshots = Array.isArray(req.body.snapshots) ? req.body.snapshots : [];
+  try {
+    for (const a of accounts) {
+      const login = parseInt(a.login, 10);
+      if (login) await db.upsertPortfolioAccount(login, a);   // label/server/currency only
+    }
     let n = 0;
-    for (const m of masters) {
-      if (!m || !m.account_id) continue;
-      await db.upsertMaster(m);
+    for (const s of snapshots) {
+      const login = parseInt(s.login, 10);
+      if (!login || !/^\d{4}-\d{2}-\d{2}$/.test(String(s.d || ''))) continue;
+      await db.upsertPortfolioDaily(login, s);
       n++;
     }
-    res.json({ ok: true, masters: n });
+    res.json({ ok: true, accounts: accounts.length, snapshots: n });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Sync failed.' });
   }
 });
 
+// ── Admin: manage master accounts (MT5 ID + investor password) ──────────────────
+router.get('/admin/accounts', requireAdmin, async (req, res) => {
+  try { res.json(await db.listMasterAccountsAdmin()); }
+  catch (err) { console.error(err); res.status(500).json({ error: 'เกิดข้อผิดพลาด' }); }
+});
+
+router.post('/admin/accounts', requireAdmin, async (req, res) => {
+  const login = parseInt(req.body.login, 10);
+  if (!login) return res.status(400).json({ error: 'กรุณากรอก MT5 ID ให้ถูกต้อง' });
+  const label = String(req.body.label || '').trim();
+  if (!label) return res.status(400).json({ error: 'กรุณากรอกชื่อพอร์ต' });
+  const pw = req.body.investor_password;
+  try {
+    await db.saveMasterAccount(login, {
+      label, server: req.body.server, currency: req.body.currency,
+      sort_order: req.body.sort_order, active: req.body.active === 0 ? 0 : 1,
+      invPwEnc: (pw && String(pw).length) ? secret.encrypt(String(pw)) : undefined,  // undefined = keep existing
+    });
+    res.json({ ok: true });
+  } catch (err) { console.error(err); res.status(500).json({ error: 'บันทึกไม่สำเร็จ' }); }
+});
+
+router.patch('/admin/accounts/:login', requireAdmin, async (req, res) => {
+  const login = parseInt(req.params.login, 10);
+  if (!login) return res.status(400).json({ error: 'invalid' });
+  try {
+    if (typeof req.body.active !== 'undefined' && Object.keys(req.body).length === 1) {
+      await db.setMasterActive(login, req.body.active ? 1 : 0);
+    } else {
+      const pw = req.body.investor_password;
+      await db.saveMasterAccount(login, {
+        label: req.body.label, server: req.body.server, currency: req.body.currency,
+        sort_order: req.body.sort_order, active: req.body.active === 0 ? 0 : 1,
+        invPwEnc: (pw && String(pw).length) ? secret.encrypt(String(pw)) : undefined,
+      });
+    }
+    res.json({ ok: true });
+  } catch (err) { console.error(err); res.status(500).json({ error: 'บันทึกไม่สำเร็จ' }); }
+});
+
+router.delete('/admin/accounts/:login', requireAdmin, async (req, res) => {
+  const login = parseInt(req.params.login, 10);
+  if (!login) return res.status(400).json({ error: 'invalid' });
+  try { await db.deleteMasterAccount(login); res.json({ ok: true }); }
+  catch (err) { console.error(err); res.status(500).json({ error: 'ลบไม่สำเร็จ' }); }
+});
+
 // ── GET /api/portfolio  (public) — พอร์ต Master performance ────────────────────
 router.get('/', async (req, res) => {
   try {
-    const rows = await db.listMasters();
-    res.json(computeMasters(rows));
+    const [rows, accts] = await Promise.all([db.getPortfolioDaily(), db.listPortfolioAccounts()]);
+    res.json(computePortfolio(rows, accts));
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });

@@ -443,6 +443,9 @@ async function init() {
     `ALTER TABLE users ADD COLUMN avatar_data MEDIUMTEXT NULL`,
     // verified = email matched the StrikePro customer allowlist (advisory only; not a gate)
     `ALTER TABLE users ADD COLUMN verified TINYINT(1) NOT NULL DEFAULT 0`,
+    // พอร์ต Master — AES-GCM-encrypted MT5 investor password (read-only creds the
+    // VPS fetcher loop-logs with). Never returned to the browser.
+    `ALTER TABLE pf_accounts ADD COLUMN inv_pw LONGTEXT NULL`,
   ]) {
     try { await pool.execute(ddl); } catch (err) { if (err.errno !== 1060) throw err; }
   }
@@ -1367,6 +1370,49 @@ async function listPortfolioAccounts() {
   const [rows] = await pool.execute('SELECT login, label, currency, active FROM pf_accounts ORDER BY sort_order ASC, login ASC');
   return rows;
 }
+
+// พอร์ต Master account management (admin adds MT5 login + encrypted investor pw).
+async function saveMasterAccount(login, d) {
+  // d: { label, server, currency, sort_order, active, invPwEnc? }  (invPwEnc = ciphertext or undefined to keep)
+  await pool.execute(
+    `INSERT INTO pf_accounts (login, label, server, currency, sort_order, active, inv_pw)
+     VALUES (?, ?, ?, ?, ?, ?, ?)
+     ON DUPLICATE KEY UPDATE
+       label      = VALUES(label),
+       server     = VALUES(server),
+       currency   = VALUES(currency),
+       sort_order = VALUES(sort_order),
+       active     = VALUES(active),
+       inv_pw     = COALESCE(VALUES(inv_pw), inv_pw)`,
+    [login, String(d.label || '').slice(0, 120), String(d.server || '').slice(0, 120),
+     String(d.currency || 'USD').slice(0, 10), parseInt(d.sort_order, 10) || 0,
+     d.active === 0 ? 0 : 1, d.invPwEnc == null ? null : String(d.invPwEnc)]
+  );
+}
+// Admin list — masks the password, exposes only whether one is set.
+async function listMasterAccountsAdmin() {
+  const [rows] = await pool.execute(
+    `SELECT login, label, server, currency, active, sort_order,
+            (inv_pw IS NOT NULL AND inv_pw <> '') AS has_pw,
+            DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i') AS updated_at
+     FROM pf_accounts ORDER BY sort_order ASC, login ASC`
+  );
+  return rows;
+}
+// Fetcher list — returns the encrypted password for the route to decrypt (sync key only).
+async function listMasterAccountsForFetch() {
+  const [rows] = await pool.execute(
+    'SELECT login, server, currency, inv_pw FROM pf_accounts WHERE active = 1 ORDER BY sort_order ASC, login ASC'
+  );
+  return rows;
+}
+async function deleteMasterAccount(login) {
+  await pool.execute('DELETE FROM pf_daily WHERE login = ?', [login]);
+  await pool.execute('DELETE FROM pf_accounts WHERE login = ?', [login]);
+}
+async function setMasterActive(login, active) {
+  await pool.execute('UPDATE pf_accounts SET active = ? WHERE login = ?', [active ? 1 : 0, login]);
+}
 async function getPortfolioDaily() {
   const [rows] = await pool.execute(
     `SELECT login, DATE_FORMAT(d, '%Y-%m-%d') AS d, balance, equity, deposit, withdrawal
@@ -1633,4 +1679,5 @@ module.exports = {
   listDinnerRegistrations, setDinnerFlag, getDinnerEmailById, emailInDinner,
   upsertPortfolioAccount, upsertPortfolioDaily, listPortfolioAccounts, getPortfolioDaily,
   upsertMaster, listMasters,
+  saveMasterAccount, listMasterAccountsAdmin, listMasterAccountsForFetch, deleteMasterAccount, setMasterActive,
 };

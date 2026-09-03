@@ -132,6 +132,11 @@ app.get('/portfolio', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'portfolio.html'));
 });
 
+// /portfolio-admin → serve พอร์ต Master management page (admin-gated client-side)
+app.get('/portfolio-admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'portfolio-admin.html'));
+});
+
 // /the-last-day-admin → serve The Last Day registrants admin page
 app.get('/the-last-day-admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'the-last-day-admin.html'));
