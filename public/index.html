@@ -287,6 +287,19 @@
     }
     .event-banner:hover { border-color: rgba(212,175,55,.5); background: rgba(212,175,55,.12); transform: translateY(-1px); }
     .event-banner:active { transform: scale(.98); }
+
+    /* ── Premium hover: mouse-follow spotlight + glow (Reborn Rich style) ── */
+    .strategy-card, .eco-card, .event-banner { --mx:50%; --my:50%; --glow:rgba(255,255,255,.10);
+      transition: border-color .2s, background .2s, transform .2s, box-shadow .25s; }
+    .eco-card { position:relative; overflow:hidden; }
+    .strategy-card::after, .eco-card::after, .event-banner::after {
+      content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none; opacity:0;
+      transition:opacity .25s; background:radial-gradient(340px circle at var(--mx) var(--my), var(--glow), transparent 60%); }
+    .strategy-card:hover::after, .eco-card:hover::after, .event-banner:hover::after { opacity:1; }
+    .strategy-card:hover, .eco-card:hover, .event-banner:hover { transform:translateY(-3px); box-shadow:0 12px 34px rgba(0,0,0,.45); }
+    .strategy-card.ppvp{--glow:rgba(129,140,248,.20)} .strategy-card.hq{--glow:rgba(212,175,55,.20)} .strategy-card.gb{--glow:rgba(74,222,128,.20)}
+    .eco-card.stp{--glow:rgba(245,158,11,.20)} .eco-card.edu{--glow:rgba(56,189,248,.20)} .eco-card.trade{--glow:rgba(251,146,60,.20)} .eco-card.charity{--glow:rgba(244,114,182,.20)}
+    .event-banner{--glow:rgba(212,175,55,.16)}
     .event-banner-icon {
       width: 48px; height: 48px; border-radius: 12px; flex-shrink: 0;
       background: rgba(212,175,55,.15); border: 1px solid rgba(212,175,55,.25);
@@ -668,7 +681,7 @@
     <div class="event-banner-arrow">›</div>
   </a>
 
-  <a class="event-banner" href="/events/the-last-day" style="margin-top:10px; background: linear-gradient(135deg, rgba(129,140,248,.10) 0%, rgba(129,140,248,.03) 100%);">
+  <a class="event-banner" href="/events/the-last-day" style="margin-top:10px; --glow:rgba(129,140,248,.20); background: linear-gradient(135deg, rgba(129,140,248,.10) 0%, rgba(129,140,248,.03) 100%);">
     <div class="event-banner-icon">🌅</div>
     <div class="event-banner-body">
       <div class="event-banner-tag" id="tldBannerTag">Event · เฉพาะผู้ผ่าน SBC</div>
@@ -868,6 +881,17 @@
   }
 </script>
 <script>
+  // Cards — mouse-follow spotlight (updates --mx/--my for the hover glow).
+  (function () {
+    document.querySelectorAll('.strategy-card, .eco-card, .event-banner').forEach(function (el) {
+      el.addEventListener('pointermove', function (e) {
+        var r = el.getBoundingClientRect();
+        el.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100) + '%');
+        el.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100) + '%');
+      });
+    });
+  })();
+
   // The Last Day banner — show the active edition's date (from the DB), not a fixed one.
   (function () {
     var el = document.getElementById('tldBannerTag');
