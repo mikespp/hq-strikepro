@@ -4,67 +4,96 @@
   <meta charset="UTF-8" />
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
   <link rel="manifest" href="/manifest.json" />
-  <meta name="theme-color" content="#d4af37" />
+  <meta name="theme-color" content="#3d7bff" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>พอร์ต Master — StrikePro</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --gold:#d4af37; --gold-pale:#ffe99a; --gold-dim:rgba(212,175,55,.12); --gold-border:rgba(212,175,55,.22);
-      --bg:#060606; --card:#0f0f0f; --card2:#131313; --border:rgba(255,255,255,.08);
-      --text:#f0f0f0; --muted:#7a7a7a; --green:#4ade80; --red:#f87171; --radius:16px;
+      --bg:#060810; --bg2:#0a0e1a; --card:#0e1424; --card2:#131a2e; --border:rgba(255,255,255,.08);
+      --blue:#3d7bff; --blue-light:#6fa8ff; --blue-pale:#bcd7ff; --blue-deep:#1b52c9;
+      --blue-dim:rgba(61,123,255,.12); --blue-border:rgba(61,123,255,.26);
+      --text:#eef2f8; --muted:#8a93a6; --green:#4ade80; --red:#f87171; --radius:16px;
     }
-    body { font-family:'IBM Plex Sans Thai','Inter',sans-serif; background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; }
+    html { scroll-behavior:smooth; }
+    body { font-family:'IBM Plex Sans Thai','Inter',sans-serif; background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+    a { color:inherit; text-decoration:none; }
+
     nav { position:sticky; top:0; z-index:50; display:flex; align-items:center; gap:12px; padding:14px 20px;
-      background:rgba(6,6,6,.85); backdrop-filter:blur(20px); border-bottom:1px solid var(--border); }
+      background:rgba(6,8,16,.82); backdrop-filter:blur(20px); border-bottom:1px solid var(--border); }
     .nav-logo img { width:34px; height:34px; object-fit:contain; display:block; }
-    .nav-title { font-size:15px; font-weight:800; color:var(--gold); }
+    .nav-title { font-size:15px; font-weight:800; color:var(--blue-light); letter-spacing:.2px; }
+
+    /* HERO */
+    .hero { position:relative; overflow:hidden; padding:64px 24px 40px; text-align:center;
+      background:radial-gradient(ellipse at 72% 18%, rgba(61,123,255,.16) 0%, transparent 55%), linear-gradient(170deg,#0a0e1a 0%,#060810 72%);
+      border-bottom:1px solid var(--border); }
+    .streak { position:absolute; top:0; bottom:0; right:-30px; width:52%; pointer-events:none;
+      background:radial-gradient(ellipse at 100% 45%, rgba(111,168,255,.14) 0%, transparent 62%); }
+    .streak::before, .streak::after { content:''; position:absolute; top:-8%; height:116%; width:1px; right:14%;
+      background:linear-gradient(to bottom, transparent, rgba(111,168,255,.45), transparent); filter:blur(.5px); }
+    .streak::after { right:26%; opacity:.45; }
+    .hero-in { position:relative; z-index:1; max-width:760px; margin:0 auto; }
+    .eyebrow { display:inline-flex; align-items:center; gap:9px; font-size:11px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase;
+      color:var(--blue-light); border:1px solid var(--blue-border); background:var(--blue-dim); padding:6px 16px; border-radius:50px; }
+    .eyebrow .dot { width:6px; height:6px; border-radius:50%; background:var(--blue); box-shadow:0 0 10px var(--blue); animation:blink 2.2s ease-in-out infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+    .hero h1 { font-size:clamp(38px,8vw,68px); font-weight:900; letter-spacing:-1.5px; line-height:1.22; padding-top:.08em; margin:22px 0 0;
+      background:linear-gradient(160deg,#fff 12%,var(--blue-pale) 52%,var(--blue) 92%);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .hero .sub { font-size:clamp(15px,3vw,18px); color:rgba(238,242,248,.72); margin:14px auto 0; max-width:540px; line-height:1.6; }
+    .hero .updated { font-size:12px; color:var(--muted); margin-top:12px; }
+    .hstrip { display:flex; flex-wrap:wrap; justify-content:center; gap:14px 34px; margin-top:30px; }
+    .hstat .k { font-size:10px; letter-spacing:1.4px; text-transform:uppercase; color:var(--muted); }
+    .hstat .v { font-size:clamp(20px,4vw,26px); font-weight:900; letter-spacing:-.5px; margin-top:4px; }
+
     .wrap { max-width:960px; margin:0 auto; padding:28px 20px 80px; }
-    .head { text-align:center; margin-bottom:26px; }
-    .head h1 { font-size:clamp(26px,6vw,40px); font-weight:900; letter-spacing:-1px;
-      background:linear-gradient(160deg,#fff 20%,var(--gold-pale) 55%,var(--gold) 85%);
-      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; line-height:1.3; padding-top:.1em; }
-    .head p { color:var(--muted); font-size:14px; margin-top:6px; }
-    .updated { font-size:12px; color:var(--muted); margin-top:8px; }
+    .pos { color:var(--green); } .neg { color:var(--red); } .blue { color:var(--blue-light); } .white { color:var(--text); }
 
-    .cards { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px; }
+    .cards { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:22px; }
     @media (max-width:720px){ .cards { grid-template-columns:repeat(2,1fr); } }
-    .c { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:18px 18px; }
+    .c { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:16px 18px; position:relative; overflow:hidden; }
+    .c::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--blue-border),transparent); }
     .c .lbl { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px; }
-    .c .val { font-size:24px; font-weight:900; letter-spacing:-.5px; }
-    .c .val.big { font-size:28px; }
-    .pos { color:var(--green); } .neg { color:var(--red); } .gold { color:var(--gold); }
+    .c .val { font-size:22px; font-weight:900; letter-spacing:-.5px; }
 
-    .panel { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:20px; margin-bottom:20px; }
-    .panel h2 { font-size:14px; font-weight:800; color:var(--gold); margin-bottom:14px; letter-spacing:.3px; }
+    .panel { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:20px; margin-bottom:20px; position:relative; overflow:hidden; }
+    .panel::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--blue-border),transparent); }
+    .panel h2 { font-size:12px; font-weight:800; color:var(--blue-light); margin-bottom:14px; letter-spacing:2px; text-transform:uppercase; }
     .chart-box { position:relative; height:300px; }
     .month-box { position:relative; height:200px; }
 
     table { width:100%; border-collapse:collapse; }
-    th { font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--muted); text-align:left; font-weight:700; padding:10px 12px; border-bottom:1px solid var(--border); }
-    td { font-size:14px; padding:12px; border-bottom:1px solid var(--border); }
+    th { font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); text-align:left; font-weight:700; padding:11px 12px; border-bottom:1px solid var(--border); }
+    td { font-size:14px; padding:13px 12px; border-bottom:1px solid var(--border); }
     th.r, td.r { text-align:right; }
     tr:last-child td { border-bottom:none; }
     .acc-name { font-weight:700; }
-    .state { text-align:center; padding:60px 20px; color:var(--muted); font-size:14px; }
-    .disclaimer { font-size:11px; color:rgba(122,122,122,.7); line-height:1.6; margin-top:18px; }
+    .state { text-align:center; padding:70px 20px; color:var(--muted); font-size:14px; }
+    .disclaimer { font-size:11px; color:rgba(138,147,166,.75); line-height:1.7; margin-top:18px; }
   </style>
 </head>
 <body>
 <nav>
   <a class="nav-logo" href="/" aria-label="หน้าหลัก"><img src="/logo.png.png" alt="HQ Strikepro" /></a>
-  <span class="nav-title">📊 พอร์ต Master</span>
+  <span class="nav-title">พอร์ต Master</span>
 </nav>
 
-<div class="wrap">
-  <div class="head">
+<section class="hero">
+  <div class="streak"></div>
+  <div class="hero-in">
+    <span class="eyebrow"><span class="dot"></span> LIVE · STRIKEPRO</span>
     <h1>พอร์ต Master</h1>
-    <p>ผลตอบแทนจากการเทรดจริง — ไม่รวมผลของการฝาก/ถอนเงิน</p>
+    <p class="sub">ผลตอบแทนจากการเทรดจริง — ไม่รวมผลของการฝาก/ถอนเงิน</p>
     <div class="updated" id="updated"></div>
+    <div class="hstrip" id="hstrip"></div>
   </div>
+</section>
+
+<div class="wrap">
   <div id="content"><div class="state">กำลังโหลด…</div></div>
 </div>
 
@@ -73,15 +102,13 @@
   const $ = id => document.getElementById(id);
   const money = n => (Number(n)||0).toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 });
   const pct = n => (n>=0?'+':'') + (Number(n)||0).toFixed(2) + '%';
-  const cls = n => n>0 ? 'pos' : n<0 ? 'neg' : 'gold';
+  const cls = n => n>0 ? 'pos' : n<0 ? 'neg' : 'blue';
+  const esc = s => String(s==null?'':s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 
   (async function () {
     let d;
-    try {
-      const r = await fetch('/api/portfolio');
-      d = await r.json();
-      if (!r.ok) throw new Error();
-    } catch { $('content').innerHTML = '<div class="state">โหลดข้อมูลไม่สำเร็จ</div>'; return; }
+    try { const r = await fetch('/api/portfolio'); d = await r.json(); if (!r.ok) throw new Error(); }
+    catch { $('content').innerHTML = '<div class="state">โหลดข้อมูลไม่สำเร็จ</div>'; return; }
 
     if (!d.curve || !d.curve.length) {
       $('content').innerHTML = '<div class="state">ยังไม่มีข้อมูลพอร์ต — รอการซิงค์จากระบบ</div>';
@@ -89,19 +116,18 @@
     }
     const f = d.fund;
     $('updated').textContent = 'ข้อมูลล่าสุด ' + (d.curve[d.curve.length-1].d || '');
+    $('hstrip').innerHTML =
+      hstat('กำไรสะสม', pct(f.gainCumulative), cls(f.gainCumulative))
+      + hstat('มูลค่าพอร์ตรวม', '$' + money(f.equity), 'white')
+      + hstat('Max drawdown', f.maxDrawdown.toFixed(2) + '%', 'neg')
+      + hstat('จำนวนบัญชี', String(f.accounts), 'blue');
 
     $('content').innerHTML =
       '<div class="cards">'
-      + card('กำไรสะสม', pct(f.gainCumulative), cls(f.gainCumulative), true)
       + card('เดือนนี้', pct(f.gainMonth), cls(f.gainMonth))
       + card('วันนี้', pct(f.gainToday), cls(f.gainToday))
-      + card('Drawdown สูงสุด', f.maxDrawdown.toFixed(2) + '%', 'neg')
-      + '</div>'
-      + '<div class="cards">'
-      + card('มูลค่าพอร์ตรวม', '$' + money(f.equity), 'gold')
-      + card('เงินทุนรวม (ฝาก)', '$' + money(f.deposits), '')
-      + card('ถอนสะสม', '$' + money(f.withdrawals), '')
-      + card('จำนวนบัญชี', String(f.accounts), '')
+      + card('เงินทุนรวม (ฝาก)', '$' + money(f.deposits), 'white')
+      + card('ถอนสะสม', '$' + money(f.withdrawals), 'white')
       + '</div>'
       + '<div class="panel"><h2>กราฟกำไรสะสม (%)</h2><div class="chart-box"><canvas id="curve"></canvas></div></div>'
       + '<div class="panel"><h2>กำไรรายเดือน (%)</h2><div class="month-box"><canvas id="months"></canvas></div></div>'
@@ -119,30 +145,30 @@
     drawMonths(d.monthly);
   })();
 
-  function card(lbl, val, c, big) {
-    return '<div class="c"><div class="lbl">' + lbl + '</div><div class="val ' + (big?'big ':'') + (c||'') + '">' + val + '</div></div>';
-  }
-  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+  function hstat(k, v, c) { return '<div class="hstat"><div class="k">' + k + '</div><div class="v ' + (c||'') + '">' + v + '</div></div>'; }
+  function card(lbl, val, c) { return '<div class="c"><div class="lbl">' + lbl + '</div><div class="val ' + (c||'') + '">' + val + '</div></div>'; }
 
   function drawCurve(curve) {
-    const grad = document.createElement('canvas').getContext('2d');
     new Chart($('curve'), {
       type:'line',
-      data:{ labels:curve.map(p=>p.d), datasets:[{ data:curve.map(p=>p.gain), borderColor:'#d4af37', backgroundColor:'rgba(212,175,55,.12)', fill:true, tension:.25, pointRadius:0, borderWidth:2 }] },
-      options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:c=>' '+(c.parsed.y>=0?'+':'')+c.parsed.y.toFixed(2)+'%' } } },
-        scales:{ x:{ ticks:{ color:'#7a7a7a', maxTicksLimit:8 }, grid:{ color:'rgba(255,255,255,.05)' } },
-                 y:{ ticks:{ color:'#7a7a7a', callback:v=>v+'%' }, grid:{ color:'rgba(255,255,255,.05)' } } } }
+      data:{ labels:curve.map(p=>p.d), datasets:[{ data:curve.map(p=>p.gain), borderColor:'#3d7bff',
+        backgroundColor:'rgba(61,123,255,.14)', fill:true, tension:.25, pointRadius:0, borderWidth:2 }] },
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false},
+        tooltip:{ callbacks:{ label:c=>' '+(c.parsed.y>=0?'+':'')+c.parsed.y.toFixed(2)+'%' } } },
+        scales:{ x:{ ticks:{ color:'#8a93a6', maxTicksLimit:8 }, grid:{ color:'rgba(255,255,255,.05)' } },
+                 y:{ ticks:{ color:'#8a93a6', callback:v=>v+'%' }, grid:{ color:'rgba(255,255,255,.05)' } } } }
     });
   }
   function drawMonths(monthly) {
     new Chart($('months'), {
       type:'bar',
       data:{ labels:monthly.map(m=>m.month), datasets:[{ data:monthly.map(m=>m.gain),
-        backgroundColor:monthly.map(m=>m.gain>=0?'rgba(74,222,128,.7)':'rgba(248,113,113,.7)'),
-        borderColor:monthly.map(m=>m.gain>=0?'#4ade80':'#f87171'), borderWidth:1, borderRadius:4 }] },
-      options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:c=>' '+(c.parsed.y>=0?'+':'')+c.parsed.y.toFixed(2)+'%' } } },
-        scales:{ x:{ ticks:{ color:'#7a7a7a' }, grid:{ display:false } },
-                 y:{ ticks:{ color:'#7a7a7a', callback:v=>v+'%' }, grid:{ color:'rgba(255,255,255,.05)' } } } }
+        backgroundColor:monthly.map(m=>m.gain>=0?'rgba(61,123,255,.75)':'rgba(248,113,113,.7)'),
+        borderColor:monthly.map(m=>m.gain>=0?'#3d7bff':'#f87171'), borderWidth:1, borderRadius:4 }] },
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false},
+        tooltip:{ callbacks:{ label:c=>' '+(c.parsed.y>=0?'+':'')+c.parsed.y.toFixed(2)+'%' } } },
+        scales:{ x:{ ticks:{ color:'#8a93a6' }, grid:{ display:false } },
+                 y:{ ticks:{ color:'#8a93a6', callback:v=>v+'%' }, grid:{ color:'rgba(255,255,255,.05)' } } } }
     });
   }
 </script>
