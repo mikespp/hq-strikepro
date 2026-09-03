@@ -74,6 +74,32 @@
     .acc-name { font-weight:700; }
     .state { text-align:center; padding:70px 20px; color:var(--muted); font-size:14px; }
     .disclaimer { font-size:11px; color:rgba(138,147,166,.75); line-height:1.7; margin-top:18px; }
+
+    /* period-return chips */
+    .periods { display:grid; grid-template-columns:repeat(6,1fr); gap:10px; }
+    @media (max-width:720px){ .periods { grid-template-columns:repeat(3,1fr); } }
+    .per { text-align:center; background:var(--card2); border:1px solid var(--border); border-radius:12px; padding:13px 8px; }
+    .per .pk { font-size:10px; letter-spacing:.6px; text-transform:uppercase; color:var(--muted); }
+    .per .pv { font-size:17px; font-weight:900; letter-spacing:-.5px; margin-top:5px; }
+
+    /* master cards */
+    .sec-title { font-size:12px; font-weight:800; color:var(--blue-light); letter-spacing:2px; text-transform:uppercase; margin:26px 4px 14px; }
+    .mgrid { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+    @media (max-width:640px){ .mgrid { grid-template-columns:1fr; } }
+    .mcard { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:18px; position:relative; overflow:hidden;
+      transition:border-color .2s ease, transform .2s ease; }
+    .mcard::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--blue-border),transparent); }
+    .mcard:hover { border-color:var(--blue-border); transform:translateY(-2px); }
+    .mhead { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+    .mname { font-size:16px; font-weight:800; letter-spacing:-.2px; }
+    .mmeta { font-size:11px; color:var(--muted); margin-top:3px; }
+    .mall { text-align:right; flex-shrink:0; }
+    .mall .lbl { font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); }
+    .mall .v { font-size:22px; font-weight:900; letter-spacing:-.5px; line-height:1.1; }
+    .mspark { width:100%; height:56px; margin:12px 0 4px; display:block; }
+    .mrow { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-top:10px; }
+    .mrow .mk { font-size:9px; letter-spacing:.5px; text-transform:uppercase; color:var(--muted); }
+    .mrow .mv { font-size:13px; font-weight:800; margin-top:3px; }
   </style>
 </head>
 <body>
@@ -100,76 +126,100 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
   const $ = id => document.getElementById(id);
-  const money = n => (Number(n)||0).toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 });
+  const money = n => (Number(n)||0).toLocaleString('en-US', { maximumFractionDigits:0 });
   const pct = n => (n>=0?'+':'') + (Number(n)||0).toFixed(2) + '%';
   const cls = n => n>0 ? 'pos' : n<0 ? 'neg' : 'blue';
   const esc = s => String(s==null?'':s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const fmtDate = ts => { const d = new Date(ts*1000); return isNaN(d) ? '' : d.toLocaleDateString('th-TH', { day:'numeric', month:'short', year:'2-digit' }); };
 
   (async function () {
     let d;
     try { const r = await fetch('/api/portfolio'); d = await r.json(); if (!r.ok) throw new Error(); }
     catch { $('content').innerHTML = '<div class="state">โหลดข้อมูลไม่สำเร็จ</div>'; return; }
 
-    if (!d.curve || !d.curve.length) {
+    if (!d.masters || !d.masters.length) {
       $('content').innerHTML = '<div class="state">ยังไม่มีข้อมูลพอร์ต — รอการซิงค์จากระบบ</div>';
       return;
     }
     const f = d.fund;
-    $('updated').textContent = 'ข้อมูลล่าสุด ' + (d.curve[d.curve.length-1].d || '');
+    const lastT = d.fundCurve && d.fundCurve.length ? d.fundCurve[d.fundCurve.length-1].t : 0;
+    $('updated').textContent = lastT ? 'ข้อมูลล่าสุด ' + fmtDate(lastT) : '';
     $('hstrip').innerHTML =
-      hstat('กำไรสะสม', pct(f.gainCumulative), cls(f.gainCumulative))
-      + hstat('มูลค่าพอร์ตรวม', '$' + money(f.equity), 'white')
-      + hstat('Max drawdown', f.maxDrawdown.toFixed(2) + '%', 'neg')
-      + hstat('จำนวนบัญชี', String(f.accounts), 'blue');
+      hstat('ผลตอบแทนรวมทั้งหมด', pct(f.profitAll), cls(f.profitAll))
+      + hstat('เงินลงทุนภายใต้การดูแล', '$' + money(f.aum), 'white')
+      + hstat('Max drawdown', (Number(f.maxDrawdown)||0).toFixed(1) + '%', 'neg')
+      + hstat('จำนวนพอร์ต', String(f.masters), 'blue');
 
     $('content').innerHTML =
-      '<div class="cards">'
-      + card('เดือนนี้', pct(f.gainMonth), cls(f.gainMonth))
-      + card('วันนี้', pct(f.gainToday), cls(f.gainToday))
-      + card('เงินทุนรวม (ฝาก)', '$' + money(f.deposits), 'white')
-      + card('ถอนสะสม', '$' + money(f.withdrawals), 'white')
-      + '</div>'
-      + '<div class="panel"><h2>กราฟกำไรสะสม (%)</h2><div class="chart-box"><canvas id="curve"></canvas></div></div>'
-      + '<div class="panel"><h2>กำไรรายเดือน (%)</h2><div class="month-box"><canvas id="months"></canvas></div></div>'
-      + '<div class="panel"><h2>รายบัญชี</h2>'
-      + '<table><thead><tr><th>บัญชี</th><th class="r">มูลค่า</th><th class="r">เดือนนี้</th><th class="r">กำไรสะสม</th></tr></thead><tbody>'
-      + d.accounts.map(a =>
-          '<tr><td class="acc-name">' + esc(a.label) + '</td>'
-          + '<td class="r">$' + money(a.equity) + '</td>'
-          + '<td class="r ' + cls(a.gainMonth) + '">' + pct(a.gainMonth) + '</td>'
-          + '<td class="r ' + cls(a.gainCumulative) + '">' + pct(a.gainCumulative) + '</td></tr>').join('')
-      + '</tbody></table></div>'
-      + '<p class="disclaimer">* ตัวเลข % คิดเฉพาะกำไรจากการเทรด ไม่นับเงินฝากหรือถอน เพื่อสะท้อนผลการเทรดจริง · ผลการดำเนินงานในอดีตไม่ได้รับประกันผลในอนาคต การเทรดมีความเสี่ยง</p>';
+      '<div class="panel"><h2>ผลตอบแทนรวม (ถ่วงน้ำหนักตามขนาดพอร์ต)</h2>'
+      + '<div class="periods">'
+      + per('สัปดาห์', f.profitWeek) + per('เดือน', f.profitMonth) + per('3 เดือน', f.profit3m)
+      + per('6 เดือน', f.profit6m) + per('12 เดือน', f.profit12m) + per('ทั้งหมด', f.profitAll)
+      + '</div></div>'
+      + '<div class="panel"><h2>กราฟผลตอบแทนสะสม (%)</h2><div class="chart-box"><canvas id="curve"></canvas></div></div>'
+      + '<div class="sec-title">พอร์ต Master ทั้งหมด (' + f.masters + ')</div>'
+      + '<div class="mgrid">' + d.masters.map(mcard).join('') + '</div>'
+      + '<p class="disclaimer">* ตัวเลข % คิดเฉพาะผลตอบแทนจากการเทรด ไม่นับเงินฝากหรือถอน เพื่อสะท้อนผลการเทรดจริง · ผลการดำเนินงานในอดีตไม่ได้รับประกันผลในอนาคต การเทรดมีความเสี่ยง โปรดพิจารณาก่อนตัดสินใจลงทุน</p>';
 
-    drawCurve(d.curve);
-    drawMonths(d.monthly);
+    if (d.fundCurve && d.fundCurve.length > 1) drawCurve(d.fundCurve);
+    else { const p = $('curve').closest('.panel'); if (p) p.style.display = 'none'; }
+
+    requestAnimationFrame(() => d.masters.forEach(m => drawSpark('sp_' + m.accountId, m.curve)));
+    let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() =>
+      d.masters.forEach(m => drawSpark('sp_' + m.accountId, m.curve)), 150); });
   })();
 
   function hstat(k, v, c) { return '<div class="hstat"><div class="k">' + k + '</div><div class="v ' + (c||'') + '">' + v + '</div></div>'; }
-  function card(lbl, val, c) { return '<div class="c"><div class="lbl">' + lbl + '</div><div class="val ' + (c||'') + '">' + val + '</div></div>'; }
+  function per(k, v) { return '<div class="per"><div class="pk">' + k + '</div><div class="pv ' + cls(v) + '">' + pct(v) + '</div></div>'; }
+
+  function mcard(m) {
+    return '<div class="mcard">'
+      + '<div class="mhead"><div><div class="mname">' + esc(m.name) + '</div>'
+      +   '<div class="mmeta">$' + money(m.aum) + ' · ' + m.followers + ' ผู้ติดตาม</div></div>'
+      +   '<div class="mall"><div class="lbl">ทั้งหมด</div><div class="v ' + cls(m.profitAll) + '">' + pct(m.profitAll) + '</div></div></div>'
+      + '<canvas class="mspark" id="sp_' + m.accountId + '"></canvas>'
+      + '<div class="mrow">'
+      +   '<div><div class="mk">เดือน</div><div class="mv ' + cls(m.profitMonth) + '">' + pct(m.profitMonth) + '</div></div>'
+      +   '<div><div class="mk">12 เดือน</div><div class="mv ' + cls(m.profit12m) + '">' + pct(m.profit12m) + '</div></div>'
+      +   '<div><div class="mk">Max DD</div><div class="mv neg">' + (Number(m.maxDrawdown)||0).toFixed(1) + '%</div></div>'
+      +   '<div><div class="mk">PF</div><div class="mv white">' + (Number(m.profitFactor)||0).toFixed(2) + '</div></div>'
+      + '</div></div>';
+  }
 
   function drawCurve(curve) {
     new Chart($('curve'), {
       type:'line',
-      data:{ labels:curve.map(p=>p.d), datasets:[{ data:curve.map(p=>p.gain), borderColor:'#3d7bff',
-        backgroundColor:'rgba(61,123,255,.14)', fill:true, tension:.25, pointRadius:0, borderWidth:2 }] },
+      data:{ labels:curve.map(p=>fmtDate(p.t)), datasets:[{ data:curve.map(p=>p.v), borderColor:'#3d7bff',
+        backgroundColor:ctx => { const g = ctx.chart.ctx.createLinearGradient(0,0,0,300);
+          g.addColorStop(0,'rgba(61,123,255,.28)'); g.addColorStop(1,'rgba(61,123,255,0)'); return g; },
+        fill:true, tension:.25, pointRadius:0, borderWidth:2 }] },
       options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false},
         tooltip:{ callbacks:{ label:c=>' '+(c.parsed.y>=0?'+':'')+c.parsed.y.toFixed(2)+'%' } } },
         scales:{ x:{ ticks:{ color:'#8a93a6', maxTicksLimit:8 }, grid:{ color:'rgba(255,255,255,.05)' } },
                  y:{ ticks:{ color:'#8a93a6', callback:v=>v+'%' }, grid:{ color:'rgba(255,255,255,.05)' } } } }
     });
   }
-  function drawMonths(monthly) {
-    new Chart($('months'), {
-      type:'bar',
-      data:{ labels:monthly.map(m=>m.month), datasets:[{ data:monthly.map(m=>m.gain),
-        backgroundColor:monthly.map(m=>m.gain>=0?'rgba(61,123,255,.75)':'rgba(248,113,113,.7)'),
-        borderColor:monthly.map(m=>m.gain>=0?'#3d7bff':'#f87171'), borderWidth:1, borderRadius:4 }] },
-      options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false},
-        tooltip:{ callbacks:{ label:c=>' '+(c.parsed.y>=0?'+':'')+c.parsed.y.toFixed(2)+'%' } } },
-        scales:{ x:{ ticks:{ color:'#8a93a6' }, grid:{ display:false } },
-                 y:{ ticks:{ color:'#8a93a6', callback:v=>v+'%' }, grid:{ color:'rgba(255,255,255,.05)' } } } }
-    });
+
+  // lightweight inline sparkline (no Chart instance per card)
+  function drawSpark(id, curve) {
+    const cv = $(id); if (!cv || !curve || curve.length < 2) return;
+    const dpr = window.devicePixelRatio || 1;
+    const w = cv.clientWidth || 300, h = cv.clientHeight || 56;
+    cv.width = w * dpr; cv.height = h * dpr;
+    const g = cv.getContext('2d'); g.scale(dpr, dpr);
+    const ys = curve.map(p => p.v), min = Math.min(...ys), max = Math.max(...ys), span = (max - min) || 1;
+    const pad = 3, X = i => pad + (i/(curve.length-1)) * (w - pad*2), Y = v => (h - pad) - ((v - min)/span) * (h - pad*2);
+    const up = ys[ys.length-1] >= ys[0], line = up ? '#4ade80' : '#f87171';
+    // area
+    const grad = g.createLinearGradient(0,0,0,h);
+    grad.addColorStop(0, up ? 'rgba(74,222,128,.22)' : 'rgba(248,113,113,.22)'); grad.addColorStop(1, 'rgba(0,0,0,0)');
+    g.beginPath(); g.moveTo(X(0), Y(ys[0]));
+    curve.forEach((p,i)=>g.lineTo(X(i), Y(p.v)));
+    g.lineTo(X(curve.length-1), h); g.lineTo(X(0), h); g.closePath(); g.fillStyle = grad; g.fill();
+    // line
+    g.beginPath(); g.moveTo(X(0), Y(ys[0]));
+    curve.forEach((p,i)=>g.lineTo(X(i), Y(p.v)));
+    g.strokeStyle = line; g.lineWidth = 1.8; g.lineJoin = 'round'; g.stroke();
   }
 </script>
 </body>

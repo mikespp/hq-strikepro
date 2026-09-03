@@ -1,7 +1,7 @@
 const express = require('express');
 const crypto  = require('crypto');
 const db      = require('../db/database');
-const { computeFund } = require('../lib/portfolio-calc');
+const { computeMasters } = require('../lib/portfolio-calc');
 
 const router = express.Router();
 
@@ -15,39 +15,32 @@ function requireSyncKey(req, res, next) {
   next();
 }
 
-// ── POST /api/portfolio/sync  (sync key) — VPS pushes account list + daily rows ─
-// Body: { accounts:[{login,label,server,currency}], snapshots:[{login,d,balance,equity,deposit,withdrawal}] }
+// ── POST /api/portfolio/sync  (sync key) — VPS pushes the master figures ───────
+// Body: { masters: [{ account_id, name, currency, aum, balance, equity, followers,
+//   score, risk, max_dd, profit_factor, p_week, p_month, p_3m, p_6m, p_12m, p_18m,
+//   p_all, sort_order, minichart:[{timestamp,etwr,btwr,balance,equity}] }] }
+// These are the StrikePro widget API's own deposit/withdrawal-neutral returns.
 router.post('/sync', requireSyncKey, async (req, res) => {
-  const accounts  = Array.isArray(req.body.accounts)  ? req.body.accounts  : [];
-  const snapshots = Array.isArray(req.body.snapshots) ? req.body.snapshots : [];
+  const masters = Array.isArray(req.body.masters) ? req.body.masters : [];
   try {
-    for (const a of accounts) {
-      const login = parseInt(a.login, 10);
-      if (login) await db.upsertPortfolioAccount(login, a);
-    }
     let n = 0;
-    for (const s of snapshots) {
-      const login = parseInt(s.login, 10);
-      if (!login || !/^\d{4}-\d{2}-\d{2}$/.test(String(s.d || ''))) continue;
-      await db.upsertPortfolioAccount(login, {});   // ensure the account row exists
-      await db.upsertPortfolioDaily(login, s);
+    for (const m of masters) {
+      if (!m || !m.account_id) continue;
+      await db.upsertMaster(m);
       n++;
     }
-    res.json({ ok: true, accounts: accounts.length, snapshots: n });
+    res.json({ ok: true, masters: n });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Sync failed.' });
   }
 });
 
-// ── GET /api/portfolio  (public) — fund performance (Myfxbook-style TWR) ───────
+// ── GET /api/portfolio  (public) — พอร์ต Master performance ────────────────────
 router.get('/', async (req, res) => {
   try {
-    const [rows, accts] = await Promise.all([db.getPortfolioDaily(), db.listPortfolioAccounts()]);
-    const out = computeFund(rows);
-    const labels = new Map(accts.map(a => [Number(a.login), a.label]));
-    out.accounts.forEach(a => { a.label = labels.get(Number(a.login)) || ('#' + a.login); });
-    res.json(out);
+    const rows = await db.listMasters();
+    res.json(computeMasters(rows));
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });

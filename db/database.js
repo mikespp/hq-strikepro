@@ -221,6 +221,37 @@ async function init() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
+  // พอร์ต Master — latest per-master performance, pushed daily from the VPS
+  // (which reads the StrikePro widget API). The % figures (p_*) are the
+  // platform's own deposit/withdrawal-neutral returns (Myfxbook-style TWR),
+  // and `minichart` is the JSON etwr growth curve.
+  await pool.execute(`
+    CREATE TABLE IF NOT EXISTS pf_masters (
+      account_id    VARCHAR(50)  NOT NULL PRIMARY KEY,
+      name          VARCHAR(255) NOT NULL DEFAULT '',
+      currency      VARCHAR(10)  NOT NULL DEFAULT 'USD',
+      aum           DOUBLE       NOT NULL DEFAULT 0,
+      balance       DOUBLE       NOT NULL DEFAULT 0,
+      equity        DOUBLE       NOT NULL DEFAULT 0,
+      followers     INT          NOT NULL DEFAULT 0,
+      score         DOUBLE       NOT NULL DEFAULT 0,
+      risk          DOUBLE       NOT NULL DEFAULT 0,
+      max_dd        DOUBLE       NOT NULL DEFAULT 0,
+      profit_factor DOUBLE       NOT NULL DEFAULT 0,
+      p_week        DOUBLE       NOT NULL DEFAULT 0,
+      p_month       DOUBLE       NOT NULL DEFAULT 0,
+      p_3m          DOUBLE       NOT NULL DEFAULT 0,
+      p_6m          DOUBLE       NOT NULL DEFAULT 0,
+      p_12m         DOUBLE       NOT NULL DEFAULT 0,
+      p_18m         DOUBLE       NOT NULL DEFAULT 0,
+      p_all         DOUBLE       NOT NULL DEFAULT 0,
+      minichart     LONGTEXT     NULL,
+      sort_order    SMALLINT     NOT NULL DEFAULT 0,
+      active        TINYINT(1)   NOT NULL DEFAULT 1,
+      updated_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
   // The Last Day — per-edition admin state (registration closed / event completed).
   await pool.execute(`
     CREATE TABLE IF NOT EXISTS the_last_day_state (
@@ -1346,6 +1377,46 @@ async function getPortfolioDaily() {
   return rows;
 }
 
+// ── พอร์ต Master (StrikePro widget API, pushed from the VPS) ─────────────────────
+async function upsertMaster(m) {
+  const id = String(m.account_id || '').slice(0, 50);
+  if (!id) return;
+  const mc = m.minichart == null ? null
+    : (typeof m.minichart === 'string' ? m.minichart : JSON.stringify(m.minichart));
+  await pool.execute(
+    `INSERT INTO pf_masters
+       (account_id, name, currency, aum, balance, equity, followers, score, risk,
+        max_dd, profit_factor, p_week, p_month, p_3m, p_6m, p_12m, p_18m, p_all,
+        minichart, sort_order, active)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1)
+     ON DUPLICATE KEY UPDATE
+       name=COALESCE(NULLIF(VALUES(name),''),name), currency=VALUES(currency),
+       aum=VALUES(aum), balance=VALUES(balance), equity=VALUES(equity),
+       followers=VALUES(followers), score=VALUES(score), risk=VALUES(risk),
+       max_dd=VALUES(max_dd), profit_factor=VALUES(profit_factor),
+       p_week=VALUES(p_week), p_month=VALUES(p_month), p_3m=VALUES(p_3m),
+       p_6m=VALUES(p_6m), p_12m=VALUES(p_12m), p_18m=VALUES(p_18m), p_all=VALUES(p_all),
+       minichart=VALUES(minichart), sort_order=VALUES(sort_order), active=1`,
+    [id, String(m.name || '').slice(0, 255), String(m.currency || 'USD').slice(0, 10),
+     Number(m.aum) || 0, Number(m.balance) || 0, Number(m.equity) || 0,
+     parseInt(m.followers, 10) || 0, Number(m.score) || 0, Number(m.risk) || 0,
+     Number(m.max_dd) || 0, Number(m.profit_factor) || 0,
+     Number(m.p_week) || 0, Number(m.p_month) || 0, Number(m.p_3m) || 0,
+     Number(m.p_6m) || 0, Number(m.p_12m) || 0, Number(m.p_18m) || 0, Number(m.p_all) || 0,
+     mc, parseInt(m.sort_order, 10) || 0]
+  );
+}
+async function listMasters() {
+  const [rows] = await pool.execute(
+    `SELECT account_id, name, currency, aum, balance, equity, followers, score, risk,
+            max_dd, profit_factor, p_week, p_month, p_3m, p_6m, p_12m, p_18m, p_all,
+            minichart, DATE_FORMAT(updated_at, '%Y-%m-%dT%H:%i:%sZ') AS updated_at
+     FROM pf_masters WHERE active = 1
+     ORDER BY sort_order ASC, aum DESC, account_id ASC`
+  );
+  return rows;
+}
+
 // ── Events (calendar) ─────────────────────────────────────────────────────────
 
 // DB row -> API shape used by the calendar frontend: { id, t, s:[y,m,d], e:[y,m,d], c, h, live }
@@ -1561,4 +1632,5 @@ module.exports = {
   countDinnerRegistrations, hasDinnerRegistration, createDinnerRegistration,
   listDinnerRegistrations, setDinnerFlag, getDinnerEmailById, emailInDinner,
   upsertPortfolioAccount, upsertPortfolioDaily, listPortfolioAccounts, getPortfolioDaily,
+  upsertMaster, listMasters,
 };
