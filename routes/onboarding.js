@@ -80,6 +80,13 @@ router.patch('/customers/:id/step/:stepId', requireAdmin, async (req, res) => {
   catch (e) { console.error(e); res.status(500).json({ error: 'บันทึกไม่สำเร็จ' }); }
 });
 
+// ── GET /api/onboarding/emails  (sync key) — VPS pulls the customer email list ──
+// So the VPS auto-sync can look up each customer's KYC level / balance in B2.
+router.get('/emails', requireSyncKey, async (req, res) => {
+  try { res.json(await db.listOnboardingEmails()); }
+  catch (e) { console.error(e); res.status(500).json({ error: 'Failed.' }); }
+});
+
 // ── POST /api/onboarding/sync  (sync key) — the future automatic data feed ──────
 // Body: { updates: [{ email, step_key, done }] }  — done defaults to true.
 // Only updates customers already added by admin; unknown email/step_key is skipped.

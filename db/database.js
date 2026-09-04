@@ -1586,6 +1586,11 @@ async function listOnboardingCustomers() {
   rows.forEach(r => { r.progress = byCust.get(r.id) || {}; });
   return rows;
 }
+// Just the emails (for the VPS auto-sync to look up KYC level / balance in B2).
+async function listOnboardingEmails() {
+  const [rows] = await pool.execute('SELECT email FROM onboarding_customers');
+  return rows.map(r => r.email);
+}
 async function setOnboardingProgress(customerId, stepId, done) {
   await pool.execute(
     `INSERT INTO onboarding_progress (customer_id, step_id, done, done_at)
@@ -1873,5 +1878,5 @@ module.exports = {
   saveMasterAccount, listMasterAccountsAdmin, listMasterAccountsForFetch, deleteMasterAccount, setMasterActive,
   listOnboardingSteps, addOnboardingStep, updateOnboardingStep, deleteOnboardingStep,
   addOnboardingCustomer, updateOnboardingCustomer, deleteOnboardingCustomer, listOnboardingCustomers,
-  setOnboardingProgress, setOnboardingProgressByKey,
+  setOnboardingProgress, setOnboardingProgressByKey, listOnboardingEmails,
 };
