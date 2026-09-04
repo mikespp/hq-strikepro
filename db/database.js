@@ -252,6 +252,53 @@ async function init() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
+  // ── Customer onboarding (CS pipeline) ────────────────────────────────────────
+  // Admin adds a customer's email; CS tracks a configurable checklist of steps
+  // (KYC levels, deposit, …) marked done automatically via /api/onboarding/sync
+  // (or manually by admin). Contact info is pulled live from the HQ profile and
+  // can be topped up per customer.
+  await pool.execute(`
+    CREATE TABLE IF NOT EXISTS onboarding_steps (
+      id         INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      step_key   VARCHAR(60)  NOT NULL UNIQUE,     -- stable slug used by the API sync
+      label      VARCHAR(200) NOT NULL,
+      sort_order SMALLINT     NOT NULL DEFAULT 0,
+      active     TINYINT(1)   NOT NULL DEFAULT 1,
+      created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+  await pool.execute(`
+    CREATE TABLE IF NOT EXISTS onboarding_customers (
+      id         INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      email      VARCHAR(255) NOT NULL UNIQUE,
+      name       VARCHAR(255) NOT NULL DEFAULT '',
+      contact    VARCHAR(500) NOT NULL DEFAULT '',   -- admin-entered social / contact channel
+      note       TEXT         NULL,
+      added_by   VARCHAR(255) NOT NULL DEFAULT '',
+      created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+  await pool.execute(`
+    CREATE TABLE IF NOT EXISTS onboarding_progress (
+      customer_id INT UNSIGNED NOT NULL,
+      step_id     INT UNSIGNED NOT NULL,
+      done        TINYINT(1)   NOT NULL DEFAULT 0,
+      done_at     DATETIME     NULL,
+      PRIMARY KEY (customer_id, step_id),
+      KEY idx_customer (customer_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+  // Seed the default steps once (idempotent via unique step_key).
+  await pool.execute(
+    `INSERT IGNORE INTO onboarding_steps (step_key, label, sort_order) VALUES
+       ('kyc_l1',    'KYC StrikePro Lv.1', 1),
+       ('topup_l1',  'Top-Up KYC Lv.1',    2),
+       ('topup_l2',  'Top-Up KYC Lv.2',    3),
+       ('deposit',   'ฝากเงิน',            4)`
+  );
+
   // The Last Day — per-edition admin state (registration closed / event completed).
   await pool.execute(`
     CREATE TABLE IF NOT EXISTS the_last_day_state (
@@ -1436,6 +1483,126 @@ async function deleteMasterAccount(login) {
 async function setMasterActive(login, active) {
   await pool.execute('UPDATE pf_accounts SET active = ? WHERE login = ?', [active ? 1 : 0, login]);
 }
+
+// ── Customer onboarding (CS pipeline) ───────────────────────────────────────────
+function slugifyStepKey(label) {
+  const s = String(label || '').trim().toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 50);
+  return s || ('step_' + Date.now());
+}
+async function listOnboardingSteps(activeOnly = false) {
+  const [rows] = await pool.execute(
+    `SELECT id, step_key, label, sort_order, active FROM onboarding_steps
+     ${activeOnly ? 'WHERE active = 1' : ''} ORDER BY sort_order ASC, id ASC`
+  );
+  return rows;
+}
+async function addOnboardingStep(d) {
+  const label = String(d.label || '').trim();
+  if (!label) return null;
+  let key = String(d.step_key || '').trim().toLowerCase().replace(/[^a-z0-9_]/g, '') || slugifyStepKey(label);
+  // ensure uniqueness
+  const [ex] = await pool.execute('SELECT 1 FROM onboarding_steps WHERE step_key = ? LIMIT 1', [key]);
+  if (ex.length) key = key + '_' + Date.now().toString(36);
+  let sort = parseInt(d.sort_order, 10);
+  if (!Number.isFinite(sort)) {
+    const [m] = await pool.execute('SELECT COALESCE(MAX(sort_order),0)+1 AS n FROM onboarding_steps');
+    sort = m[0].n;
+  }
+  const [r] = await pool.execute(
+    'INSERT INTO onboarding_steps (step_key, label, sort_order) VALUES (?,?,?)',
+    [key.slice(0, 60), label.slice(0, 200), sort]
+  );
+  return r.insertId;
+}
+async function updateOnboardingStep(id, d) {
+  const sets = [], vals = [];
+  if (d.label != null)      { sets.push('label = ?');      vals.push(String(d.label).slice(0, 200)); }
+  if (d.sort_order != null) { sets.push('sort_order = ?'); vals.push(parseInt(d.sort_order, 10) || 0); }
+  if (d.active != null)     { sets.push('active = ?');     vals.push(d.active ? 1 : 0); }
+  if (!sets.length) return false;
+  vals.push(id);
+  const [r] = await pool.execute(`UPDATE onboarding_steps SET ${sets.join(', ')} WHERE id = ?`, vals);
+  return r.affectedRows > 0;
+}
+async function deleteOnboardingStep(id) {
+  await pool.execute('DELETE FROM onboarding_progress WHERE step_id = ?', [id]);
+  const [r] = await pool.execute('DELETE FROM onboarding_steps WHERE id = ?', [id]);
+  return r.affectedRows > 0;
+}
+
+async function addOnboardingCustomer(d) {
+  const email = String(d.email || '').trim().toLowerCase();
+  if (!email) return null;
+  await pool.execute(
+    `INSERT INTO onboarding_customers (email, name, contact, note, added_by)
+     VALUES (?,?,?,?,?)
+     ON DUPLICATE KEY UPDATE
+       name    = COALESCE(NULLIF(VALUES(name),''), name),
+       contact = COALESCE(NULLIF(VALUES(contact),''), contact),
+       note    = COALESCE(VALUES(note), note)`,
+    [email, String(d.name || '').slice(0, 255), String(d.contact || '').slice(0, 500),
+     d.note != null ? String(d.note) : null, String(d.added_by || '').slice(0, 255)]
+  );
+  const [row] = await pool.execute('SELECT id FROM onboarding_customers WHERE email = ?', [email]);
+  return row.length ? row[0].id : null;
+}
+async function updateOnboardingCustomer(id, d) {
+  const sets = [], vals = [];
+  if (d.name != null)    { sets.push('name = ?');    vals.push(String(d.name).slice(0, 255)); }
+  if (d.contact != null) { sets.push('contact = ?'); vals.push(String(d.contact).slice(0, 500)); }
+  if (d.note != null)    { sets.push('note = ?');    vals.push(String(d.note)); }
+  if (!sets.length) return false;
+  vals.push(id);
+  const [r] = await pool.execute(`UPDATE onboarding_customers SET ${sets.join(', ')} WHERE id = ?`, vals);
+  return r.affectedRows > 0;
+}
+async function deleteOnboardingCustomer(id) {
+  await pool.execute('DELETE FROM onboarding_progress WHERE customer_id = ?', [id]);
+  const [r] = await pool.execute('DELETE FROM onboarding_customers WHERE id = ?', [id]);
+  return r.affectedRows > 0;
+}
+// Customers + live registration status (HQ profile join + StrikePro allowlist) + progress map.
+async function listOnboardingCustomers() {
+  const [rows] = await pool.execute(
+    `SELECT c.id, c.email, c.name, c.contact, c.note, c.added_by,
+            DATE_FORMAT(c.created_at, '%Y-%m-%d %H:%i') AS created_at,
+            (u.id IS NOT NULL)                                   AS hq_registered,
+            u.phone AS hq_phone, u.line_id AS hq_line, u.nickname AS hq_nickname,
+            TRIM(CONCAT(COALESCE(u.first_name,''),' ',COALESCE(u.last_name,''))) AS hq_name,
+            (SHA2(LOWER(TRIM(c.email)),256) IN (SELECT email_hash FROM eligible_emails)) AS strikepro_registered
+     FROM onboarding_customers c
+     LEFT JOIN users u ON LOWER(u.email) = LOWER(c.email)
+     ORDER BY c.created_at DESC`
+  );
+  const [prog] = await pool.execute(
+    `SELECT customer_id, step_id, done, DATE_FORMAT(done_at, '%Y-%m-%d %H:%i') AS done_at FROM onboarding_progress`
+  );
+  const byCust = new Map();
+  for (const p of prog) {
+    if (!byCust.has(p.customer_id)) byCust.set(p.customer_id, {});
+    byCust.get(p.customer_id)[p.step_id] = { done: !!p.done, done_at: p.done_at };
+  }
+  rows.forEach(r => { r.progress = byCust.get(r.id) || {}; });
+  return rows;
+}
+async function setOnboardingProgress(customerId, stepId, done) {
+  await pool.execute(
+    `INSERT INTO onboarding_progress (customer_id, step_id, done, done_at)
+     VALUES (?,?,?,${done ? 'NOW()' : 'NULL'})
+     ON DUPLICATE KEY UPDATE done = VALUES(done), done_at = ${done ? 'NOW()' : 'NULL'}`,
+    [customerId, stepId, done ? 1 : 0]
+  );
+}
+// Sync helper: mark a step done/undone by (email, step_key). Returns true if matched.
+async function setOnboardingProgressByKey(email, stepKey, done) {
+  const [c] = await pool.execute('SELECT id FROM onboarding_customers WHERE email = ?', [String(email || '').trim().toLowerCase()]);
+  if (!c.length) return false;
+  const [s] = await pool.execute('SELECT id FROM onboarding_steps WHERE step_key = ?', [String(stepKey || '').trim().toLowerCase()]);
+  if (!s.length) return false;
+  await setOnboardingProgress(c[0].id, s[0].id, done);
+  return true;
+}
 async function getPortfolioDaily() {
   const [rows] = await pool.execute(
     `SELECT login, DATE_FORMAT(d, '%Y-%m-%d') AS d, balance, equity, deposit, withdrawal
@@ -1704,4 +1871,7 @@ module.exports = {
   upsertPortfolioAccount, upsertPortfolioDaily, listPortfolioAccounts, getPortfolioDaily,
   upsertMaster, listMasters,
   saveMasterAccount, listMasterAccountsAdmin, listMasterAccountsForFetch, deleteMasterAccount, setMasterActive,
+  listOnboardingSteps, addOnboardingStep, updateOnboardingStep, deleteOnboardingStep,
+  addOnboardingCustomer, updateOnboardingCustomer, deleteOnboardingCustomer, listOnboardingCustomers,
+  setOnboardingProgress, setOnboardingProgressByKey,
 };

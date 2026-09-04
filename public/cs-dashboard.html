@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <meta name="theme-color" content="#3d7bff" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CS Dashboard — Onboarding</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    :root {
+      --bg:#060810; --card:#0e1424; --card2:#131a2e; --border:rgba(255,255,255,.08);
+      --blue:#3d7bff; --blue-light:#6fa8ff; --blue-border:rgba(61,123,255,.26); --blue-dim:rgba(61,123,255,.12);
+      --text:#eef2f8; --muted:#8a93a6; --green:#4ade80; --red:#f87171; --amber:#fbbf24; --radius:16px;
+    }
+    body { font-family:'IBM Plex Sans Thai',sans-serif; background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; }
+    a { color:inherit; text-decoration:none; }
+    nav { position:sticky; top:0; z-index:50; display:flex; align-items:center; gap:12px; padding:14px 20px;
+      background:rgba(6,8,16,.82); backdrop-filter:blur(20px); border-bottom:1px solid var(--border); }
+    .nav-logo img { width:34px; height:34px; object-fit:contain; display:block; }
+    .nav-title { font-size:15px; font-weight:800; color:var(--blue-light); }
+    .nav-user { margin-left:auto; font-size:12px; color:var(--muted); }
+
+    /* shared admin drawer */
+    .hamburger { background:none; border:none; cursor:pointer; color:var(--text); padding:8px; display:flex; flex-direction:column; gap:5px; align-items:center; justify-content:center; border-radius:8px; }
+    .hamburger:hover { background:rgba(255,255,255,.08); }
+    .hamburger span { display:block; width:22px; height:2px; background:currentColor; border-radius:2px; }
+    .drawer-overlay { position:fixed; inset:0; z-index:200; background:rgba(0,0,0,.6); opacity:0; pointer-events:none; transition:opacity .25s; }
+    .drawer-overlay.open { opacity:1; pointer-events:all; }
+    .drawer { position:fixed; top:0; left:0; bottom:0; z-index:201; width:275px; background:#1a1a1a; border-right:1px solid #2e2e2e; display:flex; flex-direction:column; transform:translateX(-100%); transition:transform .28s cubic-bezier(.4,0,.2,1); }
+    .drawer.open { transform:translateX(0); }
+    .drawer-header { display:flex; align-items:center; gap:10px; padding:14px 18px; border-bottom:1px solid #2e2e2e; }
+    .drawer-logo-name { font-size:16px; font-weight:800; color:#f1f1f1; }
+    .drawer-logo-name span { color:#E63946; }
+    .drawer-nav { flex:1; padding:10px 0; overflow-y:auto; display:block !important; position:static !important; background:transparent !important; border:none !important; backdrop-filter:none !important; }
+    .drawer-link { display:flex; align-items:center; gap:12px; padding:13px 20px; font-size:15px; font-weight:600; color:#777; border-left:3px solid transparent; }
+    .drawer-link:hover { color:#f1f1f1; background:#222; }
+    .drawer-link-icon { font-size:18px; }
+    .drawer-footer { padding:16px 18px; border-top:1px solid #2e2e2e; }
+    .drawer-signout { width:100%; background:none; border:1px solid #2e2e2e; color:#777; border-radius:8px; padding:10px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
+    .drawer-signout:hover { border-color:#E63946; color:#E63946; }
+
+    .wrap { max-width:1100px; margin:0 auto; padding:24px 20px 90px; }
+    h1 { font-size:22px; font-weight:900; letter-spacing:-.4px; }
+    .lead { color:var(--muted); font-size:13px; margin-top:6px; line-height:1.6; }
+    .toolbar { display:flex; gap:10px; flex-wrap:wrap; margin:20px 0 8px; }
+    .toolbar input { flex:1; min-width:200px; background:var(--card2); border:1px solid var(--border); border-radius:10px; padding:11px 14px; color:var(--text); font-size:14px; font-family:inherit; }
+    .toolbar input:focus { outline:none; border-color:var(--blue-border); }
+    button { font-family:inherit; cursor:pointer; border:none; border-radius:10px; font-weight:700; font-size:14px; }
+    .btn-primary { background:var(--blue); color:#fff; padding:11px 18px; }
+    .btn-ghost { background:var(--card2); color:var(--text); border:1px solid var(--border); padding:11px 16px; }
+    .stat-line { font-size:13px; color:var(--muted); margin-bottom:16px; }
+    .stat-line b { color:var(--text); }
+
+    .grid { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+    @media (max-width:760px){ .grid { grid-template-columns:1fr; } }
+    .cust { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:18px; position:relative; overflow:hidden; }
+    .cust::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--blue-border),transparent); }
+    .cust-head { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+    .cust-name { font-size:16px; font-weight:800; }
+    .cust-email { font-size:12px; color:var(--muted); margin-top:2px; word-break:break-all; }
+    .cust-actions { display:flex; gap:6px; flex-shrink:0; }
+    .mini { background:var(--card2); color:var(--text); border:1px solid var(--border); padding:6px 10px; font-size:12px; border-radius:8px; }
+    .mini.danger { background:rgba(248,113,113,.14); color:var(--red); border-color:rgba(248,113,113,.3); }
+
+    .prereq { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0; }
+    .badge { font-size:11px; font-weight:700; padding:4px 10px; border-radius:50px; display:inline-flex; align-items:center; gap:5px; }
+    .badge.ok { background:rgba(74,222,128,.14); color:var(--green); border:1px solid rgba(74,222,128,.3); }
+    .badge.no { background:rgba(248,113,113,.13); color:var(--red); border:1px solid rgba(248,113,113,.3); }
+
+    .contact { font-size:12.5px; color:var(--text); background:var(--card2); border:1px solid var(--border); border-radius:10px; padding:9px 12px; margin-bottom:12px; line-height:1.7; }
+    .contact .lbl { color:var(--muted); }
+    .contact a { color:var(--blue-light); }
+
+    .prog-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+    .prog-top .t { font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); font-weight:700; }
+    .prog-top .p { font-size:12px; font-weight:800; color:var(--blue-light); }
+    .bar { height:6px; background:var(--card2); border-radius:50px; overflow:hidden; margin-bottom:12px; }
+    .bar > span { display:block; height:100%; background:linear-gradient(90deg,var(--blue),var(--blue-light)); border-radius:50px; transition:width .3s; }
+    .steps { display:flex; flex-wrap:wrap; gap:7px; }
+    .step { font-size:12px; font-weight:700; padding:7px 12px; border-radius:9px; cursor:pointer; border:1px solid var(--border); background:var(--card2); color:var(--muted); display:inline-flex; align-items:center; gap:6px; transition:.15s; }
+    .step:hover { border-color:var(--blue-border); }
+    .step.done { background:rgba(74,222,128,.14); color:var(--green); border-color:rgba(74,222,128,.32); }
+    .step .ck { width:15px; height:15px; border-radius:4px; border:1.5px solid currentColor; display:inline-flex; align-items:center; justify-content:center; font-size:10px; }
+    .note { font-size:12px; color:var(--muted); margin-top:11px; padding-top:11px; border-top:1px solid var(--border); white-space:pre-wrap; }
+
+    .state { text-align:center; padding:56px 20px; color:var(--muted); font-size:14px; }
+
+    /* modal */
+    .modal { position:fixed; inset:0; z-index:150; display:none; align-items:center; justify-content:center; padding:18px; background:rgba(3,5,10,.72); backdrop-filter:blur(4px); }
+    .modal.on { display:flex; }
+    .box { width:100%; max-width:460px; background:var(--card); border:1px solid var(--border); border-radius:18px; padding:22px; position:relative; max-height:88vh; overflow-y:auto; }
+    .box h3 { font-size:16px; font-weight:800; margin-bottom:16px; }
+    .field { display:flex; flex-direction:column; gap:6px; margin-bottom:13px; }
+    .field label { font-size:12px; color:var(--muted); font-weight:600; }
+    .field input, .field textarea { background:var(--card2); border:1px solid var(--border); border-radius:10px; padding:11px 13px; color:var(--text); font-size:14px; font-family:inherit; }
+    .field input:focus, .field textarea:focus { outline:none; border-color:var(--blue-border); }
+    .modal-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:8px; }
+    .err { color:var(--red); font-size:12px; min-height:16px; }
+    .step-row { display:flex; align-items:center; gap:8px; padding:9px 0; border-bottom:1px solid var(--border); }
+    .step-row .nm { flex:1; font-size:14px; font-weight:600; }
+    .step-row .nm.off { color:var(--muted); text-decoration:line-through; }
+    .step-row button { font-size:12px; padding:5px 9px; border-radius:7px; background:var(--card2); color:var(--text); border:1px solid var(--border); }
+    .toast { position:fixed; left:50%; bottom:26px; transform:translateX(-50%) translateY(20px); opacity:0; transition:.25s; background:var(--card2); border:1px solid var(--blue-border); color:var(--text); padding:11px 20px; border-radius:12px; font-size:13px; z-index:300; }
+    .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+<nav>
+  <button class="hamburger" onclick="toggleDrawer()" aria-label="Menu"><span></span><span></span><span></span></button>
+  <a class="nav-logo" href="/" aria-label="หน้าหลัก"><img src="/logo.png.png" alt="HQ Strikepro" /></a>
+  <span class="nav-title">🎯 CS Dashboard</span>
+  <span class="nav-user" id="navUser"></span>
+</nav>
+
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <img src="/logo.png.png" alt="HQ" style="width:34px;height:34px;object-fit:contain;" />
+    <span class="drawer-logo-name">HQ <span>STRIKEPRO</span></span>
+  </div>
+  <nav class="drawer-nav">
+    <a class="drawer-link" href="/cs" style="color:#d4af37;"><span class="drawer-link-icon">🎯</span> CS Dashboard</a>
+    <a class="drawer-link" href="/reviews-admin"><span class="drawer-link-icon">⭐</span> Reviews</a>
+    <a class="drawer-link" href="/last-account-admin"><span class="drawer-link-icon">🏠</span> ผู้สมัคร Last Account</a>
+    <a class="drawer-link" href="/the-last-day-admin"><span class="drawer-link-icon">🌅</span> ผู้ลงทะเบียน The Last Day</a>
+    <a class="drawer-link" href="/dinner-admin"><span class="drawer-link-icon">🍽️</span> รอบ กินข้าวบ้านจารย์</a>
+    <a class="drawer-link" href="/users-admin"><span class="drawer-link-icon">👤</span> จัดการผู้ใช้</a>
+    <a class="drawer-link" href="/discord-admin"><span class="drawer-link-icon">🎮</span> Discord Verify</a>
+    <a class="drawer-link" href="/portfolio-admin"><span class="drawer-link-icon">📈</span> จัดการพอร์ต Master</a>
+  </nav>
+  <div class="drawer-footer">
+    <button class="drawer-signout" onclick="drawerSignOut()">ออกจากระบบ</button>
+  </div>
+</div>
+
+<div class="wrap" id="wrap" style="display:none">
+  <h1>CS Dashboard — Onboarding ลูกค้าใหม่</h1>
+  <p class="lead">เพิ่มลูกค้าด้วยอีเมลที่ใช้สมัคร แล้วติดตามความคืบหน้าทีละขั้นตอน · ระบบตรวจให้อัตโนมัติว่าลูกค้าสมัคร <b>StrikePro</b> และ <b>HQ</b> แล้วหรือยัง · ขั้นตอนจะถูกติ๊กอัตโนมัติเมื่อเชื่อม API (หรือกดเองได้)</p>
+
+  <div class="toolbar">
+    <input id="search" placeholder="ค้นหาอีเมล / ชื่อ / ช่องทางติดต่อ…" oninput="renderList()" />
+    <button class="btn-primary" onclick="openAdd()">+ เพิ่มลูกค้า</button>
+    <button class="btn-ghost" onclick="openSteps()">⚙ จัดการขั้นตอน</button>
+  </div>
+  <div class="stat-line" id="stats"></div>
+  <div id="content"><div class="state">กำลังโหลด…</div></div>
+</div>
+
+<div class="state" id="gate" style="display:none"></div>
+
+<!-- add / edit customer -->
+<div class="modal" id="custModal">
+  <div class="box">
+    <h3 id="custTitle">เพิ่มลูกค้า</h3>
+    <div class="field"><label>อีเมลที่ลูกค้าใช้สมัคร</label><input id="cEmail" type="email" placeholder="customer@email.com" autocomplete="off" /></div>
+    <div class="field"><label>ชื่อ (ถ้าเว้นว่าง ระบบจะดึงจากโปรไฟล์ HQ)</label><input id="cName" placeholder="ชื่อลูกค้า" /></div>
+    <div class="field"><label>ช่องทางติดต่อ (social / Line / เบอร์)</label><input id="cContact" placeholder="เช่น Line: @customer, FB: ..." /></div>
+    <div class="field"><label>โน้ต</label><textarea id="cNote" rows="2" placeholder="บันทึกเพิ่มเติม"></textarea></div>
+    <div class="err" id="cErr"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal('custModal')">ยกเลิก</button>
+      <button class="btn-primary" id="cSave" onclick="saveCustomer()">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- manage steps -->
+<div class="modal" id="stepsModal">
+  <div class="box">
+    <h3>จัดการขั้นตอน (Onboarding Steps)</h3>
+    <div id="stepList"></div>
+    <div class="field" style="margin-top:14px"><label>เพิ่มขั้นตอนใหม่</label><input id="newStep" placeholder="ชื่อขั้นตอน เช่น ยืนยันตัวตน Lv.3" /></div>
+    <div class="err" id="sErr"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal('stepsModal')">ปิด</button>
+      <button class="btn-primary" onclick="addStep()">+ เพิ่มขั้นตอน</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const TOKEN_KEY = 'sp_token';
+  const $ = id => document.getElementById(id);
+  const auth = () => ({ Authorization:'Bearer '+localStorage.getItem(TOKEN_KEY) });
+  const authJson = () => ({ 'Content-Type':'application/json', ...auth() });
+  const esc = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1900); }
+  function toggleDrawer(){ $('drawer').classList.toggle('open'); $('drawerOverlay').classList.toggle('open'); }
+  function closeDrawer(){ $('drawer').classList.remove('open'); $('drawerOverlay').classList.remove('open'); }
+  function drawerSignOut(){ localStorage.removeItem(TOKEN_KEY); window.location.href='/login'; }
+  function closeModal(id){ $(id).classList.remove('on'); }
+
+  let STEPS = [], CUSTOMERS = [], editId = null;
+
+  (async () => {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) { window.location.href = '/login'; return; }
+    try {
+      const r = await fetch('/api/auth/me', { headers: auth() });
+      if (!r.ok) { window.location.href = '/login'; return; }
+      const { user } = await r.json();
+      $('navUser').textContent = user.email;
+      if (user.role !== 'admin') { $('gate').style.display='block'; $('gate').textContent='🔒 หน้านี้สำหรับผู้ดูแลระบบ (admin) เท่านั้น'; return; }
+      $('wrap').style.display = 'block';
+      load();
+    } catch { window.location.href = '/login'; }
+  })();
+
+  async function load() {
+    try {
+      const r = await fetch('/api/onboarding/customers', { headers: auth() });
+      const d = r.ok ? await r.json() : { customers:[], steps:[] };
+      STEPS = d.steps || []; CUSTOMERS = d.customers || [];
+      renderList();
+    } catch { $('content').innerHTML = '<div class="state">โหลดข้อมูลไม่สำเร็จ</div>'; }
+  }
+
+  function contactBlock(c) {
+    const bits = [];
+    if (c.contact) bits.push('<div><span class="lbl">ติดต่อ:</span> ' + esc(c.contact) + '</div>');
+    if (c.hq_registered) {
+      const p = [];
+      if (c.hq_phone) p.push('📱 <a href="tel:'+esc(c.hq_phone)+'">'+esc(c.hq_phone)+'</a>');
+      if (c.hq_line)  p.push('Line: ' + esc(c.hq_line));
+      if (c.hq_nickname) p.push('ชื่อเล่น ' + esc(c.hq_nickname));
+      if (p.length) bits.push('<div><span class="lbl">โปรไฟล์ HQ:</span> ' + p.join(' · ') + '</div>');
+    }
+    return bits.length ? '<div class="contact">' + bits.join('') + '</div>' : '';
+  }
+
+  function card(c) {
+    const total = STEPS.length;
+    const doneN = STEPS.filter(s => c.progress[s.id] && c.progress[s.id].done).length;
+    const pctN = total ? Math.round(doneN/total*100) : 0;
+    const nm = c.name || c.hq_name || c.email.split('@')[0];
+    const steps = STEPS.map(s => {
+      const on = c.progress[s.id] && c.progress[s.id].done;
+      const t = on && c.progress[s.id].done_at ? ' title="เสร็จ ' + esc(c.progress[s.id].done_at) + '"' : '';
+      return '<span class="step ' + (on?'done':'') + '"' + t + ' onclick="toggleStep(' + c.id + ',' + s.id + ',' + (on?0:1) + ')">'
+        + '<span class="ck">' + (on?'✓':'') + '</span>' + esc(s.label) + '</span>';
+    }).join('');
+    return '<div class="cust">'
+      + '<div class="cust-head"><div><div class="cust-name">' + esc(nm) + '</div><div class="cust-email">' + esc(c.email) + '</div></div>'
+      +   '<div class="cust-actions"><button class="mini" onclick="openEdit(' + c.id + ')">แก้ไข</button>'
+      +   '<button class="mini danger" onclick="delCustomer(' + c.id + ",'" + esc(c.email).replace(/'/g,"\\'") + "'" + ')">ลบ</button></div></div>'
+      + '<div class="prereq">'
+      +   (c.hq_registered ? '<span class="badge ok">✓ สมัคร HQ แล้ว</span>' : '<span class="badge no">✕ ยังไม่สมัคร HQ</span>')
+      +   (c.strikepro_registered ? '<span class="badge ok">✓ StrikePro</span>' : '<span class="badge no">✕ ยังไม่พบใน StrikePro</span>')
+      + '</div>'
+      + contactBlock(c)
+      + '<div class="prog-top"><span class="t">ความคืบหน้า</span><span class="p">' + doneN + '/' + total + ' · ' + pctN + '%</span></div>'
+      + '<div class="bar"><span style="width:' + pctN + '%"></span></div>'
+      + (total ? '<div class="steps">' + steps + '</div>' : '<div class="lead">ยังไม่มีขั้นตอน — เพิ่มที่ปุ่ม “จัดการขั้นตอน”</div>')
+      + (c.note ? '<div class="note">📝 ' + esc(c.note) + '</div>' : '')
+      + '</div>';
+  }
+
+  function renderList() {
+    const q = $('search').value.trim().toLowerCase();
+    const list = CUSTOMERS.filter(c => !q
+      || c.email.toLowerCase().includes(q)
+      || (c.name||'').toLowerCase().includes(q)
+      || (c.hq_name||'').toLowerCase().includes(q)
+      || (c.contact||'').toLowerCase().includes(q));
+    const fully = CUSTOMERS.filter(c => c.hq_registered && c.strikepro_registered
+      && STEPS.length && STEPS.every(s => c.progress[s.id] && c.progress[s.id].done)).length;
+    $('stats').innerHTML = 'ลูกค้าทั้งหมด <b>' + CUSTOMERS.length + '</b> คน · ครบทุกขั้นตอน <b>' + fully + '</b> คน';
+    $('content').innerHTML = list.length
+      ? '<div class="grid">' + list.map(card).join('') + '</div>'
+      : '<div class="state">' + (CUSTOMERS.length ? 'ไม่พบลูกค้าที่ค้นหา' : 'ยังไม่มีลูกค้า — กด “เพิ่มลูกค้า” เพื่อเริ่ม') + '</div>';
+  }
+
+  // ── add / edit customer ─────────────────────────────────────────────────────
+  function openAdd() {
+    editId = null; $('custTitle').textContent = 'เพิ่มลูกค้า'; $('cErr').textContent = '';
+    $('cEmail').value=''; $('cName').value=''; $('cContact').value=''; $('cNote').value='';
+    $('cEmail').disabled = false; $('custModal').classList.add('on');
+  }
+  function openEdit(id) {
+    const c = CUSTOMERS.find(x => x.id === id); if (!c) return;
+    editId = id; $('custTitle').textContent = 'แก้ไขลูกค้า'; $('cErr').textContent = '';
+    $('cEmail').value = c.email; $('cEmail').disabled = true;
+    $('cName').value = c.name || ''; $('cContact').value = c.contact || ''; $('cNote').value = c.note || '';
+    $('custModal').classList.add('on');
+  }
+  async function saveCustomer() {
+    const email = $('cEmail').value.trim().toLowerCase();
+    const body = { name:$('cName').value.trim(), contact:$('cContact').value.trim(), note:$('cNote').value };
+    if (!editId) {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { $('cErr').textContent='อีเมลไม่ถูกต้อง'; return; }
+      body.email = email;
+    }
+    $('cSave').disabled = true;
+    try {
+      const url = editId ? '/api/onboarding/customers/' + editId : '/api/onboarding/customers';
+      const r = await fetch(url, { method: editId ? 'PATCH' : 'POST', headers: authJson(), body: JSON.stringify(body) });
+      const j = await r.json();
+      if (!r.ok) { $('cErr').textContent = j.error || 'บันทึกไม่สำเร็จ'; return; }
+      closeModal('custModal'); await load();
+      if (!editId) {
+        const c = CUSTOMERS.find(x => x.email === email);
+        if (c && (!c.hq_registered || !c.strikepro_registered)) {
+          toast('เพิ่มแล้ว — ⚠️ ' + (!c.hq_registered ? 'ยังไม่พบบัญชี HQ ' : '') + (!c.strikepro_registered ? 'ยังไม่พบใน StrikePro' : ''));
+        } else toast('เพิ่มลูกค้าแล้ว');
+      } else toast('บันทึกแล้ว');
+    } catch { $('cErr').textContent = 'บันทึกไม่สำเร็จ'; }
+    finally { $('cSave').disabled = false; }
+  }
+  async function delCustomer(id, email) {
+    if (!confirm('ลบลูกค้า "' + email + '" ออกจากระบบติดตาม?')) return;
+    try { const r = await fetch('/api/onboarding/customers/' + id, { method:'DELETE', headers: auth() });
+      if (!r.ok) throw new Error(); toast('ลบแล้ว'); load(); }
+    catch { toast('ลบไม่สำเร็จ'); }
+  }
+
+  async function toggleStep(custId, stepId, done) {
+    try {
+      const r = await fetch('/api/onboarding/customers/' + custId + '/step/' + stepId, {
+        method:'PATCH', headers: authJson(), body: JSON.stringify({ done }) });
+      if (!r.ok) throw new Error();
+      const c = CUSTOMERS.find(x => x.id === custId);
+      if (c) { c.progress[stepId] = { done: !!done, done_at: done ? 'เมื่อสักครู่' : null }; renderList(); }
+    } catch { toast('อัปเดตไม่สำเร็จ'); }
+  }
+
+  // ── steps management ────────────────────────────────────────────────────────
+  function openSteps() { renderSteps(); $('sErr').textContent=''; $('newStep').value=''; $('stepsModal').classList.add('on'); }
+  function renderSteps() {
+    $('stepList').innerHTML = STEPS.length ? STEPS.map((s, i) =>
+      '<div class="step-row"><span class="nm ' + (s.active?'':'off') + '">' + esc(s.label) + '</span>'
+      + '<button onclick="moveStep(' + s.id + ',-1)" ' + (i===0?'disabled':'') + '>↑</button>'
+      + '<button onclick="moveStep(' + s.id + ',1)" ' + (i===STEPS.length-1?'disabled':'') + '>↓</button>'
+      + '<button onclick="renameStep(' + s.id + ')">แก้ชื่อ</button>'
+      + '<button onclick="delStep(' + s.id + ')" style="color:var(--red)">ลบ</button></div>'
+    ).join('') : '<div class="lead">ยังไม่มีขั้นตอน</div>';
+  }
+  async function addStep() {
+    const label = $('newStep').value.trim();
+    if (!label) { $('sErr').textContent='กรอกชื่อขั้นตอน'; return; }
+    try { const r = await fetch('/api/onboarding/steps', { method:'POST', headers: authJson(), body: JSON.stringify({ label }) });
+      if (!r.ok) throw new Error(); $('newStep').value=''; await load(); renderSteps(); toast('เพิ่มขั้นตอนแล้ว'); }
+    catch { $('sErr').textContent='เพิ่มไม่สำเร็จ'; }
+  }
+  async function renameStep(id) {
+    const s = STEPS.find(x => x.id === id); if (!s) return;
+    const label = prompt('ชื่อขั้นตอนใหม่:', s.label); if (label==null || !label.trim()) return;
+    try { const r = await fetch('/api/onboarding/steps/' + id, { method:'PATCH', headers: authJson(), body: JSON.stringify({ label: label.trim() }) });
+      if (!r.ok) throw new Error(); await load(); renderSteps(); }
+    catch { toast('แก้ไม่สำเร็จ'); }
+  }
+  async function moveStep(id, dir) {
+    const i = STEPS.findIndex(x => x.id === id); const j = i + dir;
+    if (i<0 || j<0 || j>=STEPS.length) return;
+    const a = STEPS[i], b = STEPS[j];
+    try {
+      await fetch('/api/onboarding/steps/' + a.id, { method:'PATCH', headers: authJson(), body: JSON.stringify({ sort_order: b.sort_order }) });
+      await fetch('/api/onboarding/steps/' + b.id, { method:'PATCH', headers: authJson(), body: JSON.stringify({ sort_order: a.sort_order }) });
+      await load(); renderSteps();
+    } catch { toast('จัดลำดับไม่สำเร็จ'); }
+  }
+  async function delStep(id) {
+    const s = STEPS.find(x => x.id === id); if (!s) return;
+    if (!confirm('ลบขั้นตอน "' + s.label + '" (ข้อมูลความคืบหน้าของขั้นตอนนี้จะถูกลบด้วย)?')) return;
+    try { const r = await fetch('/api/onboarding/steps/' + id, { method:'DELETE', headers: auth() });
+      if (!r.ok) throw new Error(); await load(); renderSteps(); toast('ลบขั้นตอนแล้ว'); }
+    catch { toast('ลบไม่สำเร็จ'); }
+  }
+
+  document.addEventListener('keydown', e => { if (e.key==='Escape') document.querySelectorAll('.modal.on').forEach(m => m.classList.remove('on')); });
+  document.querySelectorAll('.modal').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.classList.remove('on'); }));
+</script>
+</body>
+</html>
