@@ -259,10 +259,11 @@
     users.forEach((u, i) => {
       const isSelf = me && u.id === me.id;
       const isSuper = !!u.is_super;
-      const role = (u.role === 'admin'
-        ? '<span class="role-badge admin">admin</span>'
-        : '<span class="role-badge user">user</span>')
-        + (isSuper ? '<span class="super-badge">🛡️ Super Admin</span>' : '');
+      const role = isSuper
+        ? '<span class="super-badge">🛡️ Super Admin</span>'
+        : (u.role === 'admin'
+            ? '<span class="role-badge admin">admin</span>'
+            : '<span class="role-badge user">user</span>');
       const verified = u.verified
         ? '<span class="v-badge yes">✓ ยืนยันแล้ว</span>'
         : '<span class="v-badge no">ยังไม่ยืนยัน</span>';
