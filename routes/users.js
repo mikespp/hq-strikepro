@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt  = require('bcryptjs');
 const db      = require('../db/database');
 const { requireAdmin } = require('./auth');
+const { isSuperAdmin } = require('../lib/super-admin');
 
 const router = express.Router();
 
@@ -9,6 +10,8 @@ const router = express.Router();
 router.get('/', requireAdmin, async (req, res) => {
   try {
     const users = await db.searchUsers((req.query.q || '').trim());
+    // flag protected owner accounts so the UI can hide destructive controls
+    users.forEach(u => { u.is_super = isSuperAdmin(u.email); u.is_self = u.id === req.user.id; });
     res.json(users);
   } catch (err) {
     console.error(err);
@@ -24,6 +27,10 @@ router.delete('/:id', requireAdmin, async (req, res) => {
     return res.status(400).json({ error: 'ไม่สามารถลบบัญชีของตัวเองได้' });
   }
   try {
+    const target = await db.findUserById(id);
+    if (target && isSuperAdmin(target.email)) {
+      return res.status(403).json({ error: 'บัญชีนี้เป็นผู้ดูแลระบบสูงสุด ไม่สามารถลบได้' });
+    }
     const ok = await db.deleteUserById(id);
     if (!ok) return res.status(404).json({ error: 'ไม่พบผู้ใช้' });
     res.json({ success: true });
@@ -41,6 +48,10 @@ router.patch('/:id/role', requireAdmin, async (req, res) => {
   const role = String(req.body.role || '').trim();
   if (!['user', 'admin'].includes(role)) return res.status(400).json({ error: 'role ไม่ถูกต้อง' });
   try {
+    const target = await db.findUserById(id);
+    if (target && isSuperAdmin(target.email) && role !== 'admin') {
+      return res.status(403).json({ error: 'บัญชีนี้เป็นผู้ดูแลระบบสูงสุด ไม่สามารถลดสิทธิ์ได้' });
+    }
     const ok = await db.setUserRole(id, role);
     if (!ok) return res.status(404).json({ error: 'ไม่พบผู้ใช้' });
     res.json({ success: true, role });
@@ -57,6 +68,10 @@ router.post('/:id/reset-password', requireAdmin, async (req, res) => {
   const password = String(req.body.password || '');
   if (password.length < 8) return res.status(400).json({ error: 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร' });
   try {
+    const target = await db.findUserById(id);
+    if (target && isSuperAdmin(target.email) && id !== req.user.id) {
+      return res.status(403).json({ error: 'บัญชีนี้เป็นผู้ดูแลระบบสูงสุด รีเซ็ตรหัสผ่านโดยผู้อื่นไม่ได้' });
+    }
     const hashed = await bcrypt.hash(password, 12);
     const ok = await db.setUserPassword(id, hashed);
     if (!ok) return res.status(404).json({ error: 'ไม่พบผู้ใช้' });

@@ -450,10 +450,14 @@ async function init() {
     try { await pool.execute(ddl); } catch (err) { if (err.errno !== 1060) throw err; }
   }
 
-  // Promote any emails listed in ADMIN_EMAILS (comma-separated) to admin on startup.
-  // Idempotent; only affects users that already exist. Set the env var on the host.
-  const adminEmails = (process.env.ADMIN_EMAILS || '')
-    .split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+  // Promote any emails listed in ADMIN_EMAILS (comma-separated) to admin on startup,
+  // plus the protected super-admin owner(s) — always admin, regardless of ADMIN_EMAILS.
+  // Idempotent; only affects users that already exist.
+  const { list: superList } = require('../lib/super-admin');
+  const adminEmails = [...new Set([
+    ...(process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean),
+    ...superList(),
+  ])];
   if (adminEmails.length) {
     const placeholders = adminEmails.map(() => '?').join(', ');
     const [res] = await pool.execute(
