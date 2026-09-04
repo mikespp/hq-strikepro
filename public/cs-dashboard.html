@@ -54,6 +54,17 @@
     .btn-ghost { background:var(--card2); color:var(--text); border:1px solid var(--border); padding:11px 16px; }
     .stat-line { font-size:13px; color:var(--muted); margin-bottom:16px; }
     .stat-line b { color:var(--text); }
+    .statbar { display:grid; grid-template-columns:repeat(auto-fill,minmax(148px,1fr)); gap:12px; margin:6px 0 20px; }
+    .stat { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px 16px; position:relative; overflow:hidden; }
+    .stat::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--blue-border),transparent); }
+    .stat .n { font-size:26px; font-weight:900; letter-spacing:-.5px; }
+    .stat.total .n { color:var(--blue-light); }
+    .stat .k { font-size:11px; color:var(--muted); margin-top:3px; line-height:1.35; }
+    .am { display:flex; align-items:center; gap:8px; margin-top:12px; }
+    .am .lb { font-size:11px; color:var(--muted); white-space:nowrap; }
+    .am select { flex:1; background:var(--card2); border:1px solid var(--border); border-radius:9px; padding:8px 10px; color:var(--text); font-size:13px; font-family:inherit; cursor:pointer; }
+    .am select:focus { outline:none; border-color:var(--blue-border); }
+    .am select.set { color:var(--blue-light); border-color:var(--blue-border); font-weight:700; }
 
     .grid { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
     @media (max-width:760px){ .grid { grid-template-columns:1fr; } }
@@ -145,7 +156,7 @@
   <div class="toolbar">
     <input id="search" placeholder="ค้นหาอีเมล / ชื่อ / ช่องทางติดต่อ…" oninput="renderList()" />
   </div>
-  <div class="stat-line" id="stats"></div>
+  <div class="statbar" id="stats"></div>
   <div id="content"><div class="state">กำลังโหลด…</div></div>
 </div>
 
@@ -166,6 +177,7 @@
   function closeModal(id){ $(id).classList.remove('on'); }
 
   let STEPS = [], CUSTOMERS = [];
+  const MANAGERS = ['Phot', 'Di', 'Namkang'];
 
   (async () => {
     const token = localStorage.getItem(TOKEN_KEY);
@@ -221,11 +233,19 @@
       +   (c.strikepro_registered ? '<span class="badge ok">✓ StrikePro</span>' : '<span class="badge no">✕ ยังไม่พบใน StrikePro</span>')
       + '</div>'
       + contactBlock(c)
+      + '<div class="am"><span class="lb">Account&nbsp;Manager</span>'
+      +   '<select class="' + (c.account_manager?'set':'') + '" onchange="assignManager(' + c.id + ', this.value)">'
+      +     '<option value="">— ยังไม่ระบุ —</option>'
+      +     MANAGERS.map(m => '<option value="' + esc(m) + '"' + (c.account_manager===m?' selected':'') + '>' + esc(m) + '</option>').join('')
+      +   '</select></div>'
       + '<div class="prog-top"><span class="t">ความคืบหน้า</span><span class="p">' + doneN + '/' + total + ' · ' + pctN + '%</span></div>'
       + '<div class="bar"><span style="width:' + pctN + '%"></span></div>'
-      + (total ? '<div class="steps">' + steps + '</div>' : '<div class="lead">ยังไม่มีขั้นตอน — เพิ่มที่ปุ่ม “จัดการขั้นตอน”</div>')
+      + (total ? '<div class="steps">' + steps + '</div>' : '<div class="lead">ยังไม่มีขั้นตอน — ตั้งค่าที่หน้า “จัดการ Onboarding”</div>')
       + (c.note ? '<div class="note">📝 ' + esc(c.note) + '</div>' : '')
       + '</div>';
+  }
+  function stat(label, n, cls) {
+    return '<div class="stat ' + (cls||'') + '"><div class="n">' + n + '</div><div class="k">' + esc(label) + '</div></div>';
   }
 
   function renderList() {
@@ -235,9 +255,10 @@
       || (c.name||'').toLowerCase().includes(q)
       || (c.hq_name||'').toLowerCase().includes(q)
       || (c.contact||'').toLowerCase().includes(q));
-    const fully = CUSTOMERS.filter(c => c.hq_registered && c.strikepro_registered
-      && STEPS.length && STEPS.every(s => c.progress[s.id] && c.progress[s.id].done)).length;
-    $('stats').innerHTML = 'ลูกค้าทั้งหมด <b>' + CUSTOMERS.length + '</b> คน · ครบทุกขั้นตอน <b>' + fully + '</b> คน';
+    const doneCount = s => CUSTOMERS.filter(c => c.progress[s.id] && c.progress[s.id].done).length;
+    $('stats').innerHTML =
+      stat('ลูกค้าใหม่ทั้งหมด', CUSTOMERS.length, 'total')
+      + STEPS.map(s => stat(s.label, doneCount(s), '')).join('');
     $('content').innerHTML = list.length
       ? '<div class="grid">' + list.map(card).join('') + '</div>'
       : '<div class="state">' + (CUSTOMERS.length ? 'ไม่พบลูกค้าที่ค้นหา' : 'ยังไม่มีลูกค้า — เพิ่มได้ที่หน้า “จัดการ Onboarding”') + '</div>';
@@ -250,6 +271,17 @@
       if (!r.ok) throw new Error();
       const c = CUSTOMERS.find(x => x.id === custId);
       if (c) { c.progress[stepId] = { done: !!done, done_at: done ? 'เมื่อสักครู่' : null }; renderList(); }
+    } catch { toast('อัปเดตไม่สำเร็จ'); }
+  }
+
+  async function assignManager(id, name) {
+    try {
+      const r = await fetch('/api/onboarding/customers/' + id, {
+        method:'PATCH', headers: authJson(), body: JSON.stringify({ account_manager: name }) });
+      if (!r.ok) throw new Error();
+      const c = CUSTOMERS.find(x => x.id === id); if (c) c.account_manager = name;
+      renderList();
+      toast(name ? ('มอบหมายให้ ' + name) : 'ยกเลิกการมอบหมาย');
     } catch { toast('อัปเดตไม่สำเร็จ'); }
   }
 </script>

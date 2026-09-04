@@ -290,13 +290,14 @@ async function init() {
       KEY idx_customer (customer_id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
-  // Seed the default steps once (idempotent via unique step_key).
+  // Seed the default steps (idempotent via unique step_key — missing ones are added).
   await pool.execute(
     `INSERT IGNORE INTO onboarding_steps (step_key, label, sort_order) VALUES
        ('kyc_l1',    'KYC StrikePro Lv.1', 1),
        ('topup_l1',  'Top-Up KYC Lv.1',    2),
        ('topup_l2',  'Top-Up KYC Lv.2',    3),
-       ('deposit',   'ฝากเงิน',            4)`
+       ('deposit',   'ฝากเงิน',            4),
+       ('cs_notify', 'CS โทรแจ้งสิทธิ์',   5)`
   );
 
   // The Last Day — per-edition admin state (registration closed / event completed).
@@ -493,6 +494,8 @@ async function init() {
     // พอร์ต Master — AES-GCM-encrypted MT5 investor password (read-only creds the
     // VPS fetcher loop-logs with). Never returned to the browser.
     `ALTER TABLE pf_accounts ADD COLUMN inv_pw LONGTEXT NULL`,
+    // CS onboarding — assigned Account Manager (Phot / Di / Namkang / …)
+    `ALTER TABLE onboarding_customers ADD COLUMN account_manager VARCHAR(100) NOT NULL DEFAULT ''`,
   ]) {
     try { await pool.execute(ddl); } catch (err) { if (err.errno !== 1060) throw err; }
   }
@@ -1552,6 +1555,7 @@ async function updateOnboardingCustomer(id, d) {
   if (d.name != null)    { sets.push('name = ?');    vals.push(String(d.name).slice(0, 255)); }
   if (d.contact != null) { sets.push('contact = ?'); vals.push(String(d.contact).slice(0, 500)); }
   if (d.note != null)    { sets.push('note = ?');    vals.push(String(d.note)); }
+  if (d.account_manager != null) { sets.push('account_manager = ?'); vals.push(String(d.account_manager).slice(0, 100)); }
   if (!sets.length) return false;
   vals.push(id);
   const [r] = await pool.execute(`UPDATE onboarding_customers SET ${sets.join(', ')} WHERE id = ?`, vals);
@@ -1565,7 +1569,7 @@ async function deleteOnboardingCustomer(id) {
 // Customers + live registration status (HQ profile join + StrikePro allowlist) + progress map.
 async function listOnboardingCustomers() {
   const [rows] = await pool.execute(
-    `SELECT c.id, c.email, c.name, c.contact, c.note, c.added_by,
+    `SELECT c.id, c.email, c.name, c.contact, c.note, c.added_by, c.account_manager,
             DATE_FORMAT(c.created_at, '%Y-%m-%d %H:%i') AS created_at,
             (u.id IS NOT NULL)                                   AS hq_registered,
             u.phone AS hq_phone, u.line_id AS hq_line, u.nickname AS hq_nickname,
