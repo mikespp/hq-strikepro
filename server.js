@@ -139,9 +139,14 @@ app.get('/portfolio-admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'portfolio-admin.html'));
 });
 
-// /cs → CS onboarding dashboard (admin-gated client-side)
+// /cs → CS onboarding dashboard (view/track, admin-gated client-side)
 app.get('/cs', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'cs-dashboard.html'));
+});
+
+// /onboarding-admin → add customers + manage steps (admin-gated client-side)
+app.get('/onboarding-admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'onboarding-admin.html'));
 });
 
 // /the-last-day-admin → serve The Last Day registrants admin page

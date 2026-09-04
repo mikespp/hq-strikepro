@@ -124,6 +124,7 @@
   </div>
   <nav class="drawer-nav">
     <a class="drawer-link" href="/cs" style="color:#d4af37;"><span class="drawer-link-icon">🎯</span> CS Dashboard</a>
+    <a class="drawer-link" href="/onboarding-admin"><span class="drawer-link-icon">🛠️</span> จัดการ Onboarding</a>
     <a class="drawer-link" href="/reviews-admin"><span class="drawer-link-icon">⭐</span> Reviews</a>
     <a class="drawer-link" href="/last-account-admin"><span class="drawer-link-icon">🏠</span> ผู้สมัคร Last Account</a>
     <a class="drawer-link" href="/the-last-day-admin"><span class="drawer-link-icon">🌅</span> ผู้ลงทะเบียน The Last Day</a>
@@ -139,48 +140,16 @@
 
 <div class="wrap" id="wrap" style="display:none">
   <h1>CS Dashboard — Onboarding ลูกค้าใหม่</h1>
-  <p class="lead">เพิ่มลูกค้าด้วยอีเมลที่ใช้สมัคร แล้วติดตามความคืบหน้าทีละขั้นตอน · ระบบตรวจให้อัตโนมัติว่าลูกค้าสมัคร <b>StrikePro</b> และ <b>HQ</b> แล้วหรือยัง · ขั้นตอนจะถูกติ๊กอัตโนมัติเมื่อเชื่อม API (หรือกดเองได้)</p>
+  <p class="lead">ติดตามความคืบหน้าของลูกค้าทีละขั้นตอน · ระบบตรวจให้อัตโนมัติว่าลูกค้าสมัคร <b>StrikePro</b> และ <b>HQ</b> แล้วหรือยัง · ขั้นตอนจะถูกติ๊กอัตโนมัติเมื่อเชื่อม API (หรือกดเองได้) · เพิ่มลูกค้า/ตั้งค่าขั้นตอนที่ <a href="/onboarding-admin" style="color:var(--blue-light)">จัดการ Onboarding</a></p>
 
   <div class="toolbar">
     <input id="search" placeholder="ค้นหาอีเมล / ชื่อ / ช่องทางติดต่อ…" oninput="renderList()" />
-    <button class="btn-primary" onclick="openAdd()">+ เพิ่มลูกค้า</button>
-    <button class="btn-ghost" onclick="openSteps()">⚙ จัดการขั้นตอน</button>
   </div>
   <div class="stat-line" id="stats"></div>
   <div id="content"><div class="state">กำลังโหลด…</div></div>
 </div>
 
 <div class="state" id="gate" style="display:none"></div>
-
-<!-- add / edit customer -->
-<div class="modal" id="custModal">
-  <div class="box">
-    <h3 id="custTitle">เพิ่มลูกค้า</h3>
-    <div class="field"><label>อีเมลที่ลูกค้าใช้สมัคร</label><input id="cEmail" type="email" placeholder="customer@email.com" autocomplete="off" /></div>
-    <div class="field"><label>ชื่อ (ถ้าเว้นว่าง ระบบจะดึงจากโปรไฟล์ HQ)</label><input id="cName" placeholder="ชื่อลูกค้า" /></div>
-    <div class="field"><label>ช่องทางติดต่อ (social / Line / เบอร์)</label><input id="cContact" placeholder="เช่น Line: @customer, FB: ..." /></div>
-    <div class="field"><label>โน้ต</label><textarea id="cNote" rows="2" placeholder="บันทึกเพิ่มเติม"></textarea></div>
-    <div class="err" id="cErr"></div>
-    <div class="modal-actions">
-      <button class="btn-ghost" onclick="closeModal('custModal')">ยกเลิก</button>
-      <button class="btn-primary" id="cSave" onclick="saveCustomer()">บันทึก</button>
-    </div>
-  </div>
-</div>
-
-<!-- manage steps -->
-<div class="modal" id="stepsModal">
-  <div class="box">
-    <h3>จัดการขั้นตอน (Onboarding Steps)</h3>
-    <div id="stepList"></div>
-    <div class="field" style="margin-top:14px"><label>เพิ่มขั้นตอนใหม่</label><input id="newStep" placeholder="ชื่อขั้นตอน เช่น ยืนยันตัวตน Lv.3" /></div>
-    <div class="err" id="sErr"></div>
-    <div class="modal-actions">
-      <button class="btn-ghost" onclick="closeModal('stepsModal')">ปิด</button>
-      <button class="btn-primary" onclick="addStep()">+ เพิ่มขั้นตอน</button>
-    </div>
-  </div>
-</div>
 
 <div class="toast" id="toast"></div>
 
@@ -196,7 +165,7 @@
   function drawerSignOut(){ localStorage.removeItem(TOKEN_KEY); window.location.href='/login'; }
   function closeModal(id){ $(id).classList.remove('on'); }
 
-  let STEPS = [], CUSTOMERS = [], editId = null;
+  let STEPS = [], CUSTOMERS = [];
 
   (async () => {
     const token = localStorage.getItem(TOKEN_KEY);
@@ -246,9 +215,7 @@
         + '<span class="ck">' + (on?'✓':'') + '</span>' + esc(s.label) + '</span>';
     }).join('');
     return '<div class="cust">'
-      + '<div class="cust-head"><div><div class="cust-name">' + esc(nm) + '</div><div class="cust-email">' + esc(c.email) + '</div></div>'
-      +   '<div class="cust-actions"><button class="mini" onclick="openEdit(' + c.id + ')">แก้ไข</button>'
-      +   '<button class="mini danger" onclick="delCustomer(' + c.id + ",'" + esc(c.email).replace(/'/g,"\\'") + "'" + ')">ลบ</button></div></div>'
+      + '<div class="cust-head"><div><div class="cust-name">' + esc(nm) + '</div><div class="cust-email">' + esc(c.email) + '</div></div></div>'
       + '<div class="prereq">'
       +   (c.hq_registered ? '<span class="badge ok">✓ สมัคร HQ แล้ว</span>' : '<span class="badge no">✕ ยังไม่สมัคร HQ</span>')
       +   (c.strikepro_registered ? '<span class="badge ok">✓ StrikePro</span>' : '<span class="badge no">✕ ยังไม่พบใน StrikePro</span>')
@@ -273,50 +240,7 @@
     $('stats').innerHTML = 'ลูกค้าทั้งหมด <b>' + CUSTOMERS.length + '</b> คน · ครบทุกขั้นตอน <b>' + fully + '</b> คน';
     $('content').innerHTML = list.length
       ? '<div class="grid">' + list.map(card).join('') + '</div>'
-      : '<div class="state">' + (CUSTOMERS.length ? 'ไม่พบลูกค้าที่ค้นหา' : 'ยังไม่มีลูกค้า — กด “เพิ่มลูกค้า” เพื่อเริ่ม') + '</div>';
-  }
-
-  // ── add / edit customer ─────────────────────────────────────────────────────
-  function openAdd() {
-    editId = null; $('custTitle').textContent = 'เพิ่มลูกค้า'; $('cErr').textContent = '';
-    $('cEmail').value=''; $('cName').value=''; $('cContact').value=''; $('cNote').value='';
-    $('cEmail').disabled = false; $('custModal').classList.add('on');
-  }
-  function openEdit(id) {
-    const c = CUSTOMERS.find(x => x.id === id); if (!c) return;
-    editId = id; $('custTitle').textContent = 'แก้ไขลูกค้า'; $('cErr').textContent = '';
-    $('cEmail').value = c.email; $('cEmail').disabled = true;
-    $('cName').value = c.name || ''; $('cContact').value = c.contact || ''; $('cNote').value = c.note || '';
-    $('custModal').classList.add('on');
-  }
-  async function saveCustomer() {
-    const email = $('cEmail').value.trim().toLowerCase();
-    const body = { name:$('cName').value.trim(), contact:$('cContact').value.trim(), note:$('cNote').value };
-    if (!editId) {
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { $('cErr').textContent='อีเมลไม่ถูกต้อง'; return; }
-      body.email = email;
-    }
-    $('cSave').disabled = true;
-    try {
-      const url = editId ? '/api/onboarding/customers/' + editId : '/api/onboarding/customers';
-      const r = await fetch(url, { method: editId ? 'PATCH' : 'POST', headers: authJson(), body: JSON.stringify(body) });
-      const j = await r.json();
-      if (!r.ok) { $('cErr').textContent = j.error || 'บันทึกไม่สำเร็จ'; return; }
-      closeModal('custModal'); await load();
-      if (!editId) {
-        const c = CUSTOMERS.find(x => x.email === email);
-        if (c && (!c.hq_registered || !c.strikepro_registered)) {
-          toast('เพิ่มแล้ว — ⚠️ ' + (!c.hq_registered ? 'ยังไม่พบบัญชี HQ ' : '') + (!c.strikepro_registered ? 'ยังไม่พบใน StrikePro' : ''));
-        } else toast('เพิ่มลูกค้าแล้ว');
-      } else toast('บันทึกแล้ว');
-    } catch { $('cErr').textContent = 'บันทึกไม่สำเร็จ'; }
-    finally { $('cSave').disabled = false; }
-  }
-  async function delCustomer(id, email) {
-    if (!confirm('ลบลูกค้า "' + email + '" ออกจากระบบติดตาม?')) return;
-    try { const r = await fetch('/api/onboarding/customers/' + id, { method:'DELETE', headers: auth() });
-      if (!r.ok) throw new Error(); toast('ลบแล้ว'); load(); }
-    catch { toast('ลบไม่สำเร็จ'); }
+      : '<div class="state">' + (CUSTOMERS.length ? 'ไม่พบลูกค้าที่ค้นหา' : 'ยังไม่มีลูกค้า — เพิ่มได้ที่หน้า “จัดการ Onboarding”') + '</div>';
   }
 
   async function toggleStep(custId, stepId, done) {
@@ -328,52 +252,6 @@
       if (c) { c.progress[stepId] = { done: !!done, done_at: done ? 'เมื่อสักครู่' : null }; renderList(); }
     } catch { toast('อัปเดตไม่สำเร็จ'); }
   }
-
-  // ── steps management ────────────────────────────────────────────────────────
-  function openSteps() { renderSteps(); $('sErr').textContent=''; $('newStep').value=''; $('stepsModal').classList.add('on'); }
-  function renderSteps() {
-    $('stepList').innerHTML = STEPS.length ? STEPS.map((s, i) =>
-      '<div class="step-row"><span class="nm ' + (s.active?'':'off') + '">' + esc(s.label) + '</span>'
-      + '<button onclick="moveStep(' + s.id + ',-1)" ' + (i===0?'disabled':'') + '>↑</button>'
-      + '<button onclick="moveStep(' + s.id + ',1)" ' + (i===STEPS.length-1?'disabled':'') + '>↓</button>'
-      + '<button onclick="renameStep(' + s.id + ')">แก้ชื่อ</button>'
-      + '<button onclick="delStep(' + s.id + ')" style="color:var(--red)">ลบ</button></div>'
-    ).join('') : '<div class="lead">ยังไม่มีขั้นตอน</div>';
-  }
-  async function addStep() {
-    const label = $('newStep').value.trim();
-    if (!label) { $('sErr').textContent='กรอกชื่อขั้นตอน'; return; }
-    try { const r = await fetch('/api/onboarding/steps', { method:'POST', headers: authJson(), body: JSON.stringify({ label }) });
-      if (!r.ok) throw new Error(); $('newStep').value=''; await load(); renderSteps(); toast('เพิ่มขั้นตอนแล้ว'); }
-    catch { $('sErr').textContent='เพิ่มไม่สำเร็จ'; }
-  }
-  async function renameStep(id) {
-    const s = STEPS.find(x => x.id === id); if (!s) return;
-    const label = prompt('ชื่อขั้นตอนใหม่:', s.label); if (label==null || !label.trim()) return;
-    try { const r = await fetch('/api/onboarding/steps/' + id, { method:'PATCH', headers: authJson(), body: JSON.stringify({ label: label.trim() }) });
-      if (!r.ok) throw new Error(); await load(); renderSteps(); }
-    catch { toast('แก้ไม่สำเร็จ'); }
-  }
-  async function moveStep(id, dir) {
-    const i = STEPS.findIndex(x => x.id === id); const j = i + dir;
-    if (i<0 || j<0 || j>=STEPS.length) return;
-    const a = STEPS[i], b = STEPS[j];
-    try {
-      await fetch('/api/onboarding/steps/' + a.id, { method:'PATCH', headers: authJson(), body: JSON.stringify({ sort_order: b.sort_order }) });
-      await fetch('/api/onboarding/steps/' + b.id, { method:'PATCH', headers: authJson(), body: JSON.stringify({ sort_order: a.sort_order }) });
-      await load(); renderSteps();
-    } catch { toast('จัดลำดับไม่สำเร็จ'); }
-  }
-  async function delStep(id) {
-    const s = STEPS.find(x => x.id === id); if (!s) return;
-    if (!confirm('ลบขั้นตอน "' + s.label + '" (ข้อมูลความคืบหน้าของขั้นตอนนี้จะถูกลบด้วย)?')) return;
-    try { const r = await fetch('/api/onboarding/steps/' + id, { method:'DELETE', headers: auth() });
-      if (!r.ok) throw new Error(); await load(); renderSteps(); toast('ลบขั้นตอนแล้ว'); }
-    catch { toast('ลบไม่สำเร็จ'); }
-  }
-
-  document.addEventListener('keydown', e => { if (e.key==='Escape') document.querySelectorAll('.modal.on').forEach(m => m.classList.remove('on')); });
-  document.querySelectorAll('.modal').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.classList.remove('on'); }));
 </script>
 </body>
 </html>
