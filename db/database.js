@@ -467,6 +467,14 @@ async function init() {
     if (res.affectedRows) console.log(`  Promoted ${res.affectedRows} user(s) to admin from ADMIN_EMAILS.`);
   }
 
+  // Back-fill the advisory StrikePro-customer flag against the synced allowlist,
+  // so members left verified=0 (flaky check at signup / predating the allowlist)
+  // self-heal on deploy. Cheap single query; no-op when nothing matches.
+  try {
+    const n = await refreshVerifiedFromEligible();
+    if (n) console.log(`  Back-filled verified=1 for ${n} member(s) from the allowlist.`);
+  } catch (err) { console.error('verified back-fill failed:', err.message); }
+
   // Purge expired sessions on startup
   await pool.execute('DELETE FROM sessions WHERE expires_at <= NOW()');
 
@@ -1075,6 +1083,17 @@ async function setUserRole(id, role) {
   return res.affectedRows > 0;
 }
 
+// Manually set the advisory StrikePro-customer flag (admin action).
+async function setUserVerified(id, verified) {
+  const [res] = await pool.execute('UPDATE users SET verified = ? WHERE id = ?', [verified ? 1 : 0, id]);
+  return res.affectedRows > 0;
+}
+// All members not yet marked verified — for the admin "re-verify" backfill.
+async function listUnverifiedUsers() {
+  const [rows] = await pool.execute('SELECT id, email FROM users WHERE verified = 0');
+  return rows;
+}
+
 // Set a new password and invalidate the user's sessions (force re-login)
 async function setUserPassword(id, hashedPassword) {
   const conn = await pool.getConnection();
@@ -1661,6 +1680,7 @@ module.exports = {
   listLastAccountRounds, upsertLastAccountRound, setLastAccountRoundEventId, deleteLastAccountRound,
   findUserByEmail, findUserById, createUser, createUserFull, createMember,
   isEmailEligible, countEligible, addEligibleHashes, refreshVerifiedFromEligible,
+  setUserVerified, listUnverifiedUsers,
   upsertOtp, getOtp, incOtpAttempts, deleteOtp,
   createSession, findSession, deleteSession,
   getAllClients, getClientById, createClient, updateClient, deleteClient,

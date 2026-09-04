@@ -183,6 +183,7 @@
   <div class="toolbar">
     <input id="search" placeholder="ค้นหาอีเมล… (เว้นว่าง = แสดงทั้งหมด)" />
     <button class="btn" onclick="load()">ค้นหา</button>
+    <button class="btn" id="reverifyBtn" onclick="reverify()" title="ตรวจสอบสมาชิกที่ยังไม่ยืนยัน กับฐานข้อมูลลูกค้า StrikePro แล้วอัปเดตให้อัตโนมัติ">🔄 รีเฟรชสถานะลูกค้า</button>
   </div>
   <div class="count" id="count"></div>
   <div id="content"><div class="state">กำลังโหลด…</div></div>
@@ -264,9 +265,10 @@
         : (u.role === 'admin'
             ? '<span class="role-badge admin">admin</span>'
             : '<span class="role-badge user">user</span>');
-      const verified = u.verified
-        ? '<span class="v-badge yes">✓ ยืนยันแล้ว</span>'
-        : '<span class="v-badge no">ยังไม่ยืนยัน</span>';
+      const verified = '<span class="v-badge ' + (u.verified ? 'yes' : 'no') + '" style="cursor:pointer"'
+        + ' title="คลิกเพื่อสลับสถานะลูกค้า StrikePro ด้วยตนเอง"'
+        + ' onclick="toggleVerified(' + u.id + ',' + (u.verified ? 0 : 1) + ')">'
+        + (u.verified ? '✓ ยืนยันแล้ว' : 'ยังไม่ยืนยัน') + '</span>';
       // protected owner: cannot be demoted or deleted by anyone; password reset only by themself
       const roleBtn = isSuper
         ? '<span class="protected-tag">🔒 ป้องกันไว้</span>'
@@ -376,6 +378,27 @@
 </script>
 
 <script>
+  async function reverify() {
+    const btn = el('reverifyBtn');
+    btn.disabled = true; const old = btn.textContent; btn.textContent = '⏳ กำลังตรวจสอบ…';
+    try {
+      const r = await fetch('/api/users/reverify', { method:'POST', headers:{ Authorization:'Bearer '+localStorage.getItem('sp_token') } });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || '');
+      alert(j.verified > 0 ? ('อัปเดตเป็นลูกค้า StrikePro แล้ว ' + j.verified + ' คน') : 'ตรวจสอบแล้ว — ไม่มีรายชื่อที่ตรงเพิ่มเติม');
+      load();
+    } catch (e) { alert('รีเฟรชไม่สำเร็จ' + (e.message ? (': ' + e.message) : '')); }
+    finally { btn.disabled = false; btn.textContent = old; }
+  }
+  async function toggleVerified(id, value) {
+    try {
+      const r = await fetch('/api/users/' + id + '/verified', { method:'PATCH',
+        headers:{ 'Content-Type':'application/json', Authorization:'Bearer '+localStorage.getItem('sp_token') },
+        body: JSON.stringify({ verified: value }) });
+      if (!r.ok) throw new Error();
+      load();
+    } catch { alert('อัปเดตสถานะไม่สำเร็จ'); }
+  }
   function toggleDrawer(){ document.getElementById('drawer').classList.toggle('open'); document.getElementById('drawerOverlay').classList.toggle('open'); }
   function closeDrawer(){ document.getElementById('drawer').classList.remove('open'); document.getElementById('drawerOverlay').classList.remove('open'); }
   function toggleAcc(id){ document.getElementById(id).classList.toggle('open'); }

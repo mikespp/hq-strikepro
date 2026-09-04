@@ -1,7 +1,7 @@
 const express = require('express');
 const bcrypt  = require('bcryptjs');
 const db      = require('../db/database');
-const { requireAdmin } = require('./auth');
+const { requireAdmin, checkEligible } = require('./auth');
 const { isSuperAdmin } = require('../lib/super-admin');
 
 const router = express.Router();
@@ -34,6 +34,46 @@ router.delete('/:id', requireAdmin, async (req, res) => {
     const ok = await db.deleteUserById(id);
     if (!ok) return res.status(404).json({ error: 'ไม่พบผู้ใช้' });
     res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
+  }
+});
+
+// ── POST /api/users/reverify  (admin) — backfill the StrikePro-customer flag ───
+// Re-checks every unverified member against the live eligibility source (the
+// synced local allowlist, and the remote check service if ELIGIBILITY_CHECK_URL
+// is set), marking matches verified. Fixes members left verified=0 because the
+// check was flaky at signup or they predate the allowlist.
+router.post('/reverify', requireAdmin, async (req, res) => {
+  try {
+    // 1) fast path: local allowlist match in one query
+    let updated = await db.refreshVerifiedFromEligible();
+    // 2) if a remote check service is configured, re-check whoever is still 0
+    if (process.env.ELIGIBILITY_CHECK_URL) {
+      const pending = await db.listUnverifiedUsers();
+      for (const u of pending) {
+        try {
+          if (await checkEligible(u.email)) { await db.setUserVerified(u.id, 1); updated++; }
+        } catch { /* service hiccup — skip this one, keep going */ }
+      }
+    }
+    res.json({ success: true, verified: updated });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
+  }
+});
+
+// ── PATCH /api/users/:id/verified  (admin) — manual override of the flag ───────
+router.patch('/:id/verified', requireAdmin, async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  const verified = req.body.verified ? 1 : 0;
+  try {
+    const ok = await db.setUserVerified(id, verified);
+    if (!ok) return res.status(404).json({ error: 'ไม่พบผู้ใช้' });
+    res.json({ success: true, verified });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
