@@ -61,6 +61,9 @@
     .kpi .n { font-size:40px; font-weight:900; letter-spacing:-1.5px; color:#fff; margin-top:10px; line-height:1; }
     .kpi .n small { font-size:15px; font-weight:700; color:var(--muted); letter-spacing:0; }
     .kpi .k { font-size:14px; color:var(--text); margin-top:7px; font-weight:700; }
+    .kpi.total { background:linear-gradient(155deg, rgba(74,222,128,.14), var(--card) 70%); border-color:rgba(74,222,128,.32); }
+    .kpi.total::before { background:linear-gradient(90deg,var(--green),transparent); }
+    .kpi.total .tag { color:var(--green); background:rgba(74,222,128,.14); border-color:rgba(74,222,128,.3); }
     .statbar { display:grid; grid-template-columns:repeat(auto-fill,minmax(148px,1fr)); gap:12px; margin:6px 0 20px; }
     .stat { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px 16px; position:relative; overflow:hidden; }
     .stat::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--blue-border),transparent); }
@@ -266,17 +269,14 @@
     const doneCount = s => CUSTOMERS.filter(c => c.progress[s.id] && c.progress[s.id].done).length;
     const kpiSteps   = STEPS.filter(s => KPI_KEYS.includes(s.step_key));
     const otherSteps = STEPS.filter(s => !KPI_KEYS.includes(s.step_key));
-    const kpiHtml = kpiSteps.length
-      ? '<div class="kpibar">' + kpiSteps.map(s =>
-          '<div class="kpi"><span class="tag">KPI</span><div class="n">' + doneCount(s)
-          + ' <small>/ ' + CUSTOMERS.length + ' คน</small></div><div class="k">' + esc(s.label) + '</div></div>').join('')
-        + '</div>'
-      : '';
-    $('stats').innerHTML = kpiHtml
-      + '<div class="statbar">'
-      +   stat('ลูกค้าใหม่ทั้งหมด', CUSTOMERS.length, 'total')
-      +   otherSteps.map(s => stat(s.label, doneCount(s), '')).join('')
-      + '</div>';
+    const totalCard = '<div class="kpi total"><span class="tag">ทั้งหมด</span><div class="n">' + CUSTOMERS.length
+      + ' <small>คน</small></div><div class="k">ลูกค้าใหม่ทั้งหมด</div></div>';
+    const kpiCards = kpiSteps.map(s =>
+      '<div class="kpi"><span class="tag">KPI</span><div class="n">' + doneCount(s)
+      + ' <small>/ ' + CUSTOMERS.length + ' คน</small></div><div class="k">' + esc(s.label) + '</div></div>').join('');
+    $('stats').innerHTML =
+      '<div class="kpibar">' + totalCard + kpiCards + '</div>'
+      + (otherSteps.length ? '<div class="statbar">' + otherSteps.map(s => stat(s.label, doneCount(s), '')).join('') + '</div>' : '');
     $('content').innerHTML = list.length
       ? '<div class="grid">' + list.map(card).join('') + '</div>'
       : '<div class="state">' + (CUSTOMERS.length ? 'ไม่พบลูกค้าที่ค้นหา' : 'ยังไม่มีลูกค้า — เพิ่มได้ที่หน้า “จัดการ Onboarding”') + '</div>';
