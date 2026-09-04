@@ -129,9 +129,12 @@
   <div class="panel">
     <h2>ขั้นตอน Onboarding (Steps)</h2>
     <div id="stepList"><div class="state">กำลังโหลด…</div></div>
-    <div class="field" style="margin-top:14px"><label>เพิ่มขั้นตอนใหม่</label><input id="newStep" placeholder="ชื่อขั้นตอน เช่น ยืนยันตัวตน Lv.3" /></div>
-    <div class="err" id="sErr"></div>
-    <button class="btn-primary" onclick="addStep()">+ เพิ่มขั้นตอน</button>
+    <div id="stepAdmin" style="display:none">
+      <div class="field" style="margin-top:14px"><label>เพิ่มขั้นตอนใหม่</label><input id="newStep" placeholder="ชื่อขั้นตอน เช่น ยืนยันตัวตน Lv.3" /></div>
+      <div class="err" id="sErr"></div>
+      <button class="btn-primary" onclick="addStep()">+ เพิ่มขั้นตอน</button>
+    </div>
+    <p id="stepNote" class="lead" style="display:none;margin-top:14px">🔒 การตั้งค่าขั้นตอนแก้ไขได้เฉพาะเจ้าของระบบ (Super Admin) เท่านั้น</p>
   </div>
 </div>
 
@@ -149,7 +152,7 @@
   function closeDrawer(){ $('drawer').classList.remove('open'); $('drawerOverlay').classList.remove('open'); }
   function drawerSignOut(){ localStorage.removeItem(TOKEN_KEY); window.location.href='/login'; }
 
-  let STEPS = [], CUSTOMERS = [];
+  let STEPS = [], CUSTOMERS = [], isSuper = false;
 
   (async () => {
     const token = localStorage.getItem(TOKEN_KEY);
@@ -160,6 +163,9 @@
       const { user } = await r.json();
       $('navUser').textContent = user.email;
       if (user.role !== 'admin') { $('gate').style.display='block'; $('gate').textContent='🔒 หน้านี้สำหรับผู้ดูแลระบบ (admin) เท่านั้น'; return; }
+      isSuper = !!user.is_super;
+      $('stepAdmin').style.display = isSuper ? 'block' : 'none';
+      $('stepNote').style.display  = isSuper ? 'none' : 'block';
       $('wrap').style.display = 'block';
       load();
     } catch { window.location.href = '/login'; }
@@ -225,13 +231,16 @@
 
   // ── steps ───────────────────────────────────────────────────────────────────
   function renderSteps() {
-    $('stepList').innerHTML = STEPS.length ? STEPS.map((s, i) =>
-      '<div class="step-row"><span class="nm ' + (s.active?'':'off') + '">' + esc(s.label) + '</span>'
-      + '<button class="btn-mini" onclick="moveStep(' + s.id + ',-1)" ' + (i===0?'disabled':'') + '>↑</button>'
-      + '<button class="btn-mini" onclick="moveStep(' + s.id + ',1)" ' + (i===STEPS.length-1?'disabled':'') + '>↓</button>'
-      + '<button class="btn-mini" onclick="renameStep(' + s.id + ')">แก้ชื่อ</button>'
-      + '<button class="btn-danger" onclick="delStep(' + s.id + ')">ลบ</button></div>'
-    ).join('') : '<div class="state">ยังไม่มีขั้นตอน</div>';
+    if (!STEPS.length) { $('stepList').innerHTML = '<div class="state">ยังไม่มีขั้นตอน</div>'; return; }
+    $('stepList').innerHTML = STEPS.map((s, i) => {
+      const ctrls = isSuper
+        ? '<button class="btn-mini" onclick="moveStep(' + s.id + ',-1)" ' + (i===0?'disabled':'') + '>↑</button>'
+          + '<button class="btn-mini" onclick="moveStep(' + s.id + ',1)" ' + (i===STEPS.length-1?'disabled':'') + '>↓</button>'
+          + '<button class="btn-mini" onclick="renameStep(' + s.id + ')">แก้ชื่อ</button>'
+          + '<button class="btn-danger" onclick="delStep(' + s.id + ')">ลบ</button>'
+        : '';
+      return '<div class="step-row"><span class="nm ' + (s.active?'':'off') + '">' + esc(s.label) + '</span>' + ctrls + '</div>';
+    }).join('');
   }
   async function addStep() {
     const label = $('newStep').value.trim();

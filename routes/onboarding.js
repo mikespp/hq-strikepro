@@ -1,7 +1,7 @@
 const express = require('express');
 const crypto  = require('crypto');
 const db      = require('../db/database');
-const { requireAdmin } = require('./auth');
+const { requireAdmin, requireSuperAdmin } = require('./auth');
 
 const router = express.Router();
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -21,21 +21,22 @@ router.get('/steps', requireAdmin, async (req, res) => {
   try { res.json(await db.listOnboardingSteps()); }
   catch (e) { console.error(e); res.status(500).json({ error: 'เกิดข้อผิดพลาด' }); }
 });
-router.post('/steps', requireAdmin, async (req, res) => {
+// Step definitions may be changed by the OWNER (super admin) only.
+router.post('/steps', requireSuperAdmin, async (req, res) => {
   const label = String(req.body.label || '').trim();
   if (!label) return res.status(400).json({ error: 'กรุณากรอกชื่อขั้นตอน' });
   try { const id = await db.addOnboardingStep({ label, step_key: req.body.step_key, sort_order: req.body.sort_order });
     res.json({ ok: true, id }); }
   catch (e) { console.error(e); res.status(500).json({ error: 'บันทึกไม่สำเร็จ' }); }
 });
-router.patch('/steps/:id', requireAdmin, async (req, res) => {
+router.patch('/steps/:id', requireSuperAdmin, async (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (!id) return res.status(400).json({ error: 'invalid' });
   try { const ok = await db.updateOnboardingStep(id, req.body);
     res.json({ ok }); }
   catch (e) { console.error(e); res.status(500).json({ error: 'บันทึกไม่สำเร็จ' }); }
 });
-router.delete('/steps/:id', requireAdmin, async (req, res) => {
+router.delete('/steps/:id', requireSuperAdmin, async (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (!id) return res.status(400).json({ error: 'invalid' });
   try { await db.deleteOnboardingStep(id); res.json({ ok: true }); }

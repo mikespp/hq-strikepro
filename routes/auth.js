@@ -4,6 +4,7 @@ const jwt     = require('jsonwebtoken');
 const crypto  = require('crypto');
 const db      = require('../db/database');
 const { sendOtpEmail } = require('../lib/mailer');
+const { isSuperAdmin } = require('../lib/super-admin');
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'strikepro_dev_secret_change_in_prod';
@@ -80,6 +81,16 @@ async function requireAdmin(req, res, next) {
   requireAuth(req, res, () => {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Admin access required.' });
+    }
+    next();
+  });
+}
+
+// Owner-only (protected super-admin). Used for settings only the owner may change.
+async function requireSuperAdmin(req, res, next) {
+  requireAuth(req, res, () => {
+    if (!isSuperAdmin(req.user.email)) {
+      return res.status(403).json({ error: 'เฉพาะเจ้าของระบบ (Super Admin) เท่านั้น' });
     }
     next();
   });
@@ -243,6 +254,7 @@ router.get('/me', requireAuth, async (req, res) => {
     res.json({ user: {
       id: user.id, email: user.email, role: user.role || 'user',
       nickname: user.nickname || '', avatar: user.avatar_data || null,
+      is_super: isSuperAdmin(user.email),
     } });
   } catch (err) {
     console.error(err);
@@ -326,4 +338,4 @@ router.post('/logout', requireAuth, async (req, res) => {
   }
 });
 
-module.exports = { router, requireAuth, requireAdmin, checkEligible };
+module.exports = { router, requireAuth, requireAdmin, requireSuperAdmin, checkEligible };
