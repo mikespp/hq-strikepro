@@ -297,7 +297,12 @@ async function init() {
        ('topup_l1',  'Top-Up KYC Lv.1',    2),
        ('topup_l2',  'Top-Up KYC Lv.2',    3),
        ('deposit',   'ฝากเงิน',            4),
-       ('cs_notify', 'CS โทรแจ้งสิทธิ์',   5)`
+       ('cs_notify', 'AM โทรแจ้งสิทธิ์',   5)`
+  );
+  // Rename the notify step to "AM …" (only if still the original default — never
+  // clobber an owner's manual rename).
+  await pool.execute(
+    "UPDATE onboarding_steps SET label = 'AM โทรแจ้งสิทธิ์' WHERE step_key = 'cs_notify' AND label = 'CS โทรแจ้งสิทธิ์'"
   );
 
   // The Last Day — per-edition admin state (registration closed / event completed).
