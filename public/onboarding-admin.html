@@ -259,12 +259,14 @@
   async function moveStep(id, dir) {
     const i = STEPS.findIndex(x => x.id === id); const j = i + dir;
     if (i<0 || j<0 || j>=STEPS.length) return;
-    const a = STEPS[i], b = STEPS[j];
+    const arr = STEPS.slice(); const [moved] = arr.splice(i, 1); arr.splice(j, 0, moved);
+    // optimistic: show the new order immediately, then persist
+    STEPS = arr; STEPS.forEach((s, k) => s.sort_order = k + 1); renderSteps();
     try {
-      await fetch('/api/onboarding/steps/' + a.id, { method:'PATCH', headers: authJson(), body: JSON.stringify({ sort_order: b.sort_order }) });
-      await fetch('/api/onboarding/steps/' + b.id, { method:'PATCH', headers: authJson(), body: JSON.stringify({ sort_order: a.sort_order }) });
-      load();
-    } catch { toast('จัดลำดับไม่สำเร็จ'); }
+      const r = await fetch('/api/onboarding/steps/reorder', { method:'POST', headers: authJson(),
+        body: JSON.stringify({ order: arr.map(s => s.id) }) });
+      if (!r.ok) throw new Error();
+    } catch { toast('จัดลำดับไม่สำเร็จ'); load(); }
   }
   async function delStep(id) {
     const s = STEPS.find(x => x.id === id); if (!s) return;

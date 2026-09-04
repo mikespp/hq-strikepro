@@ -42,6 +42,13 @@ router.delete('/steps/:id', requireSuperAdmin, async (req, res) => {
   try { await db.deleteOnboardingStep(id); res.json({ ok: true }); }
   catch (e) { console.error(e); res.status(500).json({ error: 'ลบไม่สำเร็จ' }); }
 });
+// Reorder: body { order: [id, id, ...] } — renumbers all steps 1..N.
+router.post('/steps/reorder', requireSuperAdmin, async (req, res) => {
+  const order = (Array.isArray(req.body.order) ? req.body.order : []).map(x => parseInt(x, 10)).filter(Boolean);
+  if (!order.length) return res.status(400).json({ error: 'invalid' });
+  try { await db.reorderOnboardingSteps(order); res.json({ ok: true }); }
+  catch (e) { console.error(e); res.status(500).json({ error: 'จัดลำดับไม่สำเร็จ' }); }
+});
 
 // ── Customers ───────────────────────────────────────────────────────────────────
 router.get('/customers', requireAdmin, async (req, res) => {

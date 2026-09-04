@@ -1538,6 +1538,18 @@ async function deleteOnboardingStep(id) {
   const [r] = await pool.execute('DELETE FROM onboarding_steps WHERE id = ?', [id]);
   return r.affectedRows > 0;
 }
+// Renumber steps to 1..N in the given id order (robust — no sort_order collisions).
+async function reorderOnboardingSteps(orderedIds) {
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+    for (let i = 0; i < orderedIds.length; i++) {
+      await conn.execute('UPDATE onboarding_steps SET sort_order = ? WHERE id = ?', [i + 1, orderedIds[i]]);
+    }
+    await conn.commit();
+  } catch (e) { await conn.rollback(); throw e; }
+  finally { conn.release(); }
+}
 
 async function addOnboardingCustomer(d) {
   const email = String(d.email || '').trim().toLowerCase();
@@ -1885,7 +1897,7 @@ module.exports = {
   upsertPortfolioAccount, upsertPortfolioDaily, listPortfolioAccounts, getPortfolioDaily,
   upsertMaster, listMasters,
   saveMasterAccount, listMasterAccountsAdmin, listMasterAccountsForFetch, deleteMasterAccount, setMasterActive,
-  listOnboardingSteps, addOnboardingStep, updateOnboardingStep, deleteOnboardingStep,
+  listOnboardingSteps, addOnboardingStep, updateOnboardingStep, deleteOnboardingStep, reorderOnboardingSteps,
   addOnboardingCustomer, updateOnboardingCustomer, deleteOnboardingCustomer, listOnboardingCustomers,
   setOnboardingProgress, setOnboardingProgressByKey, listOnboardingEmails,
 };
