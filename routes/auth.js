@@ -360,6 +360,11 @@ router.get('/line/start', (req, res) => {
   res.redirect(url);
 });
 
+// Dedupe map: auth code -> Promise<redirect location>. Mobile LINE frequently hits
+// the callback twice with the same code (URL prefetch + the real navigation); the
+// 2nd exchange would get invalid_grant, so both hits share the 1st exchange result.
+const lineExchange = new Map();
+
 router.get('/line/callback', async (req, res) => {
   const fail = m => res.redirect('/login#line_error=' + encodeURIComponent(m || '1'));
   try {
@@ -369,33 +374,42 @@ router.get('/line/callback', async (req, res) => {
     if (!code || !state) return fail('nocode');
     try { const s = jwt.verify(state, JWT_SECRET); if (s.p !== 'line_state') throw 0; } catch { return fail('badstate'); }
 
-    const tokRes = await fetch('https://api.line.me/oauth2/v2.1/token', {
-      method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ grant_type: 'authorization_code', code, redirect_uri: lineCallbackUrl(req),
-        client_id: LINE_CHANNEL_ID, client_secret: LINE_CHANNEL_SECRET }).toString(),
-    });
-    if (!tokRes.ok) {
-      let reason = '';
-      try { const eb = await tokRes.json(); reason = eb.error || eb.error_description || ''; } catch {}
-      console.error('LINE token exchange failed:', tokRes.status, reason);
-      return fail('token' + (reason ? '_' + String(reason).replace(/[^a-z0-9_]/gi, '') : ''));
+    if (!lineExchange.has(code)) {
+      const p = (async () => {
+        const tokRes = await fetch('https://api.line.me/oauth2/v2.1/token', {
+          method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({ grant_type: 'authorization_code', code, redirect_uri: lineCallbackUrl(req),
+            client_id: LINE_CHANNEL_ID, client_secret: LINE_CHANNEL_SECRET }).toString(),
+        });
+        if (!tokRes.ok) {
+          let reason = ''; try { const eb = await tokRes.json(); reason = eb.error || eb.error_description || ''; } catch {}
+          console.error('LINE token exchange failed:', tokRes.status, reason);
+          throw new Error('token' + (reason ? '_' + String(reason).replace(/[^a-z0-9_]/gi, '') : ''));
+        }
+        const tok = await tokRes.json();
+        const profRes = await fetch('https://api.line.me/v2/profile', { headers: { Authorization: 'Bearer ' + tok.access_token } });
+        if (!profRes.ok) { console.error('LINE profile fetch failed:', profRes.status); throw new Error('profile'); }
+        const prof = await profRes.json();
+        const lineUserId = String(prof.userId || '');
+        if (!lineUserId) throw new Error('profile');
+        const existing = await db.findUserByLineUserId(lineUserId);
+        if (existing) {
+          const token = await issueToken(existing.id);
+          return '/login#line_token=' + encodeURIComponent(token);
+        }
+        const pending = jwt.sign({ luid: lineUserId, name: String(prof.displayName || ''), p: 'line_link' }, JWT_SECRET, { expiresIn: '20m' });
+        return '/login#line_pending=' + encodeURIComponent(pending) + '&name=' + encodeURIComponent(prof.displayName || '');
+      })();
+      lineExchange.set(code, p);
+      setTimeout(() => lineExchange.delete(code), 3 * 60 * 1000);
+      p.catch(() => lineExchange.delete(code));   // a genuine failure stays retryable
     }
-    const tok = await tokRes.json();
-
-    const profRes = await fetch('https://api.line.me/v2/profile', { headers: { Authorization: 'Bearer ' + tok.access_token } });
-    if (!profRes.ok) { console.error('LINE profile fetch failed:', profRes.status); return fail('profile'); }
-    const prof = await profRes.json();
-    const lineUserId = String(prof.userId || '');
-    if (!lineUserId) return fail('profile');
-
-    const existing = await db.findUserByLineUserId(lineUserId);
-    if (existing) {
-      const token = await issueToken(existing.id);
-      return res.redirect('/login#line_token=' + encodeURIComponent(token));
-    }
-    const pending = jwt.sign({ luid: lineUserId, name: String(prof.displayName || ''), p: 'line_link' }, JWT_SECRET, { expiresIn: '20m' });
-    return res.redirect('/login#line_pending=' + encodeURIComponent(pending) + '&name=' + encodeURIComponent(prof.displayName || ''));
-  } catch (err) { console.error('LINE callback error:', err); return fail('server'); }
+    const location = await lineExchange.get(code);
+    return res.redirect(location);
+  } catch (err) {
+    console.error('LINE callback error:', err && err.message);
+    return fail((err && err.message) || 'server');
+  }
 });
 
 // OTP for the LINE email step — unlike register this does NOT block existing emails (linking is allowed).
