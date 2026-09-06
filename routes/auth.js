@@ -397,7 +397,7 @@ router.get('/line/callback', async (req, res) => {
           const token = await issueToken(existing.id);
           return '/login#line_token=' + encodeURIComponent(token);
         }
-        const pending = jwt.sign({ luid: lineUserId, name: String(prof.displayName || ''), p: 'line_link' }, JWT_SECRET, { expiresIn: '20m' });
+        const pending = jwt.sign({ luid: lineUserId, name: String(prof.displayName || ''), pic: String(prof.pictureUrl || ''), p: 'line_link' }, JWT_SECRET, { expiresIn: '20m' });
         return '/login#line_pending=' + encodeURIComponent(pending) + '&name=' + encodeURIComponent(prof.displayName || '');
       })();
       lineExchange.set(code, p);
@@ -457,7 +457,7 @@ router.post('/line/complete', async (req, res) => {
     }
     // brand-new account → collect the full profile like register. Carry the
     // OTP-verified email + LINE id in a short ticket used by /line/register.
-    const ticket = jwt.sign({ luid: lineUserId, email, name: payload.name, p: 'line_profile' }, JWT_SECRET, { expiresIn: '25m' });
+    const ticket = jwt.sign({ luid: lineUserId, email, name: payload.name, pic: payload.pic || '', p: 'line_profile' }, JWT_SECRET, { expiresIn: '25m' });
     return res.json({ needProfile: true, ticket });
   } catch (err) { console.error(err); res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่' }); }
 });
@@ -478,14 +478,18 @@ router.post('/line/register', async (req, res) => {
     const firstName=s(b.firstName), lastName=s(b.lastName), nickname=s(b.nickname), phone=s(b.phone),
           birthDate=s(b.birthDate), lineId=s(b.lineId), addrLine=s(b.addrLine), subdistrict=s(b.subdistrict),
           district=s(b.district), province=s(b.province), postalCode=s(b.postalCode), password=String(b.password || '');
-    const avatarData = b.avatarData ? String(b.avatarData) : null;
+    // avatar: an uploaded base64 image if valid, otherwise default to the LINE picture URL
+    let avatarData = b.avatarData ? String(b.avatarData) : null;
+    if (avatarData && /^data:image\/(png|jpe?g|webp|gif);base64,/.test(avatarData)) {
+      if (avatarData.length > 3_000_000) return res.status(400).json({ error: 'รูปโปรไฟล์ใหญ่เกินไป' });
+    } else {
+      avatarData = t.pic ? String(t.pic).slice(0, 500) : null;
+    }
     const required = { firstName, lastName, nickname, phone, birthDate, lineId, addrLine, subdistrict, district, province, postalCode };
     for (const v of Object.values(required)) if (!v) return res.status(400).json({ error: 'กรุณากรอกข้อมูลให้ครบทุกช่อง' });
     if (!/^\d{4}-\d{2}-\d{2}$/.test(birthDate)) return res.status(400).json({ error: 'วันเดือนปีเกิดไม่ถูกต้อง' });
     if (!/^\d{5}$/.test(postalCode)) return res.status(400).json({ error: 'รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก' });
     if (password.length < 8) return res.status(400).json({ error: 'รหัสผ่านต้องยาวอย่างน้อย 8 ตัวอักษร' });
-    if (avatarData && (!/^data:image\/(png|jpe?g|webp|gif);base64,/.test(avatarData) || avatarData.length > 3_000_000))
-      return res.status(400).json({ error: 'รูปโปรไฟล์ไม่ถูกต้องหรือใหญ่เกินไป' });
 
     // if the email got registered meanwhile, just link instead of duplicating
     const existing = await db.findUserByEmail(email);

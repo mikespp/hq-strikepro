@@ -312,6 +312,7 @@
     try { const p = ticket.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'); info = JSON.parse(decodeURIComponent(escape(atob(p)))); } catch {}
     state.email = info.email || '';
     if (info.name && $('nickname')) $('nickname').value = info.name;
+    if (info.pic) { const pv = $('avatarPreview'); if (pv) { pv.textContent = ''; pv.style.backgroundImage = 'url(' + info.pic + ')'; pv.style.backgroundSize = 'cover'; pv.style.backgroundPosition = 'center'; } }
     const btn = $('btn2'); if (btn) { btn.dataset.label = 'ยืนยันและสมัคร'; btn.textContent = 'ยืนยันและสมัคร'; }
     const sub = $('step2Sub'); if (sub) sub.textContent = 'กรอกข้อมูลให้ครบเพื่อสมัครสมาชิก';
     document.querySelectorAll('#step2 .subrow').forEach(el => el.style.display = 'none');   // no "แก้อีเมล"
