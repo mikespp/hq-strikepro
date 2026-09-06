@@ -319,8 +319,17 @@
       history.replaceState(null, '', location.pathname);
       showLineStep();
     } else if (h.get('line_error')) {
+      const code = h.get('line_error');
       history.replaceState(null, '', location.pathname);
-      showAlert('เข้าสู่ระบบด้วย LINE ไม่สำเร็จ กรุณาลองใหม่');
+      const hint = {
+        notconfigured: 'ระบบยังไม่ได้ตั้งค่า LINE (env)',
+        token: 'Channel ID/Secret หรือ Callback URL ไม่ตรงกับที่ตั้งใน LINE',
+        badstate: 'เซสชันหมดอายุ ลองใหม่อีกครั้ง',
+        nocode: 'ไม่ได้รับ code จาก LINE',
+        profile: 'ดึงโปรไฟล์ LINE ไม่สำเร็จ',
+        server: 'เกิดข้อผิดพลาดฝั่งเซิร์ฟเวอร์',
+      }[code] || '';
+      showAlert('เข้าสู่ระบบด้วย LINE ไม่สำเร็จ [' + code + ']' + (hint ? ' — ' + hint : ''));
     }
   })();
 </script>
