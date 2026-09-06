@@ -374,11 +374,16 @@ router.get('/line/callback', async (req, res) => {
       body: new URLSearchParams({ grant_type: 'authorization_code', code, redirect_uri: lineCallbackUrl(req),
         client_id: LINE_CHANNEL_ID, client_secret: LINE_CHANNEL_SECRET }).toString(),
     });
-    if (!tokRes.ok) return fail('token');
+    if (!tokRes.ok) {
+      let reason = '';
+      try { const eb = await tokRes.json(); reason = eb.error || eb.error_description || ''; } catch {}
+      console.error('LINE token exchange failed:', tokRes.status, reason);
+      return fail('token' + (reason ? '_' + String(reason).replace(/[^a-z0-9_]/gi, '') : ''));
+    }
     const tok = await tokRes.json();
 
     const profRes = await fetch('https://api.line.me/v2/profile', { headers: { Authorization: 'Bearer ' + tok.access_token } });
-    if (!profRes.ok) return fail('profile');
+    if (!profRes.ok) { console.error('LINE profile fetch failed:', profRes.status); return fail('profile'); }
     const prof = await profRes.json();
     const lineUserId = String(prof.userId || '');
     if (!lineUserId) return fail('profile');
