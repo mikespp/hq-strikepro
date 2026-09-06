@@ -281,19 +281,23 @@
     renderAmBar();
     const q = $('search').value.trim().toLowerCase();
     const amMatch = c => !amFilter ? true : (amFilter==='__none__' ? !c.account_manager : c.account_manager===amFilter);
-    const list = CUSTOMERS.filter(c => amMatch(c) && (!q
+    // stats reflect the AM filter (the chip counts above stay global)
+    const amSet = CUSTOMERS.filter(amMatch);
+    const list = amSet.filter(c => !q
       || c.email.toLowerCase().includes(q)
       || (c.name||'').toLowerCase().includes(q)
       || (c.hq_name||'').toLowerCase().includes(q)
-      || (c.contact||'').toLowerCase().includes(q)));
-    const doneCount = s => CUSTOMERS.filter(c => c.progress[s.id] && c.progress[s.id].done).length;
+      || (c.contact||'').toLowerCase().includes(q));
+    const doneCount = s => amSet.filter(c => c.progress[s.id] && c.progress[s.id].done).length;
     const kpiSteps   = STEPS.filter(s => KPI_KEYS.includes(s.step_key));
     const otherSteps = STEPS.filter(s => !KPI_KEYS.includes(s.step_key));
-    const totalCard = '<div class="kpi total"><span class="tag">ทั้งหมด</span><div class="n">' + CUSTOMERS.length
-      + ' <small>คน</small></div><div class="k">ลูกค้าใหม่ทั้งหมด</div></div>';
+    const totalLabel = !amFilter ? 'ลูกค้าใหม่ทั้งหมด'
+      : (amFilter==='__none__' ? 'ลูกค้า (ยังไม่ระบุ AM)' : 'ลูกค้าของ ' + esc(amFilter));
+    const totalCard = '<div class="kpi total"><span class="tag">' + (amFilter?'กรอง':'ทั้งหมด') + '</span><div class="n">' + amSet.length
+      + ' <small>คน</small></div><div class="k">' + totalLabel + '</div></div>';
     const kpiCards = kpiSteps.map(s =>
       '<div class="kpi"><span class="tag">KPI</span><div class="n">' + doneCount(s)
-      + ' <small>/ ' + CUSTOMERS.length + ' คน</small></div><div class="k">' + esc(s.label) + '</div></div>').join('');
+      + ' <small>/ ' + amSet.length + ' คน</small></div><div class="k">' + esc(s.label) + '</div></div>').join('');
     $('stats').innerHTML =
       '<div class="kpibar">' + totalCard + kpiCards + '</div>'
       + (otherSteps.length ? '<div class="statbar">' + otherSteps.map(s => stat(s.label, doneCount(s), '')).join('') + '</div>' : '');
