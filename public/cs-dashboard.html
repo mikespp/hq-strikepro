@@ -75,6 +75,12 @@
     .am select { flex:1; background:var(--card2); border:1px solid var(--border); border-radius:9px; padding:8px 10px; color:var(--text); font-size:13px; font-family:inherit; cursor:pointer; }
     .am select:focus { outline:none; border-color:var(--blue-border); }
     .am select.set { color:var(--blue-light); border-color:var(--blue-border); font-weight:700; }
+    .filterbar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:2px 0 16px; }
+    .filterbar .flbl { font-size:12px; color:var(--muted); margin-right:2px; font-weight:600; }
+    .chip { font-size:13px; font-weight:700; padding:7px 13px; border-radius:50px; border:1px solid var(--border); background:var(--card2); color:var(--muted); cursor:pointer; font-family:inherit; }
+    .chip:hover { border-color:var(--blue-border); color:var(--text); }
+    .chip.on { background:var(--blue-dim); border-color:var(--blue-border); color:var(--blue-light); }
+    .chip .c { opacity:.65; font-weight:600; margin-left:5px; }
 
     .grid { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
     @media (max-width:760px){ .grid { grid-template-columns:1fr; } }
@@ -167,6 +173,7 @@
     <input id="search" placeholder="ค้นหาอีเมล / ชื่อ / ช่องทางติดต่อ…" oninput="renderList()" />
   </div>
   <div id="stats"></div>
+  <div class="filterbar" id="ambar"></div>
   <div id="content"><div class="state">กำลังโหลด…</div></div>
 </div>
 
@@ -186,9 +193,10 @@
   function drawerSignOut(){ localStorage.removeItem(TOKEN_KEY); window.location.href='/login'; }
   function closeModal(id){ $(id).classList.remove('on'); }
 
-  let STEPS = [], CUSTOMERS = [];
+  let STEPS = [], CUSTOMERS = [], amFilter = '';   // amFilter: '' all, '__none__' unassigned, else a manager
   const MANAGERS = ['Phot', 'Di', 'Namkang'];
   const KPI_KEYS = ['topup_l1', 'cs_notify'];   // shown as prominent KPI cards
+  function setAmFilter(v) { amFilter = v; renderList(); }
 
   (async () => {
     const token = localStorage.getItem(TOKEN_KEY);
@@ -259,13 +267,25 @@
     return '<div class="stat ' + (cls||'') + '"><div class="n">' + n + '</div><div class="k">' + esc(label) + '</div></div>';
   }
 
+  function renderAmBar() {
+    const cnt = name => CUSTOMERS.filter(c => (c.account_manager||'') === name).length;
+    const chip = (val, label, n) => '<button class="chip ' + (amFilter===val?'on':'') + '" onclick="setAmFilter(\'' + val + '\')">'
+      + esc(label) + '<span class="c">' + n + '</span></button>';
+    $('ambar').innerHTML = '<span class="flbl">Account Manager:</span>'
+      + chip('', 'ทั้งหมด', CUSTOMERS.length)
+      + MANAGERS.map(m => chip(m, m, cnt(m))).join('')
+      + chip('__none__', 'ยังไม่ระบุ', cnt(''));
+  }
+
   function renderList() {
+    renderAmBar();
     const q = $('search').value.trim().toLowerCase();
-    const list = CUSTOMERS.filter(c => !q
+    const amMatch = c => !amFilter ? true : (amFilter==='__none__' ? !c.account_manager : c.account_manager===amFilter);
+    const list = CUSTOMERS.filter(c => amMatch(c) && (!q
       || c.email.toLowerCase().includes(q)
       || (c.name||'').toLowerCase().includes(q)
       || (c.hq_name||'').toLowerCase().includes(q)
-      || (c.contact||'').toLowerCase().includes(q));
+      || (c.contact||'').toLowerCase().includes(q)));
     const doneCount = s => CUSTOMERS.filter(c => c.progress[s.id] && c.progress[s.id].done).length;
     const kpiSteps   = STEPS.filter(s => KPI_KEYS.includes(s.step_key));
     const otherSteps = STEPS.filter(s => !KPI_KEYS.includes(s.step_key));
