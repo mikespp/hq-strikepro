@@ -54,8 +54,40 @@ router.post('/steps/reorder', requireSuperAdmin, async (req, res) => {
 router.get('/customers', requireAdmin, async (req, res) => {
   try {
     const [customers, steps] = await Promise.all([db.listOnboardingCustomers(), db.listOnboardingSteps(true)]);
-    res.json({ customers, steps });
+    res.json({ customers, steps, oaEnabled: !!process.env.LINE_OA_TOKEN });
   } catch (e) { console.error(e); res.status(500).json({ error: 'เกิดข้อผิดพลาด' }); }
+});
+
+// Send a LINE message to a customer via the OA (Messaging API push). Needs the
+// customer linked (line_user_id), LINE_OA_TOKEN set, and the OA + Login channel
+// in the same provider so the userId matches. Push works only if they added the OA.
+router.post('/customers/:id/line-message', requireAdmin, async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const text = String(req.body.text || '').trim();
+  if (!id || !text) return res.status(400).json({ error: 'กรุณากรอกข้อความ' });
+  const token = process.env.LINE_OA_TOKEN;
+  if (!token) return res.status(400).json({ error: 'ยังไม่ได้ตั้งค่า OA (LINE_OA_TOKEN)' });
+  try {
+    const cust = await db.getOnboardingCustomerById(id);
+    if (!cust) return res.status(404).json({ error: 'ไม่พบลูกค้า' });
+    const user = await db.findUserByEmail(cust.email);
+    const lineUserId = user && user.line_user_id;
+    if (!lineUserId) return res.status(400).json({ error: 'ลูกค้ายังไม่ได้ผูก LINE' });
+
+    const r = await fetch('https://api.line.me/v2/bot/message/push', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify({ to: lineUserId, messages: [{ type: 'text', text: text.slice(0, 4900) }] }),
+    });
+    if (!r.ok) {
+      let detail = ''; try { const b = await r.json(); detail = b.message || ''; } catch {}
+      console.error('LINE push failed:', r.status, detail);
+      const msg = r.status === 400 ? 'ส่งไม่สำเร็จ — ลูกค้าอาจยังไม่ได้แอดเพื่อน OA หรือ userId ไม่ตรง provider'
+        : ('ส่งไม่สำเร็จ (' + r.status + ')');
+      return res.status(502).json({ error: msg + (detail ? ' — ' + detail : '') });
+    }
+    res.json({ ok: true });
+  } catch (e) { console.error(e); res.status(500).json({ error: 'ส่งไม่สำเร็จ' }); }
 });
 router.post('/customers', requireAdmin, async (req, res) => {
   const email = String(req.body.email || '').trim().toLowerCase();

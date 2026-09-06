@@ -101,6 +101,12 @@
     .contact { font-size:12.5px; color:var(--text); background:var(--card2); border:1px solid var(--border); border-radius:10px; padding:9px 12px; margin-bottom:12px; line-height:1.7; }
     .contact .lbl { color:var(--muted); }
     .contact a { color:var(--blue-light); }
+    .lnrow { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:12px; }
+    .lnbtn { font-size:12px; font-weight:700; padding:7px 12px; border-radius:9px; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:5px;
+      background:#06C755; color:#fff; border:none; font-family:inherit; }
+    .lnbtn:hover { background:#05b34d; }
+    .lnbtn.oa { background:var(--card2); color:var(--green); border:1px solid rgba(74,222,128,.35); }
+    .lnbadge { font-size:11px; font-weight:700; color:var(--green); background:rgba(74,222,128,.12); border:1px solid rgba(74,222,128,.3); border-radius:50px; padding:4px 10px; }
 
     .prog-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
     .prog-top .t { font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); font-weight:700; }
@@ -193,7 +199,7 @@
   function drawerSignOut(){ localStorage.removeItem(TOKEN_KEY); window.location.href='/login'; }
   function closeModal(id){ $(id).classList.remove('on'); }
 
-  let STEPS = [], CUSTOMERS = [], amFilter = '';   // amFilter: '' all, '__none__' unassigned, else a manager
+  let STEPS = [], CUSTOMERS = [], amFilter = '', OA_ENABLED = false;   // amFilter: '' all, '__none__' unassigned, else a manager
   const MANAGERS = ['Phot', 'Di', 'Namkang'];
   const KPI_KEYS = ['topup_l1', 'cs_notify'];   // shown as prominent KPI cards
   function setAmFilter(v) { amFilter = v; renderList(); }
@@ -216,7 +222,7 @@
     try {
       const r = await fetch('/api/onboarding/customers', { headers: auth() });
       const d = r.ok ? await r.json() : { customers:[], steps:[] };
-      STEPS = d.steps || []; CUSTOMERS = d.customers || [];
+      STEPS = d.steps || []; CUSTOMERS = d.customers || []; OA_ENABLED = !!d.oaEnabled;
       renderList();
     } catch { $('content').innerHTML = '<div class="state">โหลดข้อมูลไม่สำเร็จ</div>'; }
   }
@@ -227,11 +233,24 @@
     if (c.hq_registered) {
       const p = [];
       if (c.hq_phone) p.push('📱 <a href="tel:'+esc(c.hq_phone)+'">'+esc(c.hq_phone)+'</a>');
-      if (c.hq_line)  p.push('Line: ' + esc(c.hq_line));
+      if (c.hq_line)  p.push('Line: <a href="https://line.me/ti/p/~' + encodeURIComponent(String(c.hq_line).replace(/^@/,'')) + '" target="_blank" rel="noopener">' + esc(c.hq_line) + '</a>');
       if (c.hq_nickname) p.push('ชื่อเล่น ' + esc(c.hq_nickname));
       if (p.length) bits.push('<div><span class="lbl">โปรไฟล์ HQ:</span> ' + p.join(' · ') + '</div>');
     }
     return bits.length ? '<div class="contact">' + bits.join('') + '</div>' : '';
+  }
+
+  function lineActions(c) {
+    const acts = [];
+    if (c.hq_line) {
+      const lid = String(c.hq_line).replace(/^@/, '');
+      acts.push('<a class="lnbtn" href="https://line.me/ti/p/~' + encodeURIComponent(lid) + '" target="_blank" rel="noopener">💬 ทัก LINE</a>');
+    }
+    if (c.hq_line_user_id) {
+      acts.push('<span class="lnbadge">🟢 ผูก LINE แล้ว</span>');
+      if (OA_ENABLED) acts.push('<button class="lnbtn oa" onclick="lineMessage(' + c.id + ')">ส่งข้อความ (OA)</button>');
+    }
+    return acts.length ? '<div class="lnrow">' + acts.join('') + '</div>' : '';
   }
 
   function card(c) {
@@ -252,6 +271,7 @@
       +   (c.strikepro_registered ? '<span class="badge ok">✓ StrikePro</span>' : '<span class="badge no">✕ ยังไม่พบใน StrikePro</span>')
       + '</div>'
       + contactBlock(c)
+      + lineActions(c)
       + '<div class="am"><span class="lb">Account&nbsp;Manager</span>'
       +   '<select class="' + (c.account_manager?'set':'') + '" onchange="assignManager(' + c.id + ', this.value)">'
       +     '<option value="">— ยังไม่ระบุ —</option>'
@@ -325,6 +345,18 @@
       renderList();
       toast(name ? ('มอบหมายให้ ' + name) : 'ยกเลิกการมอบหมาย');
     } catch { toast('อัปเดตไม่สำเร็จ'); }
+  }
+
+  async function lineMessage(id) {
+    const text = prompt('ข้อความที่จะส่งทาง LINE (ผ่าน OA):');
+    if (text == null || !text.trim()) return;
+    try {
+      const r = await fetch('/api/onboarding/customers/' + id + '/line-message', {
+        method:'POST', headers: authJson(), body: JSON.stringify({ text: text.trim() }) });
+      const j = await r.json();
+      if (!r.ok) { toast(j.error || 'ส่งไม่สำเร็จ'); return; }
+      toast('ส่งข้อความ LINE แล้ว ✓');
+    } catch { toast('ส่งไม่สำเร็จ'); }
   }
 </script>
 </body>

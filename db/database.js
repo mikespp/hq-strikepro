@@ -1611,7 +1611,7 @@ async function listOnboardingCustomers() {
     `SELECT c.id, c.email, c.name, c.contact, c.note, c.added_by, c.account_manager,
             DATE_FORMAT(c.created_at, '%Y-%m-%d %H:%i') AS created_at,
             (u.id IS NOT NULL)                                   AS hq_registered,
-            u.phone AS hq_phone, u.line_id AS hq_line, u.nickname AS hq_nickname,
+            u.phone AS hq_phone, u.line_id AS hq_line, u.line_user_id AS hq_line_user_id, u.nickname AS hq_nickname,
             TRIM(CONCAT(COALESCE(u.first_name,''),' ',COALESCE(u.last_name,''))) AS hq_name,
             (SHA2(LOWER(TRIM(c.email)),256) IN (SELECT email_hash FROM eligible_emails)) AS strikepro_registered
      FROM onboarding_customers c
@@ -1633,6 +1633,10 @@ async function listOnboardingCustomers() {
 async function listOnboardingEmails() {
   const [rows] = await pool.execute('SELECT email FROM onboarding_customers');
   return rows.map(r => r.email);
+}
+async function getOnboardingCustomerById(id) {
+  const [rows] = await pool.execute('SELECT id, email, name FROM onboarding_customers WHERE id = ?', [id]);
+  return rows[0] || null;
 }
 async function setOnboardingProgress(customerId, stepId, done) {
   await pool.execute(
@@ -1922,5 +1926,5 @@ module.exports = {
   saveMasterAccount, listMasterAccountsAdmin, listMasterAccountsForFetch, deleteMasterAccount, setMasterActive,
   listOnboardingSteps, addOnboardingStep, updateOnboardingStep, deleteOnboardingStep, reorderOnboardingSteps,
   addOnboardingCustomer, updateOnboardingCustomer, deleteOnboardingCustomer, listOnboardingCustomers,
-  setOnboardingProgress, setOnboardingProgressByKey, listOnboardingEmails,
+  setOnboardingProgress, setOnboardingProgressByKey, listOnboardingEmails, getOnboardingCustomerById,
 };
