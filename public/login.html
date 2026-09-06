@@ -308,6 +308,7 @@
     const code  = document.getElementById('liCode').value.trim();
     try {
       const d = await apiFetch('/line/complete', { method: 'POST', body: { pending: LINE_PENDING, email, code } });
+      if (d.needProfile) { window.location.href = '/register#ticket=' + encodeURIComponent(d.ticket); return; }
       localStorage.setItem(TOKEN_KEY, d.token);
       window.location.href = nextDest();
     } catch (err) { showAlert(err.message); shakeCard(); }
