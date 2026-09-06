@@ -501,6 +501,8 @@ async function init() {
     `ALTER TABLE pf_accounts ADD COLUMN inv_pw LONGTEXT NULL`,
     // CS onboarding — assigned Account Manager (Phot / Di / Namkang / …)
     `ALTER TABLE onboarding_customers ADD COLUMN account_manager VARCHAR(100) NOT NULL DEFAULT ''`,
+    // LINE Login — the LINE OAuth userId linked to this account (for 1-click login)
+    `ALTER TABLE users ADD COLUMN line_user_id VARCHAR(64) NOT NULL DEFAULT ''`,
   ]) {
     try { await pool.execute(ddl); } catch (err) { if (err.errno !== 1060) throw err; }
   }
@@ -613,6 +615,26 @@ async function createMember(d) {
     [e, d.hashedPassword, full, s(d.firstName), s(d.lastName), s(d.nickname), s(d.phone),
      d.birthDate || null, s(d.lineId), s(d.addrLine), s(d.subdistrict), s(d.district),
      s(d.province), s(d.postalCode), d.avatarData || null, d.verified ? 1 : 0]
+  );
+  return { id: result.insertId, email: e };
+}
+
+// ── LINE Login ──────────────────────────────────────────────────────────────────
+async function findUserByLineUserId(lineUserId) {
+  if (!lineUserId) return null;
+  const [rows] = await pool.execute('SELECT * FROM users WHERE line_user_id = ? LIMIT 1', [String(lineUserId)]);
+  return rows[0] || null;
+}
+async function setUserLineUserId(userId, lineUserId) {
+  const [r] = await pool.execute('UPDATE users SET line_user_id = ? WHERE id = ?', [String(lineUserId), userId]);
+  return r.affectedRows > 0;
+}
+// Minimal account created from a LINE login (email verified via OTP; nickname from LINE).
+async function createLineUser(email, hashedPassword, nickname, lineUserId, verified) {
+  const e = (email || '').toLowerCase().trim();
+  const [result] = await pool.execute(
+    'INSERT INTO users (email, password, nickname, line_user_id, verified) VALUES (?,?,?,?,?)',
+    [e, hashedPassword, String(nickname || '').slice(0, 255), String(lineUserId), verified ? 1 : 0]
   );
   return { id: result.insertId, email: e };
 }
@@ -1872,6 +1894,7 @@ module.exports = {
   emailInLastAccount, emailInTheLastDay, getLastAccountEmailById, getTheLastDayEmailById,
   listLastAccountRounds, upsertLastAccountRound, setLastAccountRoundEventId, deleteLastAccountRound,
   findUserByEmail, findUserById, createUser, createUserFull, createMember,
+  findUserByLineUserId, setUserLineUserId, createLineUser,
   isEmailEligible, countEligible, addEligibleHashes, refreshVerifiedFromEligible,
   setUserVerified, listUnverifiedUsers,
   upsertOtp, getOtp, incOtpAttempts, deleteOtp,

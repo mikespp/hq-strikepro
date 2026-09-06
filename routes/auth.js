@@ -338,4 +338,112 @@ router.post('/logout', requireAuth, async (req, res) => {
   }
 });
 
+// ── LINE Login (OAuth 2.1) ────────────────────────────────────────────────────
+// Flow: /line/start → LINE consent → /line/callback. If the LINE id is already
+// linked, log in. Otherwise carry the LINE identity in a short signed token and
+// make the user verify their StrikePro email via OTP (/line/send-otp +
+// /line/complete) — email is the key that maps to StrikePro, so it's always
+// required; a matching email links to the existing account, else a new one.
+const LINE_CHANNEL_ID     = process.env.LINE_CHANNEL_ID || '';
+const LINE_CHANNEL_SECRET = process.env.LINE_CHANNEL_SECRET || '';
+const lineEnabled = () => !!(LINE_CHANNEL_ID && LINE_CHANNEL_SECRET);
+const lineCallbackUrl = req => process.env.LINE_CALLBACK_URL || `https://${req.get('host')}/api/auth/line/callback`;
+
+router.get('/line/status', (req, res) => res.json({ enabled: lineEnabled() }));
+
+router.get('/line/start', (req, res) => {
+  if (!lineEnabled()) return res.redirect('/login#line_error=notconfigured');
+  const state = jwt.sign({ n: crypto.randomBytes(8).toString('hex'), p: 'line_state' }, JWT_SECRET, { expiresIn: '10m' });
+  const url = 'https://access.line.me/oauth2/v2.1/authorize?' + new URLSearchParams({
+    response_type: 'code', client_id: LINE_CHANNEL_ID, redirect_uri: lineCallbackUrl(req), state, scope: 'profile openid',
+  }).toString();
+  res.redirect(url);
+});
+
+router.get('/line/callback', async (req, res) => {
+  const fail = m => res.redirect('/login#line_error=' + encodeURIComponent(m || '1'));
+  try {
+    if (!lineEnabled()) return fail('notconfigured');
+    if (req.query.error) return fail(String(req.query.error));
+    const code = String(req.query.code || ''), state = String(req.query.state || '');
+    if (!code || !state) return fail('nocode');
+    try { const s = jwt.verify(state, JWT_SECRET); if (s.p !== 'line_state') throw 0; } catch { return fail('badstate'); }
+
+    const tokRes = await fetch('https://api.line.me/oauth2/v2.1/token', {
+      method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ grant_type: 'authorization_code', code, redirect_uri: lineCallbackUrl(req),
+        client_id: LINE_CHANNEL_ID, client_secret: LINE_CHANNEL_SECRET }).toString(),
+    });
+    if (!tokRes.ok) return fail('token');
+    const tok = await tokRes.json();
+
+    const profRes = await fetch('https://api.line.me/v2/profile', { headers: { Authorization: 'Bearer ' + tok.access_token } });
+    if (!profRes.ok) return fail('profile');
+    const prof = await profRes.json();
+    const lineUserId = String(prof.userId || '');
+    if (!lineUserId) return fail('profile');
+
+    const existing = await db.findUserByLineUserId(lineUserId);
+    if (existing) {
+      const token = await issueToken(existing.id);
+      return res.redirect('/login#line_token=' + encodeURIComponent(token));
+    }
+    const pending = jwt.sign({ luid: lineUserId, name: String(prof.displayName || ''), p: 'line_link' }, JWT_SECRET, { expiresIn: '20m' });
+    return res.redirect('/login#line_pending=' + encodeURIComponent(pending) + '&name=' + encodeURIComponent(prof.displayName || ''));
+  } catch (err) { console.error('LINE callback error:', err); return fail('server'); }
+});
+
+// OTP for the LINE email step — unlike register this does NOT block existing emails (linking is allowed).
+router.post('/line/send-otp', async (req, res) => {
+  try {
+    if (!lineEnabled()) return res.status(400).json({ error: 'LINE login ยังไม่พร้อมใช้งาน' });
+    const email = normEmail(req.body.email);
+    if (!EMAIL_RE.test(email)) return res.status(400).json({ error: 'กรุณากรอกอีเมลให้ถูกต้อง' });
+    if (!rateLimit('otpip:' + clientIp(req), 20, 60 * 60 * 1000)) return res.status(429).json({ error: 'ขอรหัสบ่อยเกินไป กรุณาลองใหม่ภายหลัง' });
+    if (!rateLimit('otp:' + email, 5, 60 * 60 * 1000)) return res.status(429).json({ error: 'ขอรหัสบ่อยเกินไป กรุณารอสักครู่' });
+    const codeVal = genOtp();
+    const codeHash = await bcrypt.hash(codeVal, 8);
+    await db.upsertOtp(email, codeHash, Date.now() + 10 * 60 * 1000);
+    try { await sendOtpEmail(email, codeVal); }
+    catch (e) { console.error('OTP send failed:', e.message); return res.status(502).json({ error: 'ส่งอีเมลไม่สำเร็จ กรุณาลองใหม่' }); }
+    res.json({ ok: true });
+  } catch (err) { console.error(err); res.status(500).json({ error: 'เกิดข้อผิดพลาด' }); }
+});
+
+router.post('/line/complete', async (req, res) => {
+  try {
+    if (!lineEnabled()) return res.status(400).json({ error: 'LINE login ยังไม่พร้อมใช้งาน' });
+    let payload;
+    try { payload = jwt.verify(String(req.body.pending || ''), JWT_SECRET); if (payload.p !== 'line_link') throw 0; }
+    catch { return res.status(400).json({ error: 'เซสชัน LINE หมดอายุ กรุณาเข้าสู่ระบบด้วย LINE ใหม่', code: 'expired' }); }
+    const lineUserId = String(payload.luid || '');
+    const email = normEmail(req.body.email);
+    const code = String(req.body.code || '').trim();
+    if (!EMAIL_RE.test(email) || !/^\d{6}$/.test(code)) return res.status(400).json({ error: 'ข้อมูลไม่ถูกต้อง' });
+
+    const otp = await db.getOtp(email);
+    if (!otp || Date.now() > Number(otp.expires_at)) return res.status(400).json({ error: 'รหัสหมดอายุ กรุณาขอรหัสใหม่', code: 'expired' });
+    if (otp.attempts >= 5) { await db.deleteOtp(email); return res.status(429).json({ error: 'กรอกรหัสผิดเกินกำหนด กรุณาขอรหัสใหม่', code: 'expired' }); }
+    if (!(await bcrypt.compare(code, otp.code_hash))) { await db.incOtpAttempts(email); return res.status(400).json({ error: 'รหัสยืนยันไม่ถูกต้อง' }); }
+    await db.deleteOtp(email);
+
+    const already = await db.findUserByLineUserId(lineUserId);
+    if (already) { const token = await issueToken(already.id); return res.json({ token }); }
+
+    const verified = await registerVerifiedFlag(email);
+    const existing = await db.findUserByEmail(email);
+    let userId;
+    if (existing) {
+      await db.setUserLineUserId(existing.id, lineUserId);
+      userId = existing.id;
+    } else {
+      const randomPw = await bcrypt.hash(crypto.randomBytes(24).toString('hex'), 12);
+      const u = await db.createLineUser(email, randomPw, payload.name, lineUserId, verified);
+      userId = u.id;
+    }
+    const token = await issueToken(userId);
+    res.json({ token });
+  } catch (err) { console.error(err); res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่' }); }
+});
+
 module.exports = { router, requireAuth, requireAdmin, requireSuperAdmin, checkEligible };
