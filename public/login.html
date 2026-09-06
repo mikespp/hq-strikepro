@@ -93,13 +93,13 @@
   </div>
 
   <div class="card" id="authCard">
-    <div class="tabs">
+    <div class="tabs" style="display:none">
       <button class="tab active" id="tabSignIn" onclick="switchTab('signin')">Sign In</button>
       <button class="tab" id="tabRegister" onclick="location.href='/register'">Register</button>
     </div>
     <div class="alert" id="alert"></div>
 
-    <form id="signinForm" onsubmit="handleSignIn(event)">
+    <form id="signinForm" style="display:none" onsubmit="handleSignIn(event)">
       <div class="form-group">
         <label for="siEmail">Strikepro Email</label>
         <input type="email" id="siEmail" placeholder="you@example.com" autocomplete="email" required />
@@ -117,12 +117,16 @@
       <button type="submit" id="btnSignIn" data-label="Sign In" class="btn-primary">Sign In</button>
     </form>
 
-    <div id="lineSep" style="text-align:center;color:#8a8a8a;font-size:12px;margin:18px 0 10px;position:relative;">— หรือ —</div>
+    <div id="lineSep" style="text-align:center;color:#a9a9a9;font-size:13px;margin:4px 0 16px;line-height:1.6;">เข้าสู่ระบบ / สมัครสมาชิก<br/>ด้วยบัญชี LINE ของคุณ</div>
     <button type="button" id="btnLine" onclick="location.href='/api/auth/line/start'"
       style="width:100%;background:#06C755;color:#fff;border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;font-family:inherit;">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M12 2C6.48 2 2 5.64 2 10.13c0 4.02 3.56 7.39 8.37 8.03.33.07.77.22.88.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1.02.9.56 1.1-.46 5.92-3.49 8.08-5.97C21.5 13.4 22 11.83 22 10.13 22 5.64 17.52 2 12 2zM8.3 12.6H6.36c-.28 0-.5-.23-.5-.5V8.24c0-.28.22-.5.5-.5s.5.22.5.5v3.35H8.3c.28 0 .5.22.5.5s-.22.51-.5.51zm1.96-.5c0 .27-.22.5-.5.5s-.5-.23-.5-.5V8.24c0-.28.22-.5.5-.5s.5.22.5.5v3.86zm4.66 0c0 .21-.14.4-.35.47a.5.5 0 0 1-.57-.18l-1.97-2.68v2.39c0 .27-.23.5-.5.5s-.5-.23-.5-.5V8.24c0-.21.14-.4.34-.47a.51.51 0 0 1 .58.18l1.97 2.68V8.24c0-.28.22-.5.5-.5s.5.22.5.5v3.86zm3.13-2.43c.28 0 .5.22.5.5s-.22.5-.5.5h-1.43v.93h1.43c.28 0 .5.22.5.5s-.22.5-.5.5h-1.93c-.27 0-.5-.23-.5-.5V8.24c0-.28.23-.5.5-.5h1.93c.28 0 .5.22.5.5s-.22.5-.5.5h-1.43v.93h1.43z"/></svg>
       เข้าสู่ระบบด้วย LINE
     </button>
+
+    <div id="emailFallbackWrap" style="text-align:center;margin-top:18px;">
+      <a href="#" id="emailFallback" onclick="showEmailLogin();return false;" style="font-size:12px;color:#777;text-decoration:underline;">เข้าสู่ระบบด้วยอีเมล (สำหรับแอดมิน)</a>
+    </div>
 
     <form id="lineForm" style="display:none" onsubmit="handleLineComplete(event)">
       <p style="font-size:13px;color:#444;line-height:1.6;margin-bottom:14px;">
@@ -279,9 +283,16 @@
   function showLineStep() {
     document.getElementById('signinForm').style.display = 'none';
     document.getElementById('registerForm').style.display = 'none';
-    ['btnLine', 'lineSep'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+    ['btnLine', 'lineSep', 'emailFallbackWrap'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
     const tabs = document.querySelector('.tabs'); if (tabs) tabs.style.display = 'none';
     document.getElementById('lineForm').style.display = '';
+  }
+  // discreet admin fallback: reveal the email/password form
+  function showEmailLogin() {
+    document.getElementById('signinForm').style.display = '';
+    document.getElementById('emailFallbackWrap').style.display = 'none';
+    document.getElementById('lineSep').textContent = 'หรือเข้าสู่ระบบด้วยอีเมล';
+    document.getElementById('siEmail').focus();
   }
   async function sendLineOtp() {
     const email = document.getElementById('liEmail').value.trim();
