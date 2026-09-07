@@ -186,6 +186,7 @@
     <input id="search" placeholder="ค้นหาอีเมล… (เว้นว่าง = แสดงทั้งหมด)" />
     <button class="btn" onclick="load()">ค้นหา</button>
     <button class="btn" id="reverifyBtn" onclick="reverify()" title="ตรวจสอบสมาชิกที่ยังไม่ยืนยัน กับฐานข้อมูลลูกค้า StrikePro แล้วอัปเดตให้อัตโนมัติ">🔄 รีเฟรชสถานะลูกค้า</button>
+    <button class="btn" id="logoutAllBtn" onclick="logoutAll()" style="display:none;border-color:rgba(248,113,113,.4);color:#f87171" title="บังคับให้ผู้ใช้ทุกคน (รวมคุณ) ต้องเข้าสู่ระบบใหม่">🚪 ออกจากระบบทุกคน</button>
   </div>
   <div class="count" id="count"></div>
   <div id="content"><div class="state">กำลังโหลด…</div></div>
@@ -236,6 +237,7 @@
         document.querySelector('.toolbar').style.display = 'none';
         return;
       }
+      if (me.is_super) el('logoutAllBtn').style.display = '';   // owner-only control
       load();
     } catch { window.location.href = '/login'; }
   })();
@@ -391,6 +393,17 @@
       load();
     } catch (e) { alert('รีเฟรชไม่สำเร็จ' + (e.message ? (': ' + e.message) : '')); }
     finally { btn.disabled = false; btn.textContent = old; }
+  }
+  async function logoutAll() {
+    if (!confirm('บังคับให้ผู้ใช้ทุกคนออกจากระบบ?\n\nทุกคน (รวมคุณเอง) จะต้องเข้าสู่ระบบใหม่ทันที')) return;
+    try {
+      const r = await fetch('/api/auth/logout-all', { method:'POST', headers:{ Authorization:'Bearer '+localStorage.getItem('sp_token') } });
+      const j = await r.json();
+      if (!r.ok) { alert(j.error || 'ทำรายการไม่สำเร็จ'); return; }
+      alert('ออกจากระบบทุกคนแล้ว (' + (j.cleared||0) + ' เซสชัน) — กำลังพาคุณไปหน้าเข้าสู่ระบบ');
+      localStorage.removeItem('sp_token');
+      window.location.href = '/login';
+    } catch { alert('ทำรายการไม่สำเร็จ'); }
   }
   async function toggleVerified(id, value) {
     try {

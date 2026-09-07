@@ -740,6 +740,11 @@ async function findSession(tokenJti) {
 async function deleteSession(tokenJti) {
   await pool.execute('DELETE FROM sessions WHERE token_jti = ?', [tokenJti]);
 }
+// Invalidate EVERY session (force all users to log in again).
+async function deleteAllSessions() {
+  const [r] = await pool.execute('DELETE FROM sessions');
+  return r.affectedRows;
+}
 
 // ── Clients ───────────────────────────────────────────────────────────────────
 
@@ -1902,7 +1907,7 @@ module.exports = {
   isEmailEligible, countEligible, addEligibleHashes, refreshVerifiedFromEligible,
   setUserVerified, listUnverifiedUsers,
   upsertOtp, getOtp, incOtpAttempts, deleteOtp,
-  createSession, findSession, deleteSession,
+  createSession, findSession, deleteSession, deleteAllSessions,
   getAllClients, getClientById, createClient, updateClient, deleteClient,
   getDashboardStats, refreshUserStats,
   getProductStats, getProductInvestors,

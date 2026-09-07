@@ -338,6 +338,17 @@ router.post('/logout', requireAuth, async (req, res) => {
   }
 });
 
+// ── POST /api/auth/logout-all  (owner) — force EVERYONE to log in again ─────────
+router.post('/logout-all', requireSuperAdmin, async (req, res) => {
+  try {
+    const n = await db.deleteAllSessions();   // invalidates the caller's session too
+    res.json({ ok: true, cleared: n });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่' });
+  }
+});
+
 // ── LINE Login (OAuth 2.1) ────────────────────────────────────────────────────
 // Flow: /line/start → LINE consent → /line/callback. If the LINE id is already
 // linked, log in. Otherwise carry the LINE identity in a short signed token and
