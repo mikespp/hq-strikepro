@@ -629,6 +629,14 @@ async function setUserLineUserId(userId, lineUserId) {
   const [r] = await pool.execute('UPDATE users SET line_user_id = ? WHERE id = ?', [String(lineUserId), userId]);
   return r.affectedRows > 0;
 }
+// Set the avatar from LINE only if the account has none yet (don't clobber a custom one).
+async function updateAvatarIfEmpty(userId, url) {
+  if (!url) return;
+  await pool.execute(
+    "UPDATE users SET avatar_data = ? WHERE id = ? AND (avatar_data IS NULL OR avatar_data = '')",
+    [String(url).slice(0, 500), userId]
+  );
+}
 // Minimal account created from a LINE login (email verified via OTP; nickname from LINE).
 async function createLineUser(email, hashedPassword, nickname, lineUserId, verified) {
   const e = (email || '').toLowerCase().trim();
@@ -1903,7 +1911,7 @@ module.exports = {
   emailInLastAccount, emailInTheLastDay, getLastAccountEmailById, getTheLastDayEmailById,
   listLastAccountRounds, upsertLastAccountRound, setLastAccountRoundEventId, deleteLastAccountRound,
   findUserByEmail, findUserById, createUser, createUserFull, createMember,
-  findUserByLineUserId, setUserLineUserId, createLineUser,
+  findUserByLineUserId, setUserLineUserId, createLineUser, updateAvatarIfEmpty,
   isEmailEligible, countEligible, addEligibleHashes, refreshVerifiedFromEligible,
   setUserVerified, listUnverifiedUsers,
   upsertOtp, getOtp, incOtpAttempts, deleteOtp,

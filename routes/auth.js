@@ -405,6 +405,7 @@ router.get('/line/callback', async (req, res) => {
         if (!lineUserId) throw new Error('profile');
         const existing = await db.findUserByLineUserId(lineUserId);
         if (existing) {
+          await db.updateAvatarIfEmpty(existing.id, prof.pictureUrl);
           const token = await issueToken(existing.id);
           return '/login#line_token=' + encodeURIComponent(token);
         }
@@ -463,6 +464,7 @@ router.post('/line/complete', async (req, res) => {
     const existing = await db.findUserByEmail(email);
     if (existing) {                                   // known email → link + log in
       await db.setUserLineUserId(existing.id, lineUserId);
+      await db.updateAvatarIfEmpty(existing.id, payload.pic);
       const token = await issueToken(existing.id);
       return res.json({ token });
     }
