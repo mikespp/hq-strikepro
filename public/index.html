@@ -51,8 +51,8 @@
       padding: 0 16px;
     }
     .nav-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; }
-    .nav-logo img { width: 36px; height: 36px; object-fit: contain; }
-    .nav-logo-name { font-size: 15px; font-weight: 800; color: var(--text); letter-spacing: -.3px; }
+    .nav-logo img { height: 30px; width: auto; max-width: 160px; object-fit: contain; display: block; }
+    .nav-logo-name { display: none; font-size: 15px; font-weight: 800; color: var(--text); letter-spacing: -.3px; }
     .nav-logo-name span { color: var(--primary); }
     /* ── Logged-in avatar ── */
     .nav-user-wrap { position: relative; }
@@ -109,14 +109,14 @@
     }
     .hero-inner { max-width: 560px; margin: 0 auto; position: relative; z-index: 1; }
     .hero-logo { margin-bottom: 20px; }
-    .hero-logo img { width: 80px; height: 80px; object-fit: contain; }
+    .hero-logo img { width: auto; height: auto; max-width: min(380px, 80vw); object-fit: contain; }
     .hero-badge {
       display: inline-flex; align-items: center; gap: 6px;
       background: var(--primary-bg); border: 1px solid rgba(230,57,70,.25);
       border-radius: 20px; padding: 5px 14px; margin-bottom: 18px;
       font-size: 11px; font-weight: 700; color: var(--primary); letter-spacing: .06em; text-transform: uppercase;
     }
-    .hero-title { font-size: 38px; font-weight: 900; letter-spacing: -1px; line-height: 1.05; margin-bottom: 10px; }
+    .hero-title { display: none; font-size: 38px; font-weight: 900; letter-spacing: -1px; line-height: 1.05; margin-bottom: 10px; }
     .hero-title span { color: var(--primary); }
     .hero-sub { font-size: 15px; color: var(--text-muted); font-weight: 500; margin-bottom: 16px; letter-spacing: .02em; }
     .hero-desc { font-size: 14px; color: var(--text-sub); line-height: 1.7; margin-bottom: 32px; max-width: 440px; margin-left: auto; margin-right: auto; }
