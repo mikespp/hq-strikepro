@@ -42,6 +42,40 @@
       -webkit-font-smoothing: antialiased; overflow-x: hidden; }
     body { padding-top: var(--nav-h); }
 
+    /* ── Premium (member with a badge): recolor the whole Home page gold ── */
+    body.premium {
+      --primary:      #e7c45a;
+      --primary-dark: #b8860b;
+      --primary-bg:   rgba(212,175,55,.14);
+      --bg:           #0b0a07;
+      --surface:      #17140c;
+      --surface2:     #201b10;
+      --border:       #3a2f16;
+    }
+    body.premium .top-nav { background: rgba(11,10,7,.92); border-bottom-color: #3a2f16; }
+    body.premium .hero {
+      background:
+        radial-gradient(120% 90% at 50% 0%, rgba(212,175,55,.20) 0%, rgba(212,175,55,.06) 32%, transparent 60%),
+        linear-gradient(180deg, #14110a 0%, var(--bg) 70%);
+    }
+    body.premium .hero-badge {
+      background: linear-gradient(180deg, rgba(231,196,90,.18), rgba(212,175,55,.08));
+      border-color: rgba(231,196,90,.5); color: #f3dd92;
+    }
+
+    /* ── Membership badge (crest + personal number) ── */
+    .badge-wrap { display: none; position: relative; container-type: inline-size;
+      width: min(340px, 74vw); margin: 0 auto 18px;
+      filter: drop-shadow(0 14px 34px rgba(0,0,0,.55)) drop-shadow(0 0 22px rgba(212,175,55,.22)); }
+    .badge-wrap img { display: block; width: 100%; height: auto; }
+    .badge-no { position: absolute; left: 50%; top: 79.2%; transform: translate(-50%, -50%);
+      font-weight: 900; font-size: 6.6cqw; line-height: 1; letter-spacing: .04em;
+      font-family: 'IBM Plex Sans Thai', system-ui, sans-serif;
+      background: linear-gradient(180deg, #ffe9a8 0%, #f2cf6d 45%, #c99a2e 100%);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      text-shadow: 0 1px 0 rgba(0,0,0,.35); pointer-events: none;
+      -webkit-text-stroke: .5px rgba(90,50,10,.35); }
+
     /* ── Nav ── */
     .top-nav {
       position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: var(--nav-h);
@@ -449,9 +483,21 @@
         var email = (d.user && d.user.email) || '';
         el.innerHTML = '<div class="nav-user"><span class="who">' + email +
           '</span><button class="signout" onclick="hqSignOut()">ออกจากระบบ</button></div>';
+        applyBadge(d.user && d.user.badge_no);
       })
       .catch(function () { localStorage.removeItem(KEY); });
   })();
+  // Member with an assigned badge number → premium gold Home + crest badge with their number.
+  function applyBadge(no) {
+    no = String(no == null ? '' : no).trim();
+    if (!no) return;
+    document.body.classList.add('premium');
+    var badge = document.getElementById('heroBadge'), logo = document.getElementById('heroLogo');
+    var span = document.getElementById('heroBadgeNo');
+    if (span) span.textContent = no;
+    if (badge) badge.style.display = 'block';
+    if (logo) logo.style.display = 'none';
+  }
   function hqSignOut() {
     var t = localStorage.getItem('sp_token');
     fetch('/api/auth/logout', { method: 'POST', headers: { Authorization: 'Bearer ' + t } }).catch(function () {});
@@ -463,8 +509,12 @@
 <!-- Hero -->
 <section class="hero">
   <div class="hero-inner">
-    <div class="hero-logo">
+    <div class="hero-logo" id="heroLogo">
       <img src="/logo.png.png" alt="Bussay Community" />
+    </div>
+    <div class="badge-wrap" id="heroBadge">
+      <img src="/badge.png" alt="Bussay Membership Badge" />
+      <span class="badge-no" id="heroBadgeNo"></span>
     </div>
     <div class="hero-badge">⚡ Strikepro Ecosystem</div>
     <h1 class="hero-title">BUSSAY <span>Community</span></h1>
