@@ -49,7 +49,7 @@ background:#0d0d0d;color:#f1f1f1;font-family:'IBM Plex Sans Thai',system-ui,sans
 .bar{height:4px;background:${color}}.in{padding:34px 28px}.t{font-size:22px;font-weight:800;margin:0 0 10px;color:${color}}
 .m{color:#cbd5e1;font-size:15px;line-height:1.7;margin:0}.b{margin-top:20px;font-size:13px;color:#777}</style></head>
 <body><div class="card"><div class="bar"></div><div class="in"><h1 class="t">${title}</h1><p class="m">${msg}</p>
-<div class="b">HQ · STRIKEPRO</div></div></div></body></html>`;
+<div class="b">BUSSAY · COMMUNITY</div></div></div></body></html>`;
 }
 
 router.get('/verify', async (req, res) => {

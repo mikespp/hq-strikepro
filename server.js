@@ -199,7 +199,7 @@ db.init()
   .then(async () => {
     try { await lastAccountRouter.loadRounds(); } catch (e) { console.error('loadRounds failed:', e.message); }
     app.listen(PORT, () => {
-      console.log(`  HQ Strikepro running at http://localhost:${PORT}`);
+      console.log(`  Bussay Community running at http://localhost:${PORT}`);
       console.log(`  ✉  Mail provider: ${mailerStatus()}\n`);
       discordBot.start();   // no-op if DISCORD_BOT_TOKEN is unset
     });
