@@ -503,6 +503,8 @@ async function init() {
     `ALTER TABLE onboarding_customers ADD COLUMN account_manager VARCHAR(100) NOT NULL DEFAULT ''`,
     // LINE Login — the LINE OAuth userId linked to this account (for 1-click login)
     `ALTER TABLE users ADD COLUMN line_user_id VARCHAR(64) NOT NULL DEFAULT ''`,
+    // Bussay membership badge number (e.g. "000".."300"). Empty = no badge assigned.
+    `ALTER TABLE users ADD COLUMN badge_no VARCHAR(10) NOT NULL DEFAULT ''`,
   ]) {
     try { await pool.execute(ddl); } catch (err) { if (err.errno !== 1060) throw err; }
   }
@@ -643,6 +645,39 @@ async function setUserAvatar(userId, url) {
   if (!url) return;
   await pool.execute('UPDATE users SET avatar_data = ? WHERE id = ?', [String(url).slice(0, 500), userId]);
 }
+// ── Bussay membership badge numbers ──────────────────────────────────────────
+// Normalize a badge value to a 3-digit string ("7" → "007"); '' clears it.
+function normBadge(no) {
+  const s = String(no == null ? '' : no).trim();
+  if (!s) return '';
+  const digits = s.replace(/[^0-9]/g, '');
+  if (!digits) return '';
+  return digits.length >= 3 ? digits : digits.padStart(3, '0');
+}
+// Set (or clear, with '') the badge number for one email. Returns true if a user matched.
+async function setBadgeByEmail(email, no) {
+  const e = String(email || '').toLowerCase().trim();
+  if (!e) return false;
+  const [r] = await pool.execute('UPDATE users SET badge_no = ? WHERE LOWER(email) = ?', [normBadge(no), e]);
+  return r.affectedRows > 0;
+}
+// Bulk-assign from an array of { email, no }. Returns { updated, missing:[emails] }.
+async function bulkSetBadges(pairs) {
+  let updated = 0; const missing = [];
+  for (const p of (pairs || [])) {
+    const ok = await setBadgeByEmail(p.email, p.no);
+    if (ok) updated++; else if (String(p.email || '').trim()) missing.push(String(p.email).toLowerCase().trim());
+  }
+  return { updated, missing };
+}
+// All assigned badges, ascending by number (admin view).
+async function listBadges() {
+  const [rows] = await pool.execute(
+    `SELECT email, badge_no FROM users WHERE badge_no <> '' ORDER BY CAST(badge_no AS UNSIGNED), email`
+  );
+  return rows;
+}
+
 // Minimal account created from a LINE login (email verified via OTP; nickname from LINE).
 async function createLineUser(email, hashedPassword, nickname, lineUserId, verified) {
   const e = (email || '').toLowerCase().trim();
@@ -1919,6 +1954,7 @@ module.exports = {
   listLastAccountRounds, upsertLastAccountRound, setLastAccountRoundEventId, deleteLastAccountRound,
   findUserByEmail, findUserById, createUser, createUserFull, createMember,
   findUserByLineUserId, setUserLineUserId, createLineUser, setUserAvatar,
+  setBadgeByEmail, bulkSetBadges, listBadges,
   isEmailEligible, countEligible, addEligibleHashes, refreshVerifiedFromEligible,
   setUserVerified, listUnverifiedUsers,
   upsertOtp, getOtp, incOtpAttempts, deleteOtp,

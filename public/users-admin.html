@@ -186,6 +186,7 @@
     <input id="search" placeholder="ค้นหาอีเมล… (เว้นว่าง = แสดงทั้งหมด)" />
     <button class="btn" onclick="load()">ค้นหา</button>
     <button class="btn" id="reverifyBtn" onclick="reverify()" title="ตรวจสอบสมาชิกที่ยังไม่ยืนยัน กับฐานข้อมูลลูกค้า StrikePro แล้วอัปเดตให้อัตโนมัติ">🔄 รีเฟรชสถานะลูกค้า</button>
+    <button class="btn" id="badgeBtn" onclick="openBadgeModal()" style="display:none" title="นำเข้า/แก้ไขเลขประจำตัวสมาชิก (Badge) จากรายการ email,เลข">🏅 เลขสมาชิก (Badge)</button>
     <button class="btn" id="logoutAllBtn" onclick="logoutAll()" style="display:none;border-color:rgba(248,113,113,.4);color:#f87171" title="บังคับให้ผู้ใช้ทุกคน (รวมคุณ) ต้องเข้าสู่ระบบใหม่">🚪 ออกจากระบบทุกคน</button>
   </div>
   <div class="count" id="count"></div>
@@ -202,6 +203,20 @@
     <div class="modal-actions">
       <button onclick="closeReset()">ยกเลิก</button>
       <button class="primary" id="pwConfirm" onclick="doReset()">ตั้งรหัสใหม่</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-ov" id="badgeModal">
+  <div class="modal-box" style="max-width:520px">
+    <div class="modal-title">🏅 นำเข้าเลขประจำตัวสมาชิก (Badge)</div>
+    <div class="modal-sub">วางรายการ 1 บรรทัดต่อคน — รูปแบบ <b>email,เลข</b> (คั่นด้วย comma / เว้นวรรค / tab ก็ได้ และสลับลำดับได้) เช่น<br><code>somchai@example.com,000</code></div>
+    <textarea id="badgeText" placeholder="a@example.com,000&#10;b@example.com,001&#10;c@example.com,002" style="width:100%;min-height:180px;box-sizing:border-box;font-family:monospace;font-size:13px;padding:10px;border-radius:10px;border:1px solid #2e2e2e;background:#0f0f0f;color:#eee;resize:vertical"></textarea>
+    <div class="modal-err" id="badgeErr"></div>
+    <div id="badgeResult" style="font-size:13px;color:#9ca3af;margin-top:6px"></div>
+    <div class="modal-actions">
+      <button onclick="closeBadgeModal()">ปิด</button>
+      <button class="primary" id="badgeImportBtn" onclick="importBadges()">นำเข้า</button>
     </div>
   </div>
 </div>
@@ -237,7 +252,7 @@
         document.querySelector('.toolbar').style.display = 'none';
         return;
       }
-      if (me.is_super) el('logoutAllBtn').style.display = '';   // owner-only control
+      if (me.is_super) { el('logoutAllBtn').style.display = ''; el('badgeBtn').style.display = ''; }   // owner-only controls
       load();
     } catch { window.location.href = '/login'; }
   })();
@@ -413,6 +428,27 @@
       if (!r.ok) throw new Error();
       load();
     } catch { alert('อัปเดตสถานะไม่สำเร็จ'); }
+  }
+  function openBadgeModal(){ el('badgeErr').textContent=''; el('badgeResult').textContent=''; el('badgeModal').classList.add('open'); el('badgeText').focus(); }
+  function closeBadgeModal(){ el('badgeModal').classList.remove('open'); }
+  async function importBadges(){
+    const text = el('badgeText').value;
+    if (!text.trim()) { el('badgeErr').textContent = 'กรุณาวางรายการก่อน'; return; }
+    const btn = el('badgeImportBtn'); btn.disabled = true; const old = btn.textContent; btn.textContent = '⏳ กำลังนำเข้า…';
+    el('badgeErr').textContent = ''; el('badgeResult').textContent = '';
+    try {
+      const r = await fetch('/api/users/badges', { method:'POST',
+        headers:{ 'Content-Type':'application/json', Authorization:'Bearer '+tok() },
+        body: JSON.stringify({ text }) });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || '');
+      let msg = '✅ อ่านได้ ' + j.parsed + ' รายการ — อัปเดตสำเร็จ ' + j.updated + ' คน';
+      if (j.missing && j.missing.length) msg += '\n⚠️ ไม่พบ email เหล่านี้ในระบบ (' + j.missing.length + '): ' + j.missing.join(', ');
+      el('badgeResult').style.whiteSpace = 'pre-wrap';
+      el('badgeResult').textContent = msg;
+      toast('นำเข้าเลขสมาชิกแล้ว');
+    } catch (e) { el('badgeErr').textContent = 'นำเข้าไม่สำเร็จ' + (e.message ? (': '+e.message) : ''); }
+    finally { btn.disabled = false; btn.textContent = old; }
   }
   function toggleDrawer(){ document.getElementById('drawer').classList.toggle('open'); document.getElementById('drawerOverlay').classList.toggle('open'); }
   function closeDrawer(){ document.getElementById('drawer').classList.remove('open'); document.getElementById('drawerOverlay').classList.remove('open'); }
