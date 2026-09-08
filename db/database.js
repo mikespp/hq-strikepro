@@ -603,6 +603,14 @@ async function createUserFull(email, hashedPassword, fullName, phone) {
   return { id: result.insertId, email: e };
 }
 
+// Auto-add a new HQ signup to the CS onboarding pipeline (idempotent; best-effort).
+async function autoAddOnboarding(email) {
+  const e = String(email || '').toLowerCase().trim();
+  if (!e) return;
+  try { await pool.execute("INSERT IGNORE INTO onboarding_customers (email, added_by) VALUES (?, 'auto')", [e]); }
+  catch (err) { console.error('auto onboarding add failed:', err.message); }
+}
+
 async function createMember(d) {
   const e = (d.email || '').toLowerCase().trim();
   const s = v => String(v || '').trim();
@@ -616,6 +624,7 @@ async function createMember(d) {
      d.birthDate || null, s(d.lineId), s(d.addrLine), s(d.subdistrict), s(d.district),
      s(d.province), s(d.postalCode), d.avatarData || null, d.verified ? 1 : 0]
   );
+  await autoAddOnboarding(e);
   return { id: result.insertId, email: e };
 }
 
@@ -641,6 +650,7 @@ async function createLineUser(email, hashedPassword, nickname, lineUserId, verif
     'INSERT INTO users (email, password, nickname, line_user_id, verified) VALUES (?,?,?,?,?)',
     [e, hashedPassword, String(nickname || '').slice(0, 255), String(lineUserId), verified ? 1 : 0]
   );
+  await autoAddOnboarding(e);
   return { id: result.insertId, email: e };
 }
 
