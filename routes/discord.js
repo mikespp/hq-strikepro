@@ -94,4 +94,18 @@ router.get('/sync-list', requireSyncKey, async (req, res) => {
   catch (e) { console.error(e); res.status(500).json({ error: 'failed' }); }
 });
 
+// GET /api/discord/status → public health/config check (NO secrets).
+// Shows the exact base URL magic links will use + which env pieces are set.
+router.get('/status', (req, res) => {
+  const base = (process.env.PUBLIC_BASE_URL || 'https://bussay.up.railway.app').replace(/\/$/, '');
+  res.json({
+    magicLinkBase: base,
+    verifyLinkSample: `${base}/api/discord/verify?token=...`,
+    botTokenSet:      !!process.env.DISCORD_BOT_TOKEN,
+    guildSet:         !!process.env.DISCORD_GUILD_ID,
+    verifiedRoleSet:  !!process.env.DISCORD_VERIFIED_ROLE_ID,
+    verifyChannelSet: !!process.env.DISCORD_VERIFY_CHANNEL_ID,
+  });
+});
+
 module.exports = router;
