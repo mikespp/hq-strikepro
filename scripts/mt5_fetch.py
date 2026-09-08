@@ -12,7 +12,7 @@ account in sequence ("วน login").
 
 Setup:
     pip install MetaTrader5 requests
-    env:  HQ_URL=https://hq-strikepro-production.up.railway.app   (optional)
+    env:  HQ_URL=https://bussay.up.railway.app   (optional)
           SYNC_KEY=<same as HQ ELIGIBILITY_SYNC_KEY>              (or C:\\xampp\\check-email.key)
           MT5_TERMINAL=C:\\Path\\to\\terminal64.exe               (optional)
 """
@@ -21,7 +21,7 @@ import os, sys, datetime as dt
 import requests
 import MetaTrader5 as mt5
 
-HQ_URL   = os.environ.get("HQ_URL", "https://hq-strikepro-production.up.railway.app").rstrip("/")
+HQ_URL   = os.environ.get("HQ_URL", "https://bussay.up.railway.app").rstrip("/")
 SYNC_KEY = os.environ.get("SYNC_KEY", "")
 TERMINAL = os.environ.get("MT5_TERMINAL")  # optional explicit terminal path
 
