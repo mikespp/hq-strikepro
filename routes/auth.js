@@ -255,7 +255,7 @@ router.get('/me', requireAuth, async (req, res) => {
       id: user.id, email: user.email, role: user.role || 'user',
       nickname: user.nickname || '', avatar: user.avatar_data || null,
       is_super: isSuperAdmin(user.email),
-      badge_no: user.badge_no || '',
+      badge_no: await db.getBadgeByEmail(user.email),
     } });
   } catch (err) {
     console.error(err);

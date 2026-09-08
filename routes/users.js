@@ -138,7 +138,7 @@ function parseBadgeText(text) {
   for (const raw of String(text || '').split(/\r?\n/)) {
     const line = raw.trim();
     if (!line) continue;
-    const parts = line.split(/[\s,;\t]+/).filter(Boolean);
+    const parts = line.split(/[\s,;\t]+/).map(p => p.replace(/["']/g, '')).filter(Boolean);
     if (parts.length < 2) continue;
     let email = parts.find(isEmail);
     if (!email) continue;

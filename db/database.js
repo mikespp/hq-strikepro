@@ -509,6 +509,16 @@ async function init() {
     try { await pool.execute(ddl); } catch (err) { if (err.errno !== 1060) throw err; }
   }
 
+  // Membership badge master map: email → badge number, independent of whether the
+  // person has registered yet (the number attaches on login via getBadgeByEmail).
+  await pool.execute(`
+    CREATE TABLE IF NOT EXISTS badge_map (
+      email      VARCHAR(255) NOT NULL PRIMARY KEY,
+      badge_no   VARCHAR(10)  NOT NULL DEFAULT '',
+      updated_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
   // Promote any emails listed in ADMIN_EMAILS (comma-separated) to admin on startup,
   // plus the protected super-admin owner(s) — always admin, regardless of ADMIN_EMAILS.
   // Idempotent; only affects users that already exist.
@@ -654,26 +664,50 @@ function normBadge(no) {
   if (!digits) return '';
   return digits.length >= 3 ? digits : digits.padStart(3, '0');
 }
-// Set (or clear, with '') the badge number for one email. Returns true if a user matched.
+// Look up the badge number assigned to an email (from the master map). '' if none.
+async function getBadgeByEmail(email) {
+  const e = String(email || '').toLowerCase().trim();
+  if (!e) return '';
+  const [rows] = await pool.execute('SELECT badge_no FROM badge_map WHERE email = ? LIMIT 1', [e]);
+  return (rows[0] && rows[0].badge_no) || '';
+}
+// Set (or clear, with '') the badge number for one email in the master map.
+// The map is keyed by email and independent of whether the person has registered
+// yet — the number attaches on login. Returns true if a row was written/removed.
 async function setBadgeByEmail(email, no) {
   const e = String(email || '').toLowerCase().trim();
   if (!e) return false;
-  const [r] = await pool.execute('UPDATE users SET badge_no = ? WHERE LOWER(email) = ?', [normBadge(no), e]);
-  return r.affectedRows > 0;
+  const n = normBadge(no);
+  if (!n) { const [d] = await pool.execute('DELETE FROM badge_map WHERE email = ?', [e]); return d.affectedRows > 0; }
+  await pool.execute(
+    'INSERT INTO badge_map (email, badge_no) VALUES (?, ?) ON DUPLICATE KEY UPDATE badge_no = VALUES(badge_no)',
+    [e, n]
+  );
+  return true;
 }
-// Bulk-assign from an array of { email, no }. Returns { updated, missing:[emails] }.
+// Bulk-assign from an array of { email, no }. Returns { updated, linked } where
+// linked = how many of those emails already have a registered account.
 async function bulkSetBadges(pairs) {
-  let updated = 0; const missing = [];
+  let updated = 0;
+  const emails = [];
   for (const p of (pairs || [])) {
     const ok = await setBadgeByEmail(p.email, p.no);
-    if (ok) updated++; else if (String(p.email || '').trim()) missing.push(String(p.email).toLowerCase().trim());
+    if (ok) { updated++; emails.push(String(p.email).toLowerCase().trim()); }
   }
-  return { updated, missing };
+  let linked = 0;
+  if (emails.length) {
+    const ph = emails.map(() => '?').join(',');
+    const [r] = await pool.execute(`SELECT COUNT(*) c FROM users WHERE LOWER(email) IN (${ph})`, emails);
+    linked = r[0].c;
+  }
+  return { updated, linked };
 }
-// All assigned badges, ascending by number (admin view).
+// All assigned badges, ascending by number; flags which emails have registered.
 async function listBadges() {
   const [rows] = await pool.execute(
-    `SELECT email, badge_no FROM users WHERE badge_no <> '' ORDER BY CAST(badge_no AS UNSIGNED), email`
+    `SELECT m.email, m.badge_no, (u.id IS NOT NULL) AS registered
+       FROM badge_map m LEFT JOIN users u ON LOWER(u.email) = m.email
+      WHERE m.badge_no <> '' ORDER BY CAST(m.badge_no AS UNSIGNED), m.email`
   );
   return rows;
 }
@@ -1954,7 +1988,7 @@ module.exports = {
   listLastAccountRounds, upsertLastAccountRound, setLastAccountRoundEventId, deleteLastAccountRound,
   findUserByEmail, findUserById, createUser, createUserFull, createMember,
   findUserByLineUserId, setUserLineUserId, createLineUser, setUserAvatar,
-  setBadgeByEmail, bulkSetBadges, listBadges,
+  getBadgeByEmail, setBadgeByEmail, bulkSetBadges, listBadges,
   isEmailEligible, countEligible, addEligibleHashes, refreshVerifiedFromEligible,
   setUserVerified, listUnverifiedUsers,
   upsertOtp, getOtp, incOtpAttempts, deleteOtp,

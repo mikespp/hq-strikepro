@@ -442,8 +442,8 @@
         body: JSON.stringify({ text }) });
       const j = await r.json();
       if (!r.ok) throw new Error(j.error || '');
-      let msg = '✅ อ่านได้ ' + j.parsed + ' รายการ — อัปเดตสำเร็จ ' + j.updated + ' คน';
-      if (j.missing && j.missing.length) msg += '\n⚠️ ไม่พบ email เหล่านี้ในระบบ (' + j.missing.length + '): ' + j.missing.join(', ');
+      let msg = '✅ อ่านได้ ' + j.parsed + ' รายการ — บันทึกเลขสมาชิกแล้ว ' + j.updated + ' เลข';
+      msg += '\n👤 มีบัญชี Bussay แล้ว ' + (j.linked || 0) + ' คน (ที่เหลือจะได้ badge อัตโนมัติเมื่อสมัคร/ล็อกอินด้วยอีเมลนี้)';
       el('badgeResult').style.whiteSpace = 'pre-wrap';
       el('badgeResult').textContent = msg;
       toast('นำเข้าเลขสมาชิกแล้ว');
