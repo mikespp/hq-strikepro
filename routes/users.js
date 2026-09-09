@@ -1,10 +1,22 @@
 const express = require('express');
 const bcrypt  = require('bcryptjs');
 const db      = require('../db/database');
-const { requireAdmin, checkEligible } = require('./auth');
+const { requireAuth, requireAdmin, checkEligible } = require('./auth');
 const { isSuperAdmin } = require('../lib/super-admin');
+const { canManageBadges } = require('../lib/badge-admin');
 
 const router = express.Router();
+
+// Narrow permission: may manage badge numbers, nothing else. Super-admins and
+// anyone in lib/badge-admin's list qualify — full admin role is NOT required.
+function requireBadgeManager(req, res, next) {
+  requireAuth(req, res, () => {
+    if (!canManageBadges(req.user && req.user.email)) {
+      return res.status(403).json({ error: 'ต้องมีสิทธิ์จัดการเลขสมาชิก (Badge)' });
+    }
+    next();
+  });
+}
 
 // ── GET /api/users?q=  (admin) — search / list users ─────────────────────────
 router.get('/', requireAdmin, async (req, res) => {
@@ -123,8 +135,8 @@ router.post('/:id/reset-password', requireAdmin, async (req, res) => {
 });
 
 // ── Membership badge numbers ─────────────────────────────────────────────────
-// GET /api/users/badges  (admin) — list all assigned badge numbers
-router.get('/badges', requireAdmin, async (req, res) => {
+// GET /api/users/badges  (badge manager) — list all assigned badge numbers
+router.get('/badges', requireBadgeManager, async (req, res) => {
   try { res.json(await db.listBadges()); }
   catch (err) { console.error(err); res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' }); }
 });
@@ -149,8 +161,8 @@ function parseBadgeText(text) {
   return pairs;
 }
 
-// POST /api/users/badges  (admin) — bulk assign. Body: { text } or { pairs:[{email,no}] }
-router.post('/badges', requireAdmin, async (req, res) => {
+// POST /api/users/badges  (badge manager) — bulk assign. Body: { text } or { pairs:[{email,no}] }
+router.post('/badges', requireBadgeManager, async (req, res) => {
   try {
     const pairs = Array.isArray(req.body.pairs) ? req.body.pairs : parseBadgeText(req.body.text);
     if (!pairs.length) return res.status(400).json({ error: 'ไม่พบข้อมูล email,เลข ที่อ่านได้' });
@@ -162,8 +174,8 @@ router.post('/badges', requireAdmin, async (req, res) => {
   }
 });
 
-// PATCH /api/users/:id/badge  (admin) — set/clear one user's badge number
-router.patch('/:id/badge', requireAdmin, async (req, res) => {
+// PATCH /api/users/:id/badge  (badge manager) — set/clear one user's badge number
+router.patch('/:id/badge', requireBadgeManager, async (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (!id) return res.status(400).json({ error: 'Invalid id' });
   try {

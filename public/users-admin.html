@@ -252,7 +252,8 @@
         document.querySelector('.toolbar').style.display = 'none';
         return;
       }
-      if (me.is_super) { el('logoutAllBtn').style.display = ''; el('badgeBtn').style.display = ''; }   // owner-only controls
+      if (me.is_super) el('logoutAllBtn').style.display = '';       // owner-only control
+      if (me.can_badges) el('badgeBtn').style.display = '';         // badge managers (incl. super)
       load();
     } catch { window.location.href = '/login'; }
   })();

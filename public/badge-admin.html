@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>จัดการเลขสมาชิก (Badge) – Bussay Community</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{ --gold:#e7c45a; --gold-d:#b8860b; --bg:#0b0a07; --surface:#17140c; --surface2:#201b10; --border:#3a2f16; --text:#f1ece0; --muted:#9a8f78; }
+    body{ background:var(--bg); color:var(--text); font-family:'IBM Plex Sans Thai',system-ui,sans-serif; -webkit-font-smoothing:antialiased; min-height:100vh; }
+    .wrap{ max-width:820px; margin:0 auto; padding:28px 18px 60px; }
+    header{ display:flex; align-items:center; gap:12px; margin-bottom:6px; }
+    header img{ height:34px; width:auto; }
+    h1{ font-size:20px; font-weight:800; letter-spacing:-.3px; }
+    .sub{ color:var(--muted); font-size:14px; margin:2px 0 22px; }
+    .card{ background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:18px; margin-bottom:20px; }
+    .card h2{ font-size:15px; font-weight:700; color:var(--gold); margin-bottom:10px; }
+    .hint{ color:var(--muted); font-size:13px; line-height:1.6; margin-bottom:12px; }
+    .hint code{ background:#000; padding:1px 6px; border-radius:5px; color:var(--gold); }
+    textarea{ width:100%; min-height:200px; box-sizing:border-box; font-family:monospace; font-size:13px; padding:12px; border-radius:10px; border:1px solid var(--border); background:#0f0d08; color:#eee; resize:vertical; }
+    .row{ display:flex; gap:10px; align-items:center; margin-top:12px; flex-wrap:wrap; }
+    button{ font-family:inherit; font-weight:700; font-size:14px; border:none; border-radius:10px; padding:10px 20px; cursor:pointer; }
+    .primary{ background:linear-gradient(180deg,var(--gold),var(--gold-d)); color:#1a1405; }
+    .primary:disabled{ opacity:.5; cursor:default; }
+    .ghost{ background:transparent; color:var(--text); border:1px solid var(--border); }
+    .result{ font-size:13.5px; white-space:pre-wrap; margin-top:12px; }
+    .err{ color:#f87171; }
+    .ok{ color:#86efac; }
+    table{ width:100%; border-collapse:collapse; font-size:13.5px; }
+    th,td{ text-align:left; padding:8px 10px; border-bottom:1px solid var(--border); }
+    th{ color:var(--muted); font-weight:600; }
+    .no{ font-weight:800; color:var(--gold); font-variant-numeric:tabular-nums; }
+    .tag{ font-size:11px; padding:1px 8px; border-radius:20px; }
+    .tag.reg{ background:rgba(134,239,172,.14); color:#86efac; }
+    .tag.pend{ background:rgba(154,143,120,.16); color:var(--muted); }
+    .state{ color:var(--muted); padding:26px; text-align:center; }
+    .count{ color:var(--muted); font-size:13px; margin-bottom:8px; }
+    a.back{ color:var(--muted); text-decoration:none; font-size:13px; }
+    .table-wrap{ overflow-x:auto; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img src="/logo.png.png" alt="Bussay" />
+    <div>
+      <h1>🏅 จัดการเลขสมาชิก (Badge)</h1>
+      <div class="sub" id="whoami">กำลังตรวจสอบสิทธิ์…</div>
+    </div>
+  </header>
+
+  <div id="app" style="display:none">
+    <div class="card">
+      <h2>นำเข้า / กำหนดเลขสมาชิก</h2>
+      <div class="hint">
+        วาง 1 บรรทัดต่อคน — รูปแบบ <code>email,เลข</code> หรือ <code>เลข&nbsp;email</code> (คั่นด้วย comma / เว้นวรรค / tab ก็ได้ สลับลำดับได้ มีหัวตารางหรือเครื่องหมายคำพูดก็ได้)<br>
+        เลขจะผูกกับอีเมล — ใครยังไม่สมัคร Bussay ก็บันทึกไว้ได้ พอเขาล็อกอินด้วยอีเมลนี้ badge จะติดให้อัตโนมัติ
+      </div>
+      <textarea id="text" placeholder="somchai@example.com,000&#10;somsak@example.com,001&#10;malee@example.com,002"></textarea>
+      <div class="row">
+        <button class="primary" id="importBtn" onclick="doImport()">นำเข้า</button>
+        <button class="ghost" onclick="loadList()">รีเฟรชรายการ</button>
+        <a class="back" href="/">← กลับหน้าแรก</a>
+      </div>
+      <div class="result" id="result"></div>
+    </div>
+
+    <div class="card">
+      <h2>เลขสมาชิกทั้งหมด</h2>
+      <div class="count" id="count"></div>
+      <div class="table-wrap"><div id="list"><div class="state">กำลังโหลด…</div></div></div>
+    </div>
+  </div>
+
+  <div id="locked" style="display:none">
+    <div class="card"><div class="state">🔒 หน้านี้สำหรับผู้มีสิทธิ์จัดการเลขสมาชิก (Badge) เท่านั้น</div></div>
+  </div>
+</div>
+
+<script>
+  const TOKEN='sp_token';
+  const el=id=>document.getElementById(id);
+  const tok=()=>localStorage.getItem(TOKEN);
+  const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  (async()=>{
+    if(!tok()){ location.href='/login'; return; }
+    try{
+      const r=await fetch('/api/auth/me',{headers:{Authorization:'Bearer '+tok()}});
+      if(!r.ok){ location.href='/login'; return; }
+      const me=(await r.json()).user;
+      el('whoami').textContent=me.email;
+      if(!me.can_badges){ el('locked').style.display=''; return; }
+      el('app').style.display='';
+      loadList();
+    }catch{ location.href='/login'; }
+  })();
+
+  async function doImport(){
+    const text=el('text').value;
+    if(!text.trim()){ el('result').className='result err'; el('result').textContent='กรุณาวางรายการก่อน'; return; }
+    const btn=el('importBtn'); btn.disabled=true; const old=btn.textContent; btn.textContent='⏳ กำลังนำเข้า…';
+    el('result').textContent='';
+    try{
+      const r=await fetch('/api/users/badges',{method:'POST',
+        headers:{'Content-Type':'application/json',Authorization:'Bearer '+tok()},
+        body:JSON.stringify({text})});
+      const j=await r.json();
+      if(!r.ok) throw new Error(j.error||'');
+      el('result').className='result ok';
+      el('result').textContent='✅ อ่านได้ '+j.parsed+' รายการ — บันทึกเลขสมาชิกแล้ว '+j.updated+' เลข\n'+
+        '👤 มีบัญชี Bussay แล้ว '+(j.linked||0)+' คน (ที่เหลือจะได้ badge อัตโนมัติเมื่อสมัคร/ล็อกอินด้วยอีเมลนี้)';
+      loadList();
+    }catch(e){ el('result').className='result err'; el('result').textContent='นำเข้าไม่สำเร็จ'+(e.message?(': '+e.message):''); }
+    finally{ btn.disabled=false; btn.textContent=old; }
+  }
+
+  async function loadList(){
+    el('list').innerHTML='<div class="state">กำลังโหลด…</div>';
+    try{
+      const r=await fetch('/api/users/badges',{headers:{Authorization:'Bearer '+tok()}});
+      if(!r.ok) throw new Error();
+      const rows=await r.json();
+      el('count').textContent=rows.length+' เลข';
+      if(!rows.length){ el('list').innerHTML='<div class="state">ยังไม่มีเลขสมาชิก</div>'; return; }
+      let h='<table><thead><tr><th>เลข</th><th>Email</th><th>สถานะ</th></tr></thead><tbody>';
+      rows.forEach(x=>{
+        const reg=Number(x.registered)===1||x.registered===true;
+        h+='<tr><td class="no">'+esc(x.badge_no)+'</td><td>'+esc(x.email)+'</td>'+
+           '<td>'+(reg?'<span class="tag reg">มีบัญชีแล้ว</span>':'<span class="tag pend">รอสมัคร</span>')+'</td></tr>';
+      });
+      h+='</tbody></table>';
+      el('list').innerHTML=h;
+    }catch{ el('list').innerHTML='<div class="state">โหลดรายการไม่สำเร็จ</div>'; }
+  }
+</script>
+</body>
+</html>
