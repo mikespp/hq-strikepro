@@ -1946,7 +1946,7 @@ async function onboardingStats() {
   for (const r of rows) byStep[r.step_key] = Number(r.c);
   // Registration breakdown: how many are in Bussay (users) and/or StrikePro (eligible_emails).
   // Best-effort so a failure here never breaks the whole stats response.
-  let regObj = null, regErr = null;
+  let regObj = null;
   try {
     const [reg] = await pool.execute(
       `SELECT
@@ -1960,8 +1960,8 @@ async function onboardingStats() {
     const g = reg[0] || {};
     regObj = { both: Number(g.reg_both||0), bussay_only: Number(g.reg_bussay||0),
                sp_only: Number(g.reg_sp||0), neither: Number(g.reg_neither||0) };
-  } catch (e) { regErr = e.message; console.error('onboarding reg stats failed:', e.message); }
-  return { total: Number(tot[0].c), byStep, reg: regObj, regErr };
+  } catch (e) { console.error('onboarding reg stats failed:', e.message); }
+  return { total: Number(tot[0].c), byStep, reg: regObj };
 }
 async function getOnboardingCustomerById(id) {
   const [rows] = await pool.execute('SELECT id, email, name FROM onboarding_customers WHERE id = ?', [id]);
