@@ -314,7 +314,7 @@
     const total = STEPS.length;
     const doneN = STEPS.filter(s => c.progress[s.id] && c.progress[s.id].done).length;
     const pctN = total ? Math.round(doneN/total*100) : 0;
-    const nm = c.name || c.hq_name || c.email.split('@')[0];
+    const nm = c.name || c.hq_name || c.sp_name || c.email.split('@')[0];
     const steps = STEPS.map(s => {
       const on = c.progress[s.id] && c.progress[s.id].done;
       const auto = AUTO_STEP_KEYS.includes(s.step_key);

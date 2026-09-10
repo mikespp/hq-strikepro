@@ -573,6 +573,9 @@ async function init() {
     `ALTER TABLE onboarding_customers ADD COLUMN sp_phone VARCHAR(50) NOT NULL DEFAULT ''`,
     // StrikePro signup date (b2_clients createTime) — drives the AM Day 1/3/7 follow-up SOP.
     `ALTER TABLE onboarding_customers ADD COLUMN sp_created DATE NULL`,
+    // StrikePro customer name (b2_clients.name) — shown for StrikePro-only leads
+    // that have no Bussay profile, instead of the email prefix.
+    `ALTER TABLE onboarding_customers ADD COLUMN sp_name VARCHAR(255) NOT NULL DEFAULT ''`,
     // LINE Login — the LINE OAuth userId linked to this account (for 1-click login)
     `ALTER TABLE users ADD COLUMN line_user_id VARCHAR(64) NOT NULL DEFAULT ''`,
     // Bussay membership badge number (e.g. "000".."300"). Empty = no badge assigned.
@@ -703,13 +706,15 @@ async function importStrikeproLeads(leads) {
     const e = String((l && l.email) || '').toLowerCase().trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) continue;
     const phone = String((l && l.phone) || '').trim().slice(0, 50);
+    const name  = String((l && l.name) || '').trim().slice(0, 255);
     const created = /^\d{4}-\d{2}-\d{2}$/.test(String((l && l.created) || '').trim())
       ? String(l.created).trim() : null;      // StrikePro signup date (YYYY-MM-DD)
     const [r] = await pool.execute(
-      `INSERT INTO onboarding_customers (email, added_by, sp_phone, sp_created) VALUES (?, 'strikepro', ?, ?)
+      `INSERT INTO onboarding_customers (email, added_by, sp_phone, sp_created, sp_name) VALUES (?, 'strikepro', ?, ?, ?)
        ON DUPLICATE KEY UPDATE sp_phone   = IF(VALUES(sp_phone) <> '', VALUES(sp_phone), sp_phone),
-                               sp_created = COALESCE(VALUES(sp_created), sp_created)`,
-      [e, phone, created]);
+                               sp_created = COALESCE(VALUES(sp_created), sp_created),
+                               sp_name    = IF(VALUES(sp_name) <> '', VALUES(sp_name), sp_name)`,
+      [e, phone, created, name]);
     if (r.affectedRows === 1) added++;
     else if (r.affectedRows === 2) updated++;   // 2 = existing row updated
   }
@@ -1884,7 +1889,7 @@ async function deleteOnboardingCustomer(id) {
 // Customers + live registration status (HQ profile join + StrikePro allowlist) + progress map.
 async function listOnboardingCustomers() {
   const [rows] = await pool.execute(
-    `SELECT c.id, c.email, c.name, c.contact, c.note, c.added_by, c.account_manager, c.sp_phone,
+    `SELECT c.id, c.email, c.name, c.contact, c.note, c.added_by, c.account_manager, c.sp_phone, c.sp_name,
             DATE_FORMAT(c.sp_created, '%Y-%m-%d') AS sp_created,
             DATEDIFF(CURDATE(), c.sp_created) AS sp_days,
             DATE_FORMAT(c.created_at, '%Y-%m-%d %H:%i') AS created_at,
