@@ -137,6 +137,9 @@
     .step.done { background:rgba(74,222,128,.14); color:var(--green); border-color:rgba(74,222,128,.32); }
     .step .ck { width:15px; height:15px; border-radius:4px; border:1.5px solid currentColor; display:inline-flex; align-items:center; justify-content:center; font-size:10px; }
     .note { font-size:12px; color:var(--muted); margin-top:11px; padding-top:11px; border-top:1px solid var(--border); white-space:pre-wrap; }
+    .note-txt { color:var(--text); }
+    .note-empty { color:var(--muted); font-style:italic; }
+    .note-btn { margin-left:6px; padding:3px 9px; font-size:11px; }
 
     .state { text-align:center; padding:56px 20px; color:var(--muted); font-size:14px; }
 
@@ -339,7 +342,8 @@
       + '<div class="prog-top"><span class="t">ความคืบหน้า</span><span class="p">' + doneN + '/' + total + ' · ' + pctN + '%</span></div>'
       + '<div class="bar"><span style="width:' + pctN + '%"></span></div>'
       + (total ? '<div class="steps">' + steps + '</div>' : '<div class="lead">ยังไม่มีขั้นตอน — ตั้งค่าที่หน้า “จัดการ Onboarding”</div>')
-      + (c.note ? '<div class="note">📝 ' + esc(c.note) + '</div>' : '')
+      + '<div class="note">' + (c.note ? '📝 <span class="note-txt">' + esc(c.note) + '</span>' : '<span class="note-empty">ยังไม่มีโน้ต</span>')
+      +   ' <button class="mini note-btn" onclick="editNote(' + c.id + ')">' + (c.note ? 'แก้ไข' : '➕ เพิ่มโน้ต') + '</button></div>'
       + '</div>';
   }
   function stat(label, n, cls) {
@@ -430,6 +434,19 @@
       renderList();
       toast(name ? ('มอบหมายให้ ' + name) : 'ยกเลิกการมอบหมาย');
     } catch { toast('อัปเดตไม่สำเร็จ'); }
+  }
+
+  async function editNote(id) {
+    const c = CUSTOMERS.find(x => x.id === id); if (!c) return;
+    const note = prompt('โน้ตสำหรับ ' + c.email + ':', c.note || '');
+    if (note == null) return;   // cancelled
+    try {
+      const r = await fetch('/api/onboarding/customers/' + id, {
+        method:'PATCH', headers: authJson(), body: JSON.stringify({ note }) });
+      if (!r.ok) throw new Error();
+      c.note = note; renderList();
+      toast('บันทึกโน้ตแล้ว');
+    } catch { toast('บันทึกไม่สำเร็จ'); }
   }
 
   async function lineMessage(id) {
