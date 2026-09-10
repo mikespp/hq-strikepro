@@ -1105,7 +1105,8 @@ async function listLastAccountApplications() {
   const [rows] = await pool.execute(
     `SELECT la.id, la.first_name, la.last_name, la.nickname, la.birth_date, la.age, la.phone, la.email, la.mt5_account,
             la.line_id, la.discord_id, la.seat_type, la.round, la.confirmed, la.intro_submitted, la.created_at,
-            COALESCE(u.verified, 0) AS verified
+            COALESCE(u.verified, 0) AS verified,
+            COALESCE(u.province, '') AS province
      FROM last_account_applications la
      LEFT JOIN users u ON LOWER(TRIM(u.email)) = LOWER(TRIM(la.email))
      ORDER BY la.round ASC, la.created_at ASC`

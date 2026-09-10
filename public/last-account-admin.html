@@ -480,12 +480,13 @@
   function exportCSV() {
     const list = getFiltered();
     if (!list.length) { toast('ไม่มีข้อมูลให้ส่งออก'); return; }
-    const cols = ['ลำดับ','รุ่น','ชื่อจริง','นามสกุล','ชื่อเล่น','วันเกิด','อายุ','เบอร์โทร','Email','เลขพอร์ต MT5','Line ID','Discord ID','ประเภทที่นั่ง','วันที่สมัคร'];
+    const cols = ['ลำดับ','รุ่น','ชื่อจริง','นามสกุล','ชื่อเล่น','วันเกิด','อายุ','เบอร์โทร','Email','จังหวัด','เลขพอร์ต MT5','Line ID','Discord ID','ประเภทที่นั่ง','วันที่สมัคร'];
     const q = v => '"' + String(v==null?'':v).replace(/"/g,'""') + '"';
     const lines = [cols.map(q).join(',')];
     list.forEach((r, i) => {
       lines.push([i+1, roundOf(r), r.first_name, r.last_name, r.nickname, fmtDOB(r.birth_date), r.age,
-        r.phone, r.email, r.mt5_account,
+        r.phone, r.email, r.province,
+        r.mt5_account,
         r.line_id, r.discord_id, (r.seat_type==='reserve'?'สำรอง':'หลัก'), fmtDate(r.created_at)].map(q).join(','));
     });
     const blob = new Blob(['﻿' + lines.join('\r\n')], { type:'text/csv;charset=utf-8;' });
