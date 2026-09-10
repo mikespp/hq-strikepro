@@ -10,11 +10,15 @@ const router = express.Router();
 async function activeCfg() {
   const row = await db.getActiveTamboonEdition();
   if (!row) return null;
+  const eventEnd = row.event_end ? new Date(row.event_end) : null;   // end time is optional
+  // No end time → keep registration open until the end of the event day (Bangkok).
+  const cutoff = eventEnd || new Date(String(row.event_start).slice(0, 10) + 'T23:59:59+07:00');
   return {
     round:      row.round,
     label:      'รอบที่ ' + row.round,
     eventStart: new Date(row.event_start),
-    eventEnd:   new Date(row.event_end),
+    eventEnd,
+    cutoff,
     venue:      row.venue,
   };
 }
@@ -26,13 +30,13 @@ function statusOf(cfg) {
     round:      cfg.round,          // admin-only info; the public page ignores it
     label:      cfg.label,
     eventStart: cfg.eventStart.toISOString(),
-    eventEnd:   cfg.eventEnd.toISOString(),
+    eventEnd:   cfg.eventEnd ? cfg.eventEnd.toISOString() : null,
     venue:      cfg.venue,
-    ended:      now >= cfg.eventEnd,
+    ended:      now >= cfg.cutoff,
   };
 }
 
-// Validate + normalise the round form (date/start/end/venue). No seats.
+// Validate + normalise the round form (date/start/venue; end time optional).
 function parseInput(b) {
   b = b || {};
   const date  = String(b.date  || '').trim();
@@ -40,14 +44,18 @@ function parseInput(b) {
   const end   = String(b.end   || '').trim();
   const venue = String(b.venue || '').trim();
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return { error: 'กรุณาเลือกวันที่ให้ถูกต้อง' };
-  if (!/^\d{2}:\d{2}$/.test(start) || !/^\d{2}:\d{2}$/.test(end))
-    return { error: 'กรุณากรอกเวลาให้ถูกต้อง (HH:MM)' };
+  if (!/^\d{2}:\d{2}$/.test(start))      return { error: 'กรุณากรอกเวลาเริ่มให้ถูกต้อง (HH:MM)' };
+  if (end && !/^\d{2}:\d{2}$/.test(end)) return { error: 'เวลาสิ้นสุดไม่ถูกต้อง (HH:MM)' };
   if (!venue) return { error: 'กรุณากรอกสถานที่' };
   const event_start = `${date}T${start}:00+07:00`;
-  const event_end   = `${date}T${end}:00+07:00`;
-  const sd = new Date(event_start), ed = new Date(event_end);
-  if (isNaN(sd) || isNaN(ed)) return { error: 'วัน/เวลาไม่ถูกต้อง' };
-  if (ed <= sd)               return { error: 'เวลาสิ้นสุดต้องหลังเวลาเริ่ม' };
+  const event_end   = end ? `${date}T${end}:00+07:00` : '';   // '' = ไม่มีเวลาจบ
+  const sd = new Date(event_start);
+  if (isNaN(sd)) return { error: 'วัน/เวลาไม่ถูกต้อง' };
+  if (event_end) {
+    const ed = new Date(event_end);
+    if (isNaN(ed))  return { error: 'เวลาไม่ถูกต้อง' };
+    if (ed <= sd)   return { error: 'เวลาสิ้นสุดต้องหลังเวลาเริ่ม' };
+  }
   return { event_start, event_end, venue, dateYMD: date };
 }
 
@@ -83,7 +91,7 @@ router.post('/join', requireAuth, async (req, res) => {
   try {
     const cfg = await activeCfg();
     if (!cfg) return res.status(403).json({ error: 'ยังไม่เปิดรับลงทะเบียน' });
-    if (new Date() >= cfg.eventEnd) return res.status(403).json({ error: 'กิจกรรมนี้จบแล้ว' });
+    if (new Date() >= cfg.cutoff) return res.status(403).json({ error: 'กิจกรรมนี้จบแล้ว' });
 
     const user = await db.findUserById(req.userId);
     if (!user) return res.status(401).json({ error: 'ไม่พบผู้ใช้' });

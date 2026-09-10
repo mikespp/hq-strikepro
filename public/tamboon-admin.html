@@ -140,11 +140,11 @@
     <label for="mDate">วันที่จัดงาน</label>
     <input type="date" id="mDate" />
     <div class="row2">
-      <div><label for="mStart">เวลาเริ่ม</label><input type="time" id="mStart" value="18:00" /></div>
-      <div><label for="mEnd">เวลาสิ้นสุด</label><input type="time" id="mEnd" value="21:00" /></div>
+      <div><label for="mStart">เวลาเริ่ม</label><input type="time" id="mStart" value="10:00" /></div>
+      <div><label for="mEnd">เวลาสิ้นสุด <span style="color:var(--muted);font-weight:400">(ไม่บังคับ)</span></label><input type="time" id="mEnd" value="" /></div>
     </div>
     <label for="mVenue">สถานที่</label>
-    <input type="text" id="mVenue" value="Strike Pro Head Office" />
+    <input type="text" id="mVenue" value="ออฟฟิศ Strike Pro" />
     <div class="modal-actions">
       <button class="ctrl-btn" onclick="closeRound()">ยกเลิก</button>
       <button class="ctrl-btn primary" id="mSubmit" onclick="submitRound()">เปิดรอบ</button>
@@ -254,7 +254,7 @@
       html += '<span class="c-status"><span class="dot"></span>รอบปัจจุบัน <span class="round-badge">รอบที่ ' + cur.round + '</span></span>'
         + '<div class="detail">'
         + '<div class="drow"><span class="k">📅 วันที่</span><span class="v">' + esc(fmtDate(s.eventStart)) + '</span></div>'
-        + '<div class="drow"><span class="k">⏰ เวลา</span><span class="v">' + esc(fmtTime(s.eventStart)) + ' – ' + esc(fmtTime(s.eventEnd)) + ' น.</span></div>'
+        + '<div class="drow"><span class="k">⏰ เวลา</span><span class="v">' + (s.eventEnd ? (esc(fmtTime(s.eventStart)) + ' – ' + esc(fmtTime(s.eventEnd)) + ' น.') : ('เริ่ม ' + esc(fmtTime(s.eventStart)) + ' น.')) + '</span></div>'
         + '<div class="drow"><span class="k">📍 สถานที่</span><span class="v">' + esc(s.venue) + '</span></div>'
         + (s.ended ? '<div class="drow"><span class="k">สถานะ</span><span class="v" style="color:#f87171">จบไปแล้ว</span></div>' : '')
         + '</div>'
@@ -264,7 +264,7 @@
         + '</div>';
     } else {
       html += '<span class="c-status none"><span class="dot"></span>ยังไม่มีรอบที่เปิด</span>'
-        + '<div class="note">กดปุ่มด้านล่างเพื่อเปิดรอบแรก (จะเป็น <b>รอบที่ 3</b>)</div>'
+        + '<div class="note">กดปุ่มด้านล่างเพื่อเปิดรอบแรก</div>'
         + '<div class="actions"><button class="ctrl-btn primary" onclick="openNext()">➕ เปิดรอบ</button></div>';
     }
     html += '<div class="note">🔒 เลขรอบแสดงเฉพาะหน้านี้ — หน้าเว็บสาธารณะและปฏิทินจะโชว์เฉพาะวัน/เวลา/สถานที่ ไม่มีเลขรอบ</div>';
@@ -274,7 +274,7 @@
 
   function openNext() {
     editMode = false;
-    $('mDate').value=''; $('mStart').value='18:00'; $('mEnd').value='21:00'; $('mVenue').value='Strike Pro Head Office';
+    $('mDate').value=''; $('mStart').value='10:00'; $('mEnd').value=''; $('mVenue').value='ออฟฟิศ Strike Pro';
     $('mTitle').textContent = 'เปิดรอบถัดไป';
     $('mSub').textContent = 'ตั้งวัน/เวลา/สถานที่ — หน้าเว็บ + ปฏิทินจะอัปเดตให้ (หน้าบ้านไม่แสดงเลขรอบ)';
     $('mSubmit').textContent = 'เปิดรอบ';
@@ -283,7 +283,8 @@
   function openEdit() {
     if (!cur || !cur.status) { toast('ยังไม่มีรอบให้แก้ไข'); return; }
     editMode = true;
-    const s = thaiParts(cur.status.eventStart), e = thaiParts(cur.status.eventEnd);
+    const s = thaiParts(cur.status.eventStart);
+    const e = cur.status.eventEnd ? thaiParts(cur.status.eventEnd) : { time: '' };
     $('mDate').value=s.date; $('mStart').value=s.time; $('mEnd').value=e.time; $('mVenue').value=cur.status.venue||'';
     $('mTitle').textContent = 'แก้ไขรอบที่ ' + cur.round;
     $('mSub').textContent = 'แก้วัน/เวลา/สถานที่ — หน้าเว็บ + ปฏิทินจะอัปเดตตาม';

@@ -803,11 +803,12 @@
     var TZ = 'Asia/Bangkok';
     fetch('/api/tamboon/status').then(function (r){ return r.ok ? r.json() : null; }).then(function (s){
       if (!s || !s.eventStart) return;
-      var d = new Date(s.eventStart), e = new Date(s.eventEnd);
+      var d = new Date(s.eventStart), e = s.eventEnd ? new Date(s.eventEnd) : null;
       var date = d.toLocaleDateString('th-TH-u-ca-gregory', { day:'numeric', month:'short', year:'numeric', timeZone:TZ });
       var t = function (x){ return x.toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit', hour12:false, timeZone:TZ }); };
+      var time = e ? (t(d) + '–' + t(e)) : ('เริ่ม ' + t(d) + ' น.');
       el.innerHTML = '<span class="hero-pill">🗓️ <span class="p-gold">' + date + '</span></span>'
-        + '<span class="hero-pill">⏰ ' + t(d) + '–' + t(e) + '</span>'
+        + '<span class="hero-pill">⏰ ' + time + '</span>'
         + '<span class="hero-pill">📍 ' + (s.venue || '') + '</span>';
       el.style.display = 'flex';
     }).catch(function(){});

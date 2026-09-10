@@ -229,7 +229,7 @@ async function init() {
     if (Number(tb[0].c) === 0) {
       await pool.execute(
         'INSERT INTO tamboon_editions (round, opens_at, event_start, event_end, venue) VALUES (1, ?, ?, ?, ?)',
-        [new Date().toISOString(), '2026-09-12T10:00:00+07:00', '2026-09-12T13:00:00+07:00', 'ออฟฟิศ Strike Pro']
+        [new Date().toISOString(), '2026-09-12T10:00:00+07:00', '', 'ออฟฟิศ Strike Pro']   // no end time
       );
       try {
         const title = 'ทำบุญ Bussay';
@@ -240,6 +240,8 @@ async function init() {
       } catch (_) {}
       console.log('  Seeded ทำบุญ Bussay round 1 (2026-09-12).');
     }
+    // ทำบุญ has no fixed end time — clear the placeholder end from the first seed.
+    await pool.execute("UPDATE tamboon_editions SET event_end = '' WHERE event_end = '2026-09-12T13:00:00+07:00'");
   }
 
   // Fund portfolios — MT5 accounts + their daily equity snapshots (for Myfxbook-
