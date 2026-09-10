@@ -64,6 +64,15 @@
     .kpi.total { background:linear-gradient(155deg, rgba(74,222,128,.14), var(--card) 70%); border-color:rgba(74,222,128,.32); }
     .kpi.total::before { background:linear-gradient(90deg,var(--green),transparent); }
     .kpi.total .tag { color:var(--green); background:rgba(74,222,128,.14); border-color:rgba(74,222,128,.3); }
+    /* clickable stat/kpi cards → filter the list by that step */
+    .kpi, .stat { cursor:pointer; transition:border-color .15s, box-shadow .15s, transform .08s; }
+    .kpi:hover, .stat:hover { transform:translateY(-1px); }
+    .kpi:hover { border-color:var(--blue-light); }
+    .stat:hover { border-color:var(--blue-border); }
+    .kpi.on { box-shadow:0 0 0 2px var(--blue) inset; }
+    .kpi.total.on { box-shadow:0 0 0 2px var(--green) inset; }
+    .stat.on { border-color:var(--blue); background:var(--blue-dim); }
+    .stat.on .n { color:var(--blue-light); }
     .statbar { display:grid; grid-template-columns:repeat(auto-fill,minmax(148px,1fr)); gap:12px; margin:6px 0 20px; }
     .stat { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px 16px; position:relative; overflow:hidden; }
     .stat::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--blue-border),transparent); }
@@ -207,7 +216,6 @@
   </div>
   <div id="stats"></div>
   <div class="filterbar" id="grpbar"></div>
-  <div class="filterbar" id="regbar"></div>
   <div class="filterbar" id="daybar"></div>
   <div class="filterbar" id="ambar"></div>
   <div id="content"><div class="state">กำลังโหลด…</div></div>
@@ -229,7 +237,7 @@
   function drawerSignOut(){ localStorage.removeItem(TOKEN_KEY); window.location.href='/login'; }
   function closeModal(id){ $(id).classList.remove('on'); }
 
-  let STEPS = [], CUSTOMERS = [], amFilter = '', grpFilter = '', dayFilter = '', regFilter = '', OA_ENABLED = false, ME = null;   // amFilter: '' all, '__none__' unassigned, else a manager
+  let STEPS = [], CUSTOMERS = [], amFilter = '', grpFilter = '', dayFilter = '', stepFilter = '', OA_ENABLED = false, ME = null;   // amFilter: '' all, '__none__' unassigned; stepFilter: '' none, else a step id
   const MANAGERS = ['Phot', 'Di', 'Namkang'];
   const KPI_KEYS = ['topup_l1', 'cs_notify'];   // shown as prominent KPI cards
   const AUTO_STEP_KEYS = ['kyc_l1', 'kyc_l2', 'kyc_vip', 'deposit'];   // auto-synced from StrikePro — not manually tickable
@@ -256,19 +264,21 @@
     return { cls:'over', text:'⚠️ เกิน 7 วัน — ยังไม่ฝากเงิน' };
   }
 
-  // Registration-status filter (Bussay vs StrikePro sign-up):
-  const regMatch = c => {
-    if (!regFilter) return true;
-    if (regFilter === 'both')         return !!c.hq_registered && !!c.strikepro_registered;   // สมัครครบทั้งสอง
-    if (regFilter === 'bussay_no_sp') return !!c.hq_registered && !c.strikepro_registered;   // สมัคร Bussay แต่ยังไม่สมัคร StrikePro
-    if (regFilter === 'no_sp')        return !c.strikepro_registered;                          // ยังไม่พบใน StrikePro
-    if (regFilter === 'no_hq')        return !c.hq_registered;                                 // ยังไม่สมัคร Bussay
+  // Group filter — Bussay = has a Bussay account, Strike Pro = has a StrikePro
+  // account (the two overlap for customers who signed up both); the "Only"
+  // variants are each exclusive half.
+  function grpTest(c, f) {
+    if (!f) return true;
+    if (f === 'bussay')         return !!c.hq_registered;
+    if (f === 'strikepro')      return !!c.strikepro_registered;
+    if (f === 'bussay_only')    return !!c.hq_registered && !c.strikepro_registered;
+    if (f === 'strikepro_only') return !!c.strikepro_registered && !c.hq_registered;
     return true;
-  };
+  }
   function setAmFilter(v) { amFilter = v; renderList(); }
   function setGrpFilter(v) { grpFilter = v; renderList(); }
   function setDayFilter(v) { dayFilter = v; renderList(); }
-  function setRegFilter(v) { regFilter = v; renderList(); }
+  function setStepFilter(v) { stepFilter = (stepFilter === v ? '' : v); renderList(); }   // click a card to toggle
 
   (async () => {
     const token = localStorage.getItem(TOKEN_KEY);
@@ -373,8 +383,9 @@
       +   ' <button class="mini note-btn" onclick="editNote(' + c.id + ')">' + (c.note ? 'แก้ไข' : '➕ เพิ่มโน้ต') + '</button></div>'
       + '</div>';
   }
-  function stat(label, n, cls) {
-    return '<div class="stat ' + (cls||'') + '"><div class="n">' + n + '</div><div class="k">' + esc(label) + '</div></div>';
+  function stat(label, n, cls, stepId) {
+    const click = stepId != null ? ' onclick="setStepFilter(' + stepId + ')"' : '';
+    return '<div class="stat ' + (cls||'') + '"' + click + '><div class="n">' + n + '</div><div class="k">' + esc(label) + '</div></div>';
   }
 
   function renderAmBar() {
@@ -388,13 +399,15 @@
   }
 
   function renderGrpBar() {
-    const cnt = g => CUSTOMERS.filter(c => groupOf(c) === g).length;
-    const chip = (val, label, n, extra) => '<button class="chip ' + (extra||'') + ' ' + (grpFilter===val?'on':'') + '" onclick="setGrpFilter(\'' + val + '\')">'
-      + label + '<span class="c">' + n + '</span></button>';
+    const cnt = f => CUSTOMERS.filter(c => grpTest(c, f)).length;
+    const chip = (val, label, extra) => '<button class="chip ' + (extra||'') + ' ' + (grpFilter===val?'on':'') + '" onclick="setGrpFilter(\'' + val + '\')">'
+      + label + '<span class="c">' + cnt(val) + '</span></button>';
     $('grpbar').innerHTML = '<span class="flbl">กลุ่ม:</span>'
-      + chip('', 'ทั้งหมด', CUSTOMERS.length, '')
-      + chip('bussay', 'Bussay', cnt('bussay'), 'bussay')
-      + chip('strikepro', 'Strike Pro', cnt('strikepro'), 'strikepro');
+      + chip('', 'ทั้งหมด', '')
+      + chip('bussay', 'Bussay', 'bussay')
+      + chip('strikepro', 'Strike Pro', 'strikepro')
+      + chip('bussay_only', 'Bussay Only', 'bussay')
+      + chip('strikepro_only', 'Strike Pro Only', 'strikepro');
   }
 
   function renderDayBar() {
@@ -409,47 +422,36 @@
       + chip('over', 'เกิน 7 วัน', cnt('over'));
   }
 
-  function renderRegBar() {
-    var cnt = function(f){ var old = regFilter; regFilter = f; var n = CUSTOMERS.filter(regMatch).length; regFilter = old; return n; };
-    var chip = function(val, label, n){ return '<button class="chip ' + (regFilter===val?'on':'') + '" onclick="setRegFilter(\'' + val + '\')">'
-      + label + '<span class="c">' + n + '</span></button>'; };
-    $('regbar').innerHTML = '<span class="flbl">สถานะสมัคร:</span>'
-      + chip('', 'ทั้งหมด', CUSTOMERS.length)
-      + chip('both', 'สมัครครบ ✓✓', cnt('both'))
-      + chip('bussay_no_sp', 'Bussay ✓ · StrikePro ✗', cnt('bussay_no_sp'))
-      + chip('no_sp', 'ยังไม่สมัคร StrikePro', cnt('no_sp'))
-      + chip('no_hq', 'ยังไม่สมัคร Bussay', cnt('no_hq'));
-  }
-
   function renderList() {
     renderGrpBar();
-    renderRegBar();
     renderDayBar();
     renderAmBar();
     const q = $('search').value.trim().toLowerCase();
     const amMatch = c => !amFilter ? true : (amFilter==='__none__' ? !c.account_manager : c.account_manager===amFilter);
-    const grpMatch = c => !grpFilter ? true : groupOf(c) === grpFilter;
+    const grpMatch = c => grpTest(c, grpFilter);
     const dayMatch = c => !dayFilter ? true : phaseOf(c) === dayFilter;
-    // stats reflect the group + reg + day + AM filters (the chip counts above stay global)
-    const amSet = CUSTOMERS.filter(c => grpMatch(c) && regMatch(c) && dayMatch(c) && amMatch(c));
-    const list = amSet.filter(c => !q
+    const stepMatch = c => !stepFilter ? true : !!(c.progress[stepFilter] && c.progress[stepFilter].done);   // card filter: done that step
+    // amSet reflects the group + day + AM filters; card counts use it, and clicking
+    // a card narrows the LIST (not the counts) to customers who finished that step.
+    const amSet = CUSTOMERS.filter(c => grpMatch(c) && dayMatch(c) && amMatch(c));
+    const list = amSet.filter(c => stepMatch(c) && (!q
       || c.email.toLowerCase().includes(q)
       || (c.name||'').toLowerCase().includes(q)
       || (c.hq_name||'').toLowerCase().includes(q)
-      || (c.contact||'').toLowerCase().includes(q));
+      || (c.contact||'').toLowerCase().includes(q)));
     const doneCount = s => amSet.filter(c => c.progress[s.id] && c.progress[s.id].done).length;
     const kpiSteps   = STEPS.filter(s => KPI_KEYS.includes(s.step_key));
     const otherSteps = STEPS.filter(s => !KPI_KEYS.includes(s.step_key));
     const totalLabel = !amFilter ? 'ลูกค้าใหม่ทั้งหมด'
       : (amFilter==='__none__' ? 'ลูกค้า (ยังไม่ระบุ AM)' : 'ลูกค้าของ ' + esc(amFilter));
-    const totalCard = '<div class="kpi total"><span class="tag">' + (amFilter?'กรอง':'ทั้งหมด') + '</span><div class="n">' + amSet.length
+    const totalCard = '<div class="kpi total' + (!stepFilter?' on':'') + '" onclick="setStepFilter(\'\')"><span class="tag">' + (amFilter?'กรอง':'ทั้งหมด') + '</span><div class="n">' + amSet.length
       + ' <small>คน</small></div><div class="k">' + totalLabel + '</div></div>';
     const kpiCards = kpiSteps.map(s =>
-      '<div class="kpi"><span class="tag">KPI</span><div class="n">' + doneCount(s)
+      '<div class="kpi' + (stepFilter===s.id?' on':'') + '" onclick="setStepFilter(' + s.id + ')"><span class="tag">KPI</span><div class="n">' + doneCount(s)
       + ' <small>/ ' + amSet.length + ' คน</small></div><div class="k">' + esc(s.label) + '</div></div>').join('');
     $('stats').innerHTML =
       '<div class="kpibar">' + totalCard + kpiCards + '</div>'
-      + (otherSteps.length ? '<div class="statbar">' + otherSteps.map(s => stat(s.label, doneCount(s), '')).join('') + '</div>' : '');
+      + (otherSteps.length ? '<div class="statbar">' + otherSteps.map(s => stat(s.label, doneCount(s), (stepFilter===s.id?'on':''), s.id)).join('') + '</div>' : '');
     $('content').innerHTML = list.length
       ? '<div class="grid">' + list.map(card).join('') + '</div>'
       : '<div class="state">' + (CUSTOMERS.length ? 'ไม่พบลูกค้าที่ค้นหา' : 'ยังไม่มีลูกค้า — เพิ่มได้ที่หน้า “จัดการ Onboarding”') + '</div>';
