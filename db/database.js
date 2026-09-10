@@ -1950,16 +1950,16 @@ async function onboardingStats() {
   try {
     const [reg] = await pool.execute(
       `SELECT
-         SUM(CASE WHEN hqreg=1 AND spreg=1 THEN 1 ELSE 0 END) AS both,
-         SUM(CASE WHEN hqreg=1 AND spreg=0 THEN 1 ELSE 0 END) AS bussay_only,
-         SUM(CASE WHEN hqreg=0 AND spreg=1 THEN 1 ELSE 0 END) AS sp_only,
-         SUM(CASE WHEN hqreg=0 AND spreg=0 THEN 1 ELSE 0 END) AS neither
+         SUM(CASE WHEN hqreg=1 AND spreg=1 THEN 1 ELSE 0 END) AS reg_both,
+         SUM(CASE WHEN hqreg=1 AND spreg=0 THEN 1 ELSE 0 END) AS reg_bussay,
+         SUM(CASE WHEN hqreg=0 AND spreg=1 THEN 1 ELSE 0 END) AS reg_sp,
+         SUM(CASE WHEN hqreg=0 AND spreg=0 THEN 1 ELSE 0 END) AS reg_neither
        FROM (SELECT (u.id IS NOT NULL) AS hqreg,
                     (SHA2(LOWER(TRIM(c.email)),256) IN (SELECT email_hash FROM eligible_emails)) AS spreg
                FROM onboarding_customers c LEFT JOIN users u ON LOWER(u.email) = LOWER(c.email)) t`);
     const g = reg[0] || {};
-    regObj = { both: Number(g.both||0), bussay_only: Number(g.bussay_only||0),
-               sp_only: Number(g.sp_only||0), neither: Number(g.neither||0) };
+    regObj = { both: Number(g.reg_both||0), bussay_only: Number(g.reg_bussay||0),
+               sp_only: Number(g.reg_sp||0), neither: Number(g.reg_neither||0) };
   } catch (e) { regErr = e.message; console.error('onboarding reg stats failed:', e.message); }
   return { total: Number(tot[0].c), byStep, reg: regObj, regErr };
 }
