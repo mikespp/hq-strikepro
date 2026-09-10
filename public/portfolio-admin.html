@@ -124,7 +124,7 @@
       <div class="field"><label>ชื่อพอร์ต (แสดงบนหน้าเว็บ)</label><input id="fLabel" placeholder="เช่น กุมารเงิน" /></div>
       <div class="field"><label>MT5 ID</label><input id="fLogin" inputmode="numeric" placeholder="เช่น 2121968661" /></div>
       <div class="field"><label>Investor Password</label><input id="fPw" type="password" placeholder="รหัสสำหรับดูอย่างเดียว" autocomplete="off" /></div>
-      <div class="field"><label>MT5 Server</label><input id="fServer" placeholder="เช่น StrikePro-Live" /></div>
+      <div class="field"><label>MT5 Server</label><input id="fServer" value="StrikeProfx-Server" placeholder="StrikeProfx-Server" /></div>
       <div class="field"><label>สกุลเงิน</label><input id="fCcy" value="USD" /></div>
       <div class="field"><label>ลำดับการแสดง</label><input id="fSort" inputmode="numeric" value="0" /></div>
     </div>
@@ -235,7 +235,8 @@
   function resetForm() {
     editing = null;
     $('formTitle').textContent = 'เพิ่มพอร์ตใหม่';
-    ['fLabel','fLogin','fServer','fSort','fPw'].forEach(id => $(id).value = '');
+    ['fLabel','fLogin','fSort','fPw'].forEach(id => $(id).value = '');
+    $('fServer').value = 'StrikeProfx-Server';
     $('fCcy').value = 'USD'; $('fSort').value = '0'; $('fLogin').disabled = false;
     $('fPw').placeholder = 'รหัสสำหรับดูอย่างเดียว';
     $('cancelBtn').style.display = 'none'; $('pwNote').textContent = '';
