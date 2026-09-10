@@ -39,7 +39,10 @@ async function backfillEventRoles(guildId, discordId, email) {
   }
 }
 
-function page(title, msg, color) {
+function page(title, msg, color, action) {
+  const btn = action && action.href
+    ? `<a href="${action.href}" style="display:inline-block;margin-top:22px;background:${color};color:#0a0a0a;font-weight:800;text-decoration:none;padding:12px 28px;border-radius:10px;font-size:15px">${action.label || 'ดำเนินการต่อ'}</a>`
+    : '';
   return `<!doctype html><html lang="th"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1"><title>${title}</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;600;800&display=swap" rel="stylesheet">
@@ -48,7 +51,7 @@ background:#0d0d0d;color:#f1f1f1;font-family:'IBM Plex Sans Thai',system-ui,sans
 .card{max-width:420px;margin:16px;background:#1a1a1a;border:1px solid #2e2e2e;border-radius:16px;overflow:hidden;text-align:center}
 .bar{height:4px;background:${color}}.in{padding:34px 28px}.t{font-size:22px;font-weight:800;margin:0 0 10px;color:${color}}
 .m{color:#cbd5e1;font-size:15px;line-height:1.7;margin:0}.b{margin-top:20px;font-size:13px;color:#777}</style></head>
-<body><div class="card"><div class="bar"></div><div class="in"><h1 class="t">${title}</h1><p class="m">${msg}</p>
+<body><div class="card"><div class="bar"></div><div class="in"><h1 class="t">${title}</h1><p class="m">${msg}</p>${btn}
 <div class="b">BUSSAY · COMMUNITY</div></div></div></body></html>`;
 }
 
@@ -83,17 +86,25 @@ router.get('/verify', async (req, res) => {
   try {
     await db.upsertDiscordVerification(payload.discordId, payload.email, payload.username, payload.guildId);
     await bot.grantRole(payload.guildId, payload.discordId, ROLE_ID);
-    // Rename the member to their Bussay profile name (best-effort; needs Manage
-    // Nicknames + the bot ranked above them). Skipped if they have no Bussay
-    // profile yet — those are asked to sign up Bussay first.
-    try {
-      const u = await db.findUserByEmail(payload.email);
-      const nick = renderNickname(u);
-      if (nick) await bot.setMemberNickname(payload.guildId, payload.discordId, nick);
-    } catch (e) { console.error('discord nickname set failed:', e.message); }
+    // Look up their Bussay profile. If they have one, rename them to it (best-effort;
+    // needs Manage Nicknames + the bot ranked above them). If not, verification still
+    // succeeds but we point them to sign up Bussay so they get a profile + full access.
+    let u = null;
+    try { u = await db.findUserByEmail(payload.email); } catch (e) { console.error('profile lookup failed:', e.message); }
+    if (u) {
+      try {
+        const nick = renderNickname(u);
+        if (nick) await bot.setMemberNickname(payload.guildId, payload.discordId, nick);
+      } catch (e) { console.error('discord nickname set failed:', e.message); }
+    }
     // Back-fill event roles the user already earned (joined before verifying Discord).
     await backfillEventRoles(payload.guildId, payload.discordId, payload.email);
-    return res.send(page('ยืนยันสำเร็จ ✅', 'คุณได้รับยศใน Discord เรียบร้อยแล้ว — กลับไปที่ Discord ได้เลย', '#22c55e'));
+    if (u) {
+      return res.send(page('ยืนยันสำเร็จ ✅', 'คุณได้รับยศใน Discord เรียบร้อยแล้ว — กลับไปที่ Discord ได้เลย', '#22c55e'));
+    }
+    return res.send(page('ยืนยันสำเร็จ ✅ — เหลืออีกขั้น',
+      'คุณได้รับยศใน Discord แล้ว แต่ยัง<b>ไม่มีบัญชี Bussay</b> — สมัครด้วยอีเมลเดียวกันเพื่อรับสิทธิ์เต็ม และให้ระบบตั้งชื่อใน Discord ให้อัตโนมัติ',
+      '#22c55e', { href: '/register', label: 'สมัคร Bussay' }));
   } catch (e) {
     console.error('discord verify finalize failed:', e.message);
     return res.status(500).send(page('ยืนยันอีเมลแล้ว ⚠️',
