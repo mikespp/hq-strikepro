@@ -103,6 +103,15 @@
     .mini.danger { background:rgba(248,113,113,.14); color:var(--red); border-color:rgba(248,113,113,.3); }
 
     .prereq { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0; }
+    .signup { font-size:12.5px; color:var(--muted); margin:2px 0 8px; }
+    .signup b { color:var(--text); font-weight:700; }
+    .signup .days { color:var(--blue-light); font-weight:600; }
+    .amtask { font-size:13px; font-weight:700; padding:9px 12px; border-radius:10px; margin:0 0 12px; line-height:1.5; border:1px solid var(--border); }
+    .amtask.day1 { background:rgba(61,123,255,.14); color:#9cc0ff; border-color:rgba(61,123,255,.4); }
+    .amtask.day3 { background:rgba(251,146,60,.14); color:#fdba74; border-color:rgba(251,146,60,.4); }
+    .amtask.day7 { background:rgba(248,113,113,.14); color:#fca5a5; border-color:rgba(248,113,113,.4); }
+    .amtask.over { background:rgba(248,113,113,.2); color:#fca5a5; border-color:rgba(248,113,113,.55); }
+    .amtask.ok   { background:rgba(74,222,128,.14); color:#86efac; border-color:rgba(74,222,128,.4); }
     .badge { font-size:11px; font-weight:700; padding:4px 10px; border-radius:50px; display:inline-flex; align-items:center; gap:5px; }
     .badge.ok { background:rgba(74,222,128,.14); color:var(--green); border:1px solid rgba(74,222,128,.3); }
     .badge.no { background:rgba(248,113,113,.13); color:var(--red); border:1px solid rgba(248,113,113,.3); }
@@ -190,6 +199,7 @@
   </div>
   <div id="stats"></div>
   <div class="filterbar" id="grpbar"></div>
+  <div class="filterbar" id="daybar"></div>
   <div class="filterbar" id="ambar"></div>
   <div id="content"><div class="state">กำลังโหลด…</div></div>
 </div>
@@ -210,7 +220,7 @@
   function drawerSignOut(){ localStorage.removeItem(TOKEN_KEY); window.location.href='/login'; }
   function closeModal(id){ $(id).classList.remove('on'); }
 
-  let STEPS = [], CUSTOMERS = [], amFilter = '', grpFilter = '', OA_ENABLED = false, ME = null;   // amFilter: '' all, '__none__' unassigned, else a manager
+  let STEPS = [], CUSTOMERS = [], amFilter = '', grpFilter = '', dayFilter = '', OA_ENABLED = false, ME = null;   // amFilter: '' all, '__none__' unassigned, else a manager
   const MANAGERS = ['Phot', 'Di', 'Namkang'];
   const KPI_KEYS = ['topup_l1', 'cs_notify'];   // shown as prominent KPI cards
   // Group is derived: a Bussay account → 'bussay'; otherwise a StrikePro-only
@@ -218,8 +228,27 @@
   // to true and they move to the Bussay group automatically (nothing stored).
   const GROUPS = { bussay: 'Bussay', strikepro: 'Strike Pro' };
   const groupOf = c => c.hq_registered ? 'bussay' : 'strikepro';
+
+  // AM follow-up SOP by days since StrikePro signup (sp_created):
+  //   Day 1 (0-1d): call + teach KYC StrikePro / KYC 1109 / deposit
+  //   Day 3 (2-3d): monitor the deposit, follow up if not done
+  //   Day 7 (4-7d): final deposit follow-up
+  const DAY_PHASES = { day1:'Day 1', day3:'Day 3', day7:'Day 7', over:'เกิน 7 วัน' };
+  const spDays = c => (c.sp_days == null || c.sp_days === '') ? null : Number(c.sp_days);
+  function depositDone(c) { const s = STEPS.find(x => x.step_key === 'deposit'); return !!(s && c.progress[s.id] && c.progress[s.id].done); }
+  function phaseOf(c) { const d = spDays(c); if (d == null) return null; if (d <= 1) return 'day1'; if (d <= 3) return 'day3'; if (d <= 7) return 'day7'; return 'over'; }
+  function amTask(c) {
+    const p = phaseOf(c); if (!p) return null;
+    if (p === 'day1') return { cls:'day1', text:'📞 Day 1 — โทรแนะนำตัว + สอน KYC StrikePro / KYC 1109 / ฝากเงิน' };
+    if (depositDone(c))  return { cls:'ok',   text:'✅ ฝากเงินแล้ว' };
+    if (p === 'day3') return { cls:'day3', text:'💰 Day 3 — Monitor การฝากเงิน (ยังไม่ฝาก → follow up)' };
+    if (p === 'day7') return { cls:'day7', text:'⏰ Day 7 — Follow up การฝากเงิน (ครั้งสุดท้าย)' };
+    return { cls:'over', text:'⚠️ เกิน 7 วัน — ยังไม่ฝากเงิน' };
+  }
+
   function setAmFilter(v) { amFilter = v; renderList(); }
   function setGrpFilter(v) { grpFilter = v; renderList(); }
+  function setDayFilter(v) { dayFilter = v; renderList(); }
 
   (async () => {
     const token = localStorage.getItem(TOKEN_KEY);
@@ -285,6 +314,12 @@
         + '<span class="ck">' + (on?'✓':'') + '</span>' + esc(s.label) + '</span>';
     }).join('');
     const g = groupOf(c);
+    const d = spDays(c);
+    const signup = c.sp_created
+      ? '<div class="signup">🗓️ สมัคร StrikePro: <b>' + esc(c.sp_created) + '</b>' + (d != null ? ' · <span class="days">วันที่ ' + (d + 1) + ' (' + d + ' วันที่แล้ว)</span>' : '') + '</div>'
+      : '';
+    const task = amTask(c);
+    const taskBanner = task ? '<div class="amtask ' + task.cls + '">' + task.text + '</div>' : '';
     return '<div class="cust g-' + g + '">'
       + '<div class="cust-head"><div><div class="cust-name">' + esc(nm) + '</div><div class="cust-email">' + esc(c.email) + '</div></div>'
       +   '<span class="grp ' + g + '">' + GROUPS[g] + '</span></div>'
@@ -292,6 +327,8 @@
       +   (c.hq_registered ? '<span class="badge ok">✓ สมัคร Bussay แล้ว</span>' : '<span class="badge no">✕ ยังไม่สมัคร Bussay</span>')
       +   (c.strikepro_registered ? '<span class="badge ok">✓ StrikePro</span>' : '<span class="badge no">✕ ยังไม่พบใน StrikePro</span>')
       + '</div>'
+      + signup
+      + taskBanner
       + contactBlock(c)
       + lineActions(c)
       + '<div class="am"><span class="lb">Account&nbsp;Manager</span>'
@@ -329,14 +366,28 @@
       + chip('strikepro', 'Strike Pro', cnt('strikepro'), 'strikepro');
   }
 
+  function renderDayBar() {
+    const cnt = p => CUSTOMERS.filter(c => phaseOf(c) === p).length;
+    const chip = (val, label, n) => '<button class="chip ' + (dayFilter===val?'on':'') + '" onclick="setDayFilter(\'' + val + '\')">'
+      + label + '<span class="c">' + n + '</span></button>';
+    $('daybar').innerHTML = '<span class="flbl">ช่วงติดตาม (วันสมัคร SP):</span>'
+      + chip('', 'ทั้งหมด', CUSTOMERS.length)
+      + chip('day1', 'Day 1', cnt('day1'))
+      + chip('day3', 'Day 3', cnt('day3'))
+      + chip('day7', 'Day 7', cnt('day7'))
+      + chip('over', 'เกิน 7 วัน', cnt('over'));
+  }
+
   function renderList() {
     renderGrpBar();
+    renderDayBar();
     renderAmBar();
     const q = $('search').value.trim().toLowerCase();
     const amMatch = c => !amFilter ? true : (amFilter==='__none__' ? !c.account_manager : c.account_manager===amFilter);
     const grpMatch = c => !grpFilter ? true : groupOf(c) === grpFilter;
-    // stats reflect the group + AM filters (the chip counts above stay global)
-    const amSet = CUSTOMERS.filter(c => grpMatch(c) && amMatch(c));
+    const dayMatch = c => !dayFilter ? true : phaseOf(c) === dayFilter;
+    // stats reflect the group + day + AM filters (the chip counts above stay global)
+    const amSet = CUSTOMERS.filter(c => grpMatch(c) && dayMatch(c) && amMatch(c));
     const list = amSet.filter(c => !q
       || c.email.toLowerCase().includes(q)
       || (c.name||'').toLowerCase().includes(q)
