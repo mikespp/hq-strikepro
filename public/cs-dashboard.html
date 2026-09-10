@@ -86,6 +86,15 @@
     @media (max-width:760px){ .grid { grid-template-columns:1fr; } }
     .cust { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:18px; position:relative; overflow:hidden; }
     .cust::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--blue-border),transparent); }
+    /* Group card colors: Bussay = gold, Strike Pro = blue */
+    .cust.g-bussay { background:linear-gradient(162deg, rgba(212,175,55,.08), var(--card) 58%); border-color:rgba(212,175,55,.32); }
+    .cust.g-bussay::before { background:linear-gradient(90deg,transparent,rgba(212,175,55,.7),transparent); }
+    .cust.g-strikepro { background:linear-gradient(162deg, rgba(61,123,255,.08), var(--card) 58%); border-color:rgba(61,123,255,.30); }
+    .grp { font-size:11px; font-weight:800; padding:4px 11px; border-radius:50px; letter-spacing:.3px; white-space:nowrap; }
+    .grp.bussay { background:rgba(212,175,55,.15); color:#e7c45a; border:1px solid rgba(212,175,55,.42); }
+    .grp.strikepro { background:rgba(61,123,255,.15); color:var(--blue-light); border:1px solid var(--blue-border); }
+    .chip.bussay.on { background:rgba(212,175,55,.15); border-color:rgba(212,175,55,.42); color:#e7c45a; }
+    .chip.strikepro.on { background:var(--blue-dim); border-color:var(--blue-border); color:var(--blue-light); }
     .cust-head { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
     .cust-name { font-size:16px; font-weight:800; }
     .cust-email { font-size:12px; color:var(--muted); margin-top:2px; word-break:break-all; }
@@ -179,6 +188,7 @@
     <input id="search" placeholder="ค้นหาอีเมล / ชื่อ / ช่องทางติดต่อ…" oninput="renderList()" />
   </div>
   <div id="stats"></div>
+  <div class="filterbar" id="grpbar"></div>
   <div class="filterbar" id="ambar"></div>
   <div id="content"><div class="state">กำลังโหลด…</div></div>
 </div>
@@ -199,10 +209,16 @@
   function drawerSignOut(){ localStorage.removeItem(TOKEN_KEY); window.location.href='/login'; }
   function closeModal(id){ $(id).classList.remove('on'); }
 
-  let STEPS = [], CUSTOMERS = [], amFilter = '', OA_ENABLED = false;   // amFilter: '' all, '__none__' unassigned, else a manager
+  let STEPS = [], CUSTOMERS = [], amFilter = '', grpFilter = '', OA_ENABLED = false;   // amFilter: '' all, '__none__' unassigned, else a manager
   const MANAGERS = ['Phot', 'Di', 'Namkang'];
   const KPI_KEYS = ['topup_l1', 'cs_notify'];   // shown as prominent KPI cards
+  // Group is derived: a Bussay account → 'bussay'; otherwise a StrikePro-only
+  // customer → 'strikepro'. When they later sign up Bussay, hq_registered flips
+  // to true and they move to the Bussay group automatically (nothing stored).
+  const GROUPS = { bussay: 'Bussay', strikepro: 'Strike Pro' };
+  const groupOf = c => c.hq_registered ? 'bussay' : 'strikepro';
   function setAmFilter(v) { amFilter = v; renderList(); }
+  function setGrpFilter(v) { grpFilter = v; renderList(); }
 
   (async () => {
     const token = localStorage.getItem(TOKEN_KEY);
@@ -264,8 +280,10 @@
       return '<span class="step ' + (on?'done':'') + '"' + t + ' onclick="toggleStep(' + c.id + ',' + s.id + ',' + (on?0:1) + ')">'
         + '<span class="ck">' + (on?'✓':'') + '</span>' + esc(s.label) + '</span>';
     }).join('');
-    return '<div class="cust">'
-      + '<div class="cust-head"><div><div class="cust-name">' + esc(nm) + '</div><div class="cust-email">' + esc(c.email) + '</div></div></div>'
+    const g = groupOf(c);
+    return '<div class="cust g-' + g + '">'
+      + '<div class="cust-head"><div><div class="cust-name">' + esc(nm) + '</div><div class="cust-email">' + esc(c.email) + '</div></div>'
+      +   '<span class="grp ' + g + '">' + GROUPS[g] + '</span></div>'
       + '<div class="prereq">'
       +   (c.hq_registered ? '<span class="badge ok">✓ สมัคร HQ แล้ว</span>' : '<span class="badge no">✕ ยังไม่สมัคร HQ</span>')
       +   (c.strikepro_registered ? '<span class="badge ok">✓ StrikePro</span>' : '<span class="badge no">✕ ยังไม่พบใน StrikePro</span>')
@@ -297,12 +315,24 @@
       + chip('__none__', 'ยังไม่ระบุ', cnt(''));
   }
 
+  function renderGrpBar() {
+    const cnt = g => CUSTOMERS.filter(c => groupOf(c) === g).length;
+    const chip = (val, label, n, extra) => '<button class="chip ' + (extra||'') + ' ' + (grpFilter===val?'on':'') + '" onclick="setGrpFilter(\'' + val + '\')">'
+      + label + '<span class="c">' + n + '</span></button>';
+    $('grpbar').innerHTML = '<span class="flbl">กลุ่ม:</span>'
+      + chip('', 'ทั้งหมด', CUSTOMERS.length, '')
+      + chip('bussay', 'Bussay', cnt('bussay'), 'bussay')
+      + chip('strikepro', 'Strike Pro', cnt('strikepro'), 'strikepro');
+  }
+
   function renderList() {
+    renderGrpBar();
     renderAmBar();
     const q = $('search').value.trim().toLowerCase();
     const amMatch = c => !amFilter ? true : (amFilter==='__none__' ? !c.account_manager : c.account_manager===amFilter);
-    // stats reflect the AM filter (the chip counts above stay global)
-    const amSet = CUSTOMERS.filter(amMatch);
+    const grpMatch = c => !grpFilter ? true : groupOf(c) === grpFilter;
+    // stats reflect the group + AM filters (the chip counts above stay global)
+    const amSet = CUSTOMERS.filter(c => grpMatch(c) && amMatch(c));
     const list = amSet.filter(c => !q
       || c.email.toLowerCase().includes(q)
       || (c.name||'').toLowerCase().includes(q)

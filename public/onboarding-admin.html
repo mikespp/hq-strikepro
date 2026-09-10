@@ -180,14 +180,23 @@
     } catch { $('custList').innerHTML = '<div class="state">โหลดข้อมูลไม่สำเร็จ</div>'; }
   }
 
+  // Group is derived from whether they have a Bussay account (hq_registered):
+  // Bussay account → Bussay group; StrikePro-only → Strike Pro group. It flips
+  // automatically when a Strike Pro customer later signs up Bussay.
+  function grpBadge(c) {
+    return Number(c.hq_registered)
+      ? '<span style="font-size:11px;font-weight:800;padding:3px 10px;border-radius:50px;background:rgba(212,175,55,.15);color:#e7c45a;border:1px solid rgba(212,175,55,.42);white-space:nowrap">Bussay</span>'
+      : '<span style="font-size:11px;font-weight:800;padding:3px 10px;border-radius:50px;background:rgba(61,123,255,.15);color:#7aa2ff;border:1px solid rgba(61,123,255,.4);white-space:nowrap">Strike Pro</span>';
+  }
   function renderCustomers() {
     $('cCount').textContent = CUSTOMERS.length;
     if (!CUSTOMERS.length) { $('custList').innerHTML = '<div class="state">ยังไม่มีลูกค้า</div>'; return; }
     $('custList').innerHTML =
-      '<table><thead><tr><th>ลูกค้า</th><th>สถานะสมัคร</th><th>โน้ต</th><th></th></tr></thead><tbody>'
+      '<table><thead><tr><th>ลูกค้า</th><th>กลุ่ม</th><th>สถานะสมัคร</th><th>โน้ต</th><th></th></tr></thead><tbody>'
       + CUSTOMERS.map(c => {
         const nm = c.name || c.hq_name || c.email.split('@')[0];
         return '<tr><td><b>' + esc(nm) + '</b><div class="email">' + esc(c.email) + '</div></td>'
+          + '<td>' + grpBadge(c) + '</td>'
           + '<td>' + (Number(c.hq_registered)?'<span class="badge ok">HQ</span>':'<span class="badge no">HQ</span>')
           +   ' ' + (Number(c.strikepro_registered)?'<span class="badge ok">StrikePro</span>':'<span class="badge no">StrikePro</span>') + '</td>'
           + '<td style="color:var(--muted);max-width:220px">' + (esc(c.note)||'—') + '</td>'
