@@ -230,7 +230,7 @@
   let STEPS = [], CUSTOMERS = [], amFilter = '', grpFilter = '', dayFilter = '', OA_ENABLED = false, ME = null;   // amFilter: '' all, '__none__' unassigned, else a manager
   const MANAGERS = ['Phot', 'Di', 'Namkang'];
   const KPI_KEYS = ['topup_l1', 'cs_notify'];   // shown as prominent KPI cards
-  const AUTO_STEP_KEYS = ['kyc_l1', 'kyc_l2', 'deposit'];   // auto-synced from StrikePro — not manually tickable
+  const AUTO_STEP_KEYS = ['kyc_l1', 'kyc_l2', 'kyc_vip', 'deposit'];   // auto-synced from StrikePro — not manually tickable
   // Group is derived: a Bussay account → 'bussay'; otherwise a StrikePro-only
   // customer → 'strikepro'. When they later sign up Bussay, hq_registered flips
   // to true and they move to the Bussay group automatically (nothing stored).

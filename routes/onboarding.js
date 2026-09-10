@@ -119,7 +119,7 @@ router.delete('/customers/:id', requireAdmin, async (req, res) => {
 });
 // Steps auto-marked from StrikePro/B2 (via /sync) — manual toggling is blocked so
 // the CS view can't drift from the source data.
-const AUTO_STEP_KEYS = ['kyc_l1', 'kyc_l2', 'deposit'];
+const AUTO_STEP_KEYS = ['kyc_l1', 'kyc_l2', 'kyc_vip', 'deposit'];
 // Manual admin tick of a step (for the steps that AREN'T auto-synced).
 router.patch('/customers/:id/step/:stepId', requireAdmin, async (req, res) => {
   const id = parseInt(req.params.id, 10), stepId = parseInt(req.params.stepId, 10);
@@ -131,6 +131,13 @@ router.patch('/customers/:id/step/:stepId', requireAdmin, async (req, res) => {
     await db.setOnboardingProgress(id, stepId, !!req.body.done);
     res.json({ ok: true });
   } catch (e) { console.error(e); res.status(500).json({ error: 'บันทึกไม่สำเร็จ' }); }
+});
+
+// ── GET /api/onboarding/stats  (public) — aggregate counts for the Onboarding
+// dashboard (numbers only, no PII). Fetched by the STP dashboard page.
+router.get('/stats', async (req, res) => {
+  try { res.json(await db.onboardingStats()); }
+  catch (e) { console.error(e); res.status(500).json({ error: 'Failed.' }); }
 });
 
 // ── GET /api/onboarding/emails  (sync key) — VPS pulls the customer email list ──

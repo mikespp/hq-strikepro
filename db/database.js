@@ -371,6 +371,19 @@ async function init() {
       console.log('  Added onboarding step kyc_l2 (KYC StrikePro Lv.2).');
     }
   }
+  // Add "KYC StrikePro VIP" (auto-marked when verificationLevel_id >= 6 = VIP Class)
+  // right after Lv.2. One-time insert + renumber (guarded, never clobbers reorder).
+  {
+    const [ex] = await pool.execute("SELECT 1 FROM onboarding_steps WHERE step_key = 'kyc_vip' LIMIT 1");
+    if (!ex.length) {
+      await pool.execute("INSERT INTO onboarding_steps (step_key, label, sort_order) VALUES ('kyc_vip', 'KYC StrikePro VIP', 3)");
+      await pool.execute(`UPDATE onboarding_steps SET sort_order = CASE step_key
+        WHEN 'kyc_l1' THEN 1 WHEN 'kyc_l2' THEN 2 WHEN 'kyc_vip' THEN 3 WHEN 'topup_l1' THEN 4
+        WHEN 'topup_l2' THEN 5 WHEN 'deposit' THEN 6 WHEN 'cs_notify' THEN 7
+        ELSE sort_order + 7 END`);
+      console.log('  Added onboarding step kyc_vip (KYC StrikePro VIP).');
+    }
+  }
 
   // The Last Day — per-edition admin state (registration closed / event completed).
   await pool.execute(`
@@ -1917,6 +1930,18 @@ async function listOnboardingEmails() {
   const [rows] = await pool.execute('SELECT email FROM onboarding_customers');
   return rows.map(r => r.email);
 }
+// Aggregate counts for the Onboarding dashboard: total customers + how many have
+// each step done (keyed by step_key).
+async function onboardingStats() {
+  const [tot] = await pool.execute('SELECT COUNT(*) AS c FROM onboarding_customers');
+  const [rows] = await pool.execute(
+    `SELECT s.step_key AS step_key, COUNT(*) AS c
+       FROM onboarding_progress p JOIN onboarding_steps s ON s.id = p.step_id
+      WHERE p.done = 1 GROUP BY s.step_key`);
+  const byStep = {};
+  for (const r of rows) byStep[r.step_key] = Number(r.c);
+  return { total: Number(tot[0].c), byStep };
+}
 async function getOnboardingCustomerById(id) {
   const [rows] = await pool.execute('SELECT id, email, name FROM onboarding_customers WHERE id = ?', [id]);
   return rows[0] || null;
@@ -2214,5 +2239,5 @@ module.exports = {
   listOnboardingSteps, addOnboardingStep, updateOnboardingStep, deleteOnboardingStep, reorderOnboardingSteps,
   addOnboardingCustomer, updateOnboardingCustomer, deleteOnboardingCustomer, listOnboardingCustomers,
   setOnboardingProgress, setOnboardingProgressByKey, listOnboardingEmails, getOnboardingCustomerById,
-  bulkAddOnboarding, importStrikeproLeads,
+  bulkAddOnboarding, importStrikeproLeads, onboardingStats,
 };
