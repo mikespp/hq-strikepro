@@ -16,6 +16,7 @@ const reviewsRouter          = require('./routes/reviews');
 const lastAccountRouter      = require('./routes/last-account');
 const theLastDayRouter       = require('./routes/the-last-day');
 const dinnerRouter           = require('./routes/dinner');
+const tamboonRouter          = require('./routes/tamboon');
 const portfolioRouter        = require('./routes/portfolio');
 const onboardingRouter       = require('./routes/onboarding');
 const eventsRouter           = require('./routes/events');
@@ -59,6 +60,7 @@ app.use('/api/reviews',   reviewsRouter);
 app.use('/api/last-account', lastAccountRouter);
 app.use('/api/the-last-day', theLastDayRouter);
 app.use('/api/dinner',    dinnerRouter);
+app.use('/api/tamboon',   tamboonRouter);
 app.use('/api/portfolio', portfolioRouter);
 app.use('/api/onboarding', onboardingRouter);
 app.use('/api/events',    eventsRouter);
@@ -127,6 +129,16 @@ app.get('/events/dinner', (req, res) => {
 // /dinner-admin → serve กินข้าวบ้านจารย์ round manager
 app.get('/dinner-admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'dinner-admin.html'));
+});
+
+// /events/tamboon → serve ทำบุญ Bussay info + registration page
+app.get('/events/tamboon', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'events', 'tamboon.html'));
+});
+
+// /tamboon-admin → serve ทำบุญ Bussay registrations manager
+app.get('/tamboon-admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'tamboon-admin.html'));
 });
 
 // /portfolio → serve fund portfolio performance page

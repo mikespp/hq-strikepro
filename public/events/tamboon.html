@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#d4af37" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ทำบุญ Bussay — StrikePro</title>
+  <meta name="description" content="ทำบุญ Bussay — ร่วมทำบุญเสริมสิริมงคล พบปะครอบครัว StrikePro อาจารย์บัส และทีมโค้ช" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold:        #d4af37;
+      --gold-light:  #f5d96b;
+      --gold-pale:   #ffe99a;
+      --gold-dim:    rgba(212,175,55,.12);
+      --gold-border: rgba(212,175,55,.22);
+      --bg:          #060606;
+      --bg2:         #0d0d0d;
+      --card:        #0f0f0f;
+      --card2:       #131313;
+      --border:      rgba(255,255,255,.06);
+      --text:        #f0f0f0;
+      --muted:       #7a7a7a;
+      --radius:      18px;
+      --radius-sm:   12px;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'IBM Plex Sans Thai', 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── Canvas particles ─── */
+    #particles { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+    /* ─── Ambient glows ─── */
+    .glow-top {
+      position: fixed; top: -200px; left: 50%; transform: translateX(-50%);
+      width: 1000px; height: 700px; pointer-events: none; z-index: 0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(212,175,55,.09) 0%, transparent 65%);
+    }
+    .glow-mid {
+      position: absolute; left: 50%; transform: translateX(-50%);
+      width: 800px; height: 500px; pointer-events: none;
+      background: radial-gradient(ellipse at 50% 50%, rgba(212,175,55,.06) 0%, transparent 70%);
+    }
+
+    /* ─── Nav ─── */
+    nav {
+      position: sticky; top: 0; z-index: 200;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px;
+      background: rgba(6,6,6,.80); backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-back {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 14px; font-weight: 600; color: var(--muted);
+      text-decoration: none; transition: color .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .nav-back:hover { color: var(--text); }
+    .nav-back svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* ─── Page wrapper ─── */
+    .page { position: relative; z-index: 1; }
+
+    /* ─── HERO ─── */
+    .hero {
+      min-height: 92vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center; padding: 80px 24px 64px;
+      position: relative; overflow: hidden;
+    }
+
+    /* Cinematic light streak */
+    .hero::before {
+      content: '';
+      position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+      width: 2px; height: 55%;
+      background: linear-gradient(to bottom, transparent, rgba(212,175,55,.5), transparent);
+      filter: blur(1px);
+    }
+    .hero::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0; right: 0; height: 200px;
+      background: linear-gradient(to bottom, transparent, var(--bg));
+      pointer-events: none;
+    }
+
+    /* Horizontal light streaks */
+    .streak {
+      position: absolute; height: 1px; pointer-events: none;
+      background: linear-gradient(90deg, transparent, rgba(212,175,55,.25), transparent);
+    }
+    .streak-1 { width: 60%; top: 30%; left: 20%; }
+    .streak-2 { width: 40%; top: 60%; left: 30%; opacity: .5; }
+
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 10px;
+      font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
+      color: var(--gold); border: 1px solid var(--gold-border); background: var(--gold-dim);
+      padding: 7px 18px; border-radius: 50px; margin-bottom: 40px;
+      position: relative; z-index: 1;
+    }
+    .hero-eyebrow .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--gold); box-shadow: 0 0 10px var(--gold);
+      animation: blink 2.2s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:.3;} }
+
+    .hero-label {
+      font-size: clamp(13px, 2.5vw, 16px); font-weight: 500; letter-spacing: 4px;
+      text-transform: uppercase; color: rgba(212,175,55,.6);
+      margin-bottom: 16px; position: relative; z-index: 1;
+    }
+
+    .hero-title {
+      font-size: clamp(36px, 9vw, 80px); font-weight: 900;
+      letter-spacing: -1px; line-height: 1.28; padding-top: .12em;
+      background: linear-gradient(160deg, #ffffff 20%, var(--gold-pale) 55%, var(--gold) 85%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 24px; position: relative; z-index: 1;
+    }
+
+    .hero-sub {
+      font-size: clamp(17px, 3.5vw, 24px); font-weight: 300;
+      color: rgba(240,240,240,.75); letter-spacing: .5px;
+      margin-bottom: 36px; position: relative; z-index: 1;
+    }
+
+    .hero-duration {
+      display: inline-flex; align-items: center; gap: 12px;
+      background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1);
+      border-radius: 50px; padding: 10px 24px;
+      font-size: 15px; font-weight: 700; color: var(--text);
+      letter-spacing: .5px; position: relative; z-index: 1;
+    }
+    .hero-duration .dur-icon { font-size: 18px; }
+    .hero-duration .dur-gold { color: var(--gold); }
+
+    /* ─── Content wrapper ─── */
+    .content { max-width: 780px; margin: 0 auto; padding: 0 20px 160px; }
+
+    /* ─── Gold divider ─── */
+    .divider {
+      display: flex; align-items: center; gap: 16px;
+      margin: 56px 0 48px;
+    }
+    .divider-line { flex: 1; height: 1px; background: var(--gold-border); }
+    .divider-diamond {
+      width: 8px; height: 8px; background: var(--gold);
+      transform: rotate(45deg); flex-shrink: 0;
+      box-shadow: 0 0 12px rgba(212,175,55,.5);
+    }
+
+    /* ─── Section label ─── */
+    .s-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 3px;
+      text-transform: uppercase; color: var(--gold);
+      margin-bottom: 16px; display: flex; align-items: center; gap: 10px;
+    }
+    .s-label::after { content: ''; flex: 1; height: 1px; background: var(--gold-border); }
+
+    /* ─── Description block ─── */
+    .desc-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 36px 28px;
+      position: relative; overflow: hidden; margin-bottom: 14px;
+    }
+    .desc-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(212,175,55,.35), transparent);
+    }
+    .desc-card p {
+      font-size: 16px; line-height: 1.9; color: rgba(240,240,240,.82);
+      font-weight: 400;
+    }
+    .desc-card p + p { margin-top: 18px; }
+    .desc-card .highlight {
+      font-size: 17px; font-weight: 600; color: var(--text);
+      border-left: 3px solid var(--gold); padding-left: 16px;
+      margin-top: 20px; line-height: 1.7;
+    }
+
+    /* ─── Experience grid ─── */
+    .exp-grid { display: flex; flex-direction: column; gap: 12px; }
+
+    .exp-item {
+      display: flex; align-items: flex-start; gap: 16px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 20px 20px;
+      transition: border-color .2s, transform .2s;
+      position: relative; overflow: hidden;
+    }
+    .exp-item::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+      width: 3px; background: linear-gradient(to bottom, var(--gold), rgba(212,175,55,.3));
+      border-radius: 3px 0 0 3px;
+    }
+    .exp-item:hover { border-color: var(--gold-border); transform: translateX(4px); }
+
+    .exp-num {
+      width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+      background: var(--gold-dim); border: 1px solid var(--gold-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 800; color: var(--gold);
+    }
+    .exp-text { font-size: 15px; font-weight: 500; color: var(--text); line-height: 1.5; padding-top: 6px; }
+
+    /* ─── Pricing ─── */
+    .price-main {
+      background: linear-gradient(135deg, #0f0f0f 0%, #111 100%);
+      border: 1px solid var(--gold-border); border-radius: var(--radius);
+      padding: 36px 28px; text-align: center;
+      position: relative; overflow: hidden; margin-bottom: 16px;
+    }
+    .price-main::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+    .price-main::after {
+      content: ''; position: absolute; top: -60px; left: 50%; transform: translateX(-50%);
+      width: 400px; height: 200px;
+      background: radial-gradient(ellipse, rgba(212,175,55,.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .price-tag {
+      display: inline-block;
+      font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--gold); background: var(--gold-dim); border: 1px solid var(--gold-border);
+      padding: 4px 14px; border-radius: 50px; margin-bottom: 18px;
+    }
+    .price-amount {
+      font-size: clamp(42px, 10vw, 64px); font-weight: 900; letter-spacing: -2px;
+      background: linear-gradient(135deg, var(--gold-pale), var(--gold));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; line-height: 1;
+    }
+    .price-unit { font-size: 18px; font-weight: 600; color: rgba(212,175,55,.7); margin-top: 6px; }
+
+    /* ─── Tier cards ─── */
+    .tier-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 520px) { .tier-grid { grid-template-columns: 1fr; } }
+
+    .tier-card {
+      background: var(--card2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 28px 22px;
+      position: relative; overflow: hidden;
+      transition: border-color .2s, transform .2s;
+    }
+    .tier-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(212,175,55,.3), transparent);
+    }
+    .tier-card:hover { border-color: var(--gold-border); transform: translateY(-3px); }
+
+    .tier-card.featured {
+      border-color: rgba(212,175,55,.35);
+      background: linear-gradient(160deg, #141408 0%, #111 100%);
+    }
+    .tier-card.featured::before {
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+
+    .tier-amount {
+      font-size: 13px; font-weight: 800; color: var(--gold); margin-bottom: 10px;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .tier-amount .tier-tag {
+      font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+      color: #0a0a0a; background: var(--gold); padding: 2px 8px; border-radius: 4px;
+    }
+    .tier-name {
+      font-size: 16px; font-weight: 800; color: var(--text); margin-bottom: 6px;
+    }
+    .tier-free {
+      font-size: 22px; font-weight: 900; letter-spacing: -.5px;
+      background: linear-gradient(135deg, #fff, var(--gold-pale));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; margin-bottom: 14px;
+    }
+    .tier-perks { display: flex; flex-direction: column; gap: 8px; }
+    .tier-perk {
+      display: flex; align-items: flex-start; gap: 8px;
+      font-size: 13px; color: rgba(240,240,240,.75); line-height: 1.5;
+    }
+    .tier-perk-icon { color: var(--gold); flex-shrink: 0; margin-top: 1px; font-size: 12px; }
+
+    /* ─── CTA ─── */
+    .cta-section {
+      text-align: center; margin-top: 64px;
+      background: var(--card); border: 1px solid var(--gold-border);
+      border-radius: 24px; padding: 56px 28px 48px;
+      position: relative; overflow: hidden;
+    }
+    .cta-section::before {
+      content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+      width: 60%; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+    .cta-section::after {
+      content: ''; position: absolute; top: -80px; left: 50%; transform: translateX(-50%);
+      width: 600px; height: 400px;
+      background: radial-gradient(ellipse, rgba(212,175,55,.07) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .cta-icon { font-size: 48px; margin-bottom: 20px; display: block; filter: drop-shadow(0 0 16px rgba(212,175,55,.5)); }
+    .cta-title { font-size: clamp(22px, 5vw, 34px); font-weight: 900; letter-spacing: -.5px; margin-bottom: 10px; }
+    .cta-sub { font-size: 15px; color: var(--muted); margin-bottom: 36px; line-height: 1.6; }
+
+    .cta-btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%);
+      background-size: 200% 200%;
+      color: #080808; text-decoration: none;
+      font-size: 16px; font-weight: 900; letter-spacing: .3px;
+      padding: 18px 44px; border-radius: 50px;
+      box-shadow: 0 8px 32px rgba(212,175,55,.4), 0 2px 8px rgba(212,175,55,.2);
+      transition: background-position .4s, transform .15s, box-shadow .2s;
+      -webkit-tap-highlight-color: transparent;
+      position: relative; z-index: 1;
+      width: 100%; max-width: 420px;
+    }
+    .cta-btn:hover {
+      background-position: 100% 100%;
+      box-shadow: 0 14px 48px rgba(212,175,55,.55), 0 4px 16px rgba(212,175,55,.3);
+      transform: translateY(-3px);
+    }
+    .cta-btn:active { transform: scale(.97); }
+    .cta-btn svg { width: 20px; height: 20px; fill: #080808; flex-shrink: 0; }
+
+    .line-btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      background: #22c55e; color: #fff; text-decoration: none;
+      font-size: 15px; font-weight: 700; padding: 15px 40px; border-radius: 50px;
+      width: 100%; max-width: 420px; margin-top: 14px;
+      box-shadow: 0 4px 20px rgba(34,197,94,.3);
+      transition: background .15s, transform .1s; -webkit-tap-highlight-color: transparent;
+      position: relative; z-index: 1;
+    }
+    .line-btn:hover { background: #16a34a; }
+    .line-btn:active { transform: scale(.97); }
+    .line-btn svg { width: 20px; height: 20px; fill: #fff; flex-shrink: 0; }
+
+    /* ─── Footer ─── */
+    .page-footer {
+      text-align: center; padding: 28px 20px 32px;
+      font-size: 12px; color: rgba(122,122,122,.5); letter-spacing: .5px;
+    }
+    .page-footer span { color: var(--gold); opacity: .7; }
+
+    /* ─── Scroll fade-up ─── */
+    .fade { opacity: 0; transform: translateY(28px); transition: opacity .65s ease, transform .65s ease; }
+    .fade.in { opacity: 1; transform: translateY(0); }
+    .fade-d1 { transition-delay: .08s; }
+    .fade-d2 { transition-delay: .16s; }
+    .fade-d3 { transition-delay: .24s; }
+  
+    /* ── Hamburger ── */
+    .hamburger {
+      background: none; border: none; cursor: pointer; color: var(--text, #f0f0f0);
+      padding: 8px; display: flex; flex-direction: column; gap: 5px;
+      align-items: center; justify-content: center;
+      border-radius: 8px; transition: background .15s; flex-shrink: 0;
+    }
+    .hamburger:hover { background: rgba(255,255,255,.08); }
+    .hamburger span { display: block; width: 22px; height: 2px; background: currentColor; border-radius: 2px; }
+    /* ── Drawer overlay ── */
+    .drawer-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,.6); opacity: 0; pointer-events: none; transition: opacity .25s;
+    }
+    .drawer-overlay.open { opacity: 1; pointer-events: all; }
+    /* ── Drawer ── */
+    .drawer {
+      position: fixed; top: 0; left: 0; bottom: 0; z-index: 201; width: 275px;
+      background: #1a1a1a; border-right: 1px solid #2e2e2e;
+      display: flex; flex-direction: column;
+      transform: translateX(-100%); transition: transform .28s cubic-bezier(.4,0,.2,1);
+    }
+    .drawer.open { transform: translateX(0); }
+    .drawer-header { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid #2e2e2e; }
+    .drawer-logo-name { font-size: 16px; font-weight: 800; color: #f1f1f1; letter-spacing: -.3px; }
+    .drawer-logo-name span { color: #E63946; }
+    .drawer-nav { flex: 1; padding: 10px 0; overflow-y: auto; display: block !important; position: static !important; background: transparent !important; border: none !important; backdrop-filter: none !important; }
+    .drawer-link {
+      display: flex; align-items: center; gap: 12px; padding: 13px 20px;
+      font-size: 15px; font-weight: 600; color: #777; text-decoration: none;
+      transition: color .15s, background .15s; border-left: 3px solid transparent;
+    }
+    .drawer-link:hover { color: #f1f1f1; background: #222; }
+    .drawer-link-icon { font-size: 18px; }
+    .drawer-footer { padding: 16px 18px; border-top: 1px solid #2e2e2e; }
+    .drawer-signout {
+      width: 100%; background: none; border: 1px solid #2e2e2e; color: #777;
+      border-radius: 8px; padding: 10px; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: border-color .15s, color .15s;
+      font-family: inherit;
+    }
+    .drawer-signout:hover { border-color: #E63946; color: #E63946; }
+    .drawer-section-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #555; padding: 14px 20px 6px; }
+    .drawer-divider { border: none; border-top: 1px solid #2e2e2e; margin: 6px 0; }
+    .drawer-link-line { background: #22c55e; color: #fff; border-radius: 8px; margin: 6px 12px; padding: 11px 14px; justify-content: center; font-size: 14px; border-left: none; }
+    .drawer-link-line:hover { background: #16a34a; color: #fff; }
+    .drawer-link-line svg { width: 18px; height: 18px; fill: #fff; flex-shrink: 0; }
+    /* ── Accordion ── */
+    .drawer-accordion { border-left: 3px solid transparent; }
+    .drawer-accordion-btn {
+      display: flex; align-items: center; gap: 12px; width: 100%;
+      padding: 13px 20px; font-size: 15px; font-weight: 600;
+      color: #777; background: none; border: none; cursor: pointer;
+      transition: color .15s, background .15s; text-align: left; font-family: inherit;
+    }
+    .drawer-accordion-btn:hover { color: #f1f1f1; background: #222; }
+    .drawer-accordion-btn .acc-arrow { margin-left: auto; font-size: 12px; transition: transform .22s; }
+    .drawer-accordion.open .acc-arrow { transform: rotate(180deg); }
+    .drawer-accordion-body { display: none; }
+    .drawer-accordion.open .drawer-accordion-body { display: block; }
+    .drawer-sub-link {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 20px 10px 52px; font-size: 14px; font-weight: 500;
+      color: #777; text-decoration: none;
+      transition: color .15s, background .15s; border-left: 3px solid transparent;
+    }
+    .drawer-sub-link:hover { color: #f1f1f1; background: #222; }
+    .drawer-sub-icon { font-size: 15px; }
+  
+    /* ── Share button ── */
+    .nav-share { background: none; border: none; cursor: pointer; color: var(--text-muted);
+      padding: 8px; margin-left: auto; margin-right: -8px; display: flex; align-items: center;
+      justify-content: center; border-radius: 8px; transition: color .15s, background .15s; flex-shrink: 0; }
+    .nav-share:hover { color: var(--text); background: rgba(255,255,255,.08); }
+    .nav-share svg { width: 19px; height: 19px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+      .nav-back img{width:34px;height:34px;object-fit:contain;display:block;}
+    .hero-meta { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-bottom:14px; position:relative; z-index:1; }
+    .hero-pill { display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); border-radius:50px; padding:8px 18px; font-size:14px; font-weight:700; color:var(--text); letter-spacing:.3px; }
+    .hero-pill .p-gold { color:var(--gold); }
+  
+    .line-fab{position:fixed;right:18px;bottom:18px;z-index:900;width:56px;height:56px;border-radius:50%;background:#06C755;box-shadow:0 6px 20px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;text-decoration:none;transition:transform .15s,box-shadow .15s;}
+    .line-fab:hover{transform:scale(1.06);box-shadow:0 8px 26px rgba(6,199,85,.5);}
+    .line-fab:active{transform:scale(.95);}
+    .line-fab svg{width:30px;height:30px;fill:#fff;}
+    @media(max-width:600px){.line-fab{right:14px;bottom:14px;width:52px;height:52px;}.line-fab svg{width:28px;height:28px;}}
+  </style>
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="glow-top"></div>
+
+<!-- Nav -->
+<nav>
+  <button class="hamburger" id="navHamburgerBtn" onclick="toggleDrawer()" aria-label="Menu" style="display:none">
+    <span></span><span></span><span></span>
+  </button>
+  <a class="nav-back" href="/" id="navBackBtn"><img src="/logo.png.png" alt="Bussay Community" /></a>
+
+  <button class="nav-share" onclick="sharePage()" aria-label="แชร์">
+    <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+  </button>
+</nav>
+
+<!-- ── Drawer overlay ── -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+
+<!-- ── Drawer ── -->
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <img src="/logo.png.png" alt="Bussay" style="width:34px;height:34px;object-fit:contain;" />
+    <span class="drawer-logo-name">BUSSAY <span>COMMUNITY</span></span>
+  </div>
+  <nav class="drawer-nav">
+    <a class="drawer-link" href="/reviews-admin">
+      <span class="drawer-link-icon">⭐</span> Reviews
+    </a>
+    <a class="drawer-link" href="/last-account-admin">
+      <span class="drawer-link-icon">🏠</span> ผู้สมัคร Last Account
+    </a>
+    <a class="drawer-link" href="/the-last-day-admin">
+      <span class="drawer-link-icon">🌅</span> ผู้ลงทะเบียน The Last Day
+    </a>
+    <a class="drawer-link" href="/tamboon-admin"><span class="drawer-link-icon">🍽️</span> รอบ ทำบุญ Bussay</a>
+    <a class="drawer-link" href="/users-admin">
+      <span class="drawer-link-icon">👤</span> จัดการผู้ใช้
+    </a>
+    <hr class="drawer-divider" />
+    <div class="drawer-section-label">ข้อมูลเพิ่มเติม</div>
+    <div class="drawer-accordion" id="acc-events">
+      <button class="drawer-accordion-btn" onclick="toggleAcc('acc-events')">
+        <span class="drawer-link-icon">🎟️</span> Upcoming Events
+        <span class="acc-arrow">▾</span>
+      </button>
+      <div class="drawer-accordion-body">
+        <a class="drawer-sub-link" href="/events/unlock-your-wealth">
+          <span class="drawer-sub-icon">👑</span> Unlock Your Wealth
+        </a>
+        <a class="drawer-sub-link" href="/events/sbc">
+          <span class="drawer-sub-icon">🔥</span> SBC
+        </a>
+        <a class="drawer-sub-link" href="/events/last-account">
+          <span class="drawer-sub-icon">🏠</span> บ้านหลังสุดท้าย
+        </a>
+        <a class="drawer-sub-link" href="/events/the-last-day">
+          <span class="drawer-sub-icon">🌅</span> The Last Day
+        </a>
+        <a class="drawer-sub-link" href="/events/tamboon" style="color:#d4af37;">
+          <span class="drawer-sub-icon">🍽️</span> ทำบุญ Bussay
+        </a>
+      </div>
+    </div>
+    <div class="drawer-accordion" id="acc-community">
+      <button class="drawer-accordion-btn" onclick="toggleAcc('acc-community')">
+        <span class="drawer-link-icon">🌐</span> Community
+        <span class="acc-arrow">▾</span>
+      </button>
+      <div class="drawer-accordion-body">
+        <a class="drawer-sub-link" href="/ecosystem/stp-coin.html">
+          <span class="drawer-sub-icon">🪙</span> STP Coin
+        </a>
+        <a class="drawer-sub-link" href="/ecosystem/free-education.html">
+          <span class="drawer-sub-icon">📚</span> Free Education
+        </a>
+        <a class="drawer-sub-link" href="/ecosystem/trade-challenge.html">
+          <span class="drawer-sub-icon">⚔️</span> Valhalla Dungeon
+        </a>
+        <a class="drawer-sub-link" href="/ecosystem/charity-project.html">
+          <span class="drawer-sub-icon">❤️</span> Charity Project
+        </a>
+        <a class="drawer-sub-link" href="/ecosystem/world-champions.html">
+          <span class="drawer-sub-icon">👑</span> World Champions 100
+        </a>
+      </div>
+    </div>
+    <a class="drawer-link drawer-link-line" href="https://lin.ee/8WkoRmL" target="_blank">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.07 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+      สอบถาม / ติดต่อ Admin
+    </a>
+  </nav>
+  <div class="drawer-footer">
+    <div class="drawer-user" id="drawerUser" style="font-size:12px;color:#777;margin-bottom:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+    <button class="drawer-signout" onclick="drawerSignOut()">ออกจากระบบ</button>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="streak streak-1"></div>
+    <div class="streak streak-2"></div>
+
+    <div class="hero-eyebrow"><span class="dot"></span> StrikePro Community</div>
+    <p class="hero-label">ร่วมทำบุญ</p>
+    <h1 class="hero-title">ทำบุญ Bussay</h1>
+    <p class="hero-sub">ร่วมทำบุญเสริมสิริมงคล พบปะครอบครัว StrikePro อาจารย์บัส และทีมโค้ช</p>
+    <div class="hero-meta" id="tamboonMeta" style="display:none;"></div>
+    <div class="hero-duration">
+      <span class="dur-icon">🙏</span>
+      <span>ร่วมทำบุญ <span class="dur-gold">เสริมสิริมงคลด้วยกัน</span></span>
+    </div>
+  </section>
+
+  <div class="content">
+
+    <!-- Description -->
+    <div class="fade">
+      <p class="s-label">เกี่ยวกับกิจกรรม</p>
+      <div class="desc-card">
+        <p>“ทำบุญ Bussay” คือกิจกรรมทำบุญร่วมกันของครอบครัว StrikePro เพื่อเสริมสิริมงคลแก่ชีวิตและการเทรด พร้อมพบปะเพื่อน ๆ อาจารย์บัส และทีมโค้ชในบรรยากาศอบอุ่น</p>
+        <p class="highlight">มาร่วมเป็นส่วนหนึ่งของการทำบุญ พบปะพูดคุย และรับพลังบวกดี ๆ กลับไปด้วยกัน</p>
+      </div>
+    </div>
+
+    <div class="divider"><div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-line"></div></div>
+
+    <!-- Experience -->
+    <div class="fade fade-d1">
+      <p class="s-label">ไฮไลต์ภายในงาน</p>
+      <div class="exp-grid">
+        <div class="exp-item">
+          <div class="exp-num">01</div>
+          <p class="exp-text">ร่วมทำบุญเสริมสิริมงคลกับครอบครัว StrikePro</p>
+        </div>
+        <div class="exp-item">
+          <div class="exp-num">02</div>
+          <p class="exp-text">พบปะพูดคุย แลกเปลี่ยน connection กับคนในวงการ</p>
+        </div>
+        <div class="exp-item">
+          <div class="exp-num">03</div>
+          <p class="exp-text">พบอาจารย์บัสและทีมโค้ชอย่างใกล้ชิด</p>
+        </div>
+        <div class="exp-item">
+          <div class="exp-num">04</div>
+          <p class="exp-text">รับบรรยากาศอบอุ่นเป็นกันเอง อิ่มบุญอิ่มใจไปด้วยกัน 🙏</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"><div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-line"></div></div>
+
+    <!-- What to bring -->
+    <div class="fade fade-d2">
+      <p class="s-label">การเตรียมตัว</p>
+      <div class="desc-card">
+        <p>🙏 <b style="color:var(--text)">มาด้วยใจ</b> — แต่งกายสุภาพเรียบร้อย พร้อมมาร่วมทำบุญและพบปะกัน</p>
+        <p class="highlight">มาในบรรยากาศครอบครัว สบาย ๆ เป็นกันเอง — แค่มาเจอกัน ทำบุญร่วมกัน และคุยกันให้อิ่มใจ</p>
+      </div>
+    </div>
+
+    <div class="divider"><div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-line"></div></div>
+
+    <!-- CTA -->
+    <div class="cta-section fade fade-d3">
+      <span class="cta-icon">🙏</span>
+      <h2 class="cta-title">มาร่วมทำบุญกับเรา</h2>
+      <p class="cta-sub">ลงทะเบียนเข้าร่วมด้วยคลิกเดียว หรือสอบถามผ่าน LINE</p>
+      <div id="tamboonJoinStatus" style="font-size:14px;color:var(--gold);margin-bottom:14px;min-height:20px;font-weight:600;position:relative;z-index:1;"></div>
+      <button class="cta-btn" id="tamboonJoinBtn" type="button" onclick="tamboonJoin()">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm-1 15-4-4 1.41-1.41L11 14.17l5.59-5.59L18 10z"/></svg>
+        <span id="tamboonJoinText">ลงทะเบียนเข้าร่วม</span>
+      </button>
+      
+    </div>
+
+    <p class="page-footer" style="margin-top:28px;">© 2026 <span>StrikePro</span> · ทำบุญ Bussay</p>
+
+  </div>
+</div>
+
+<script>
+  /* ── Particle canvas ── */
+  const canvas = document.getElementById('particles');
+  const ctx    = canvas.getContext('2d');
+  let W, H, pts = [];
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function randBetween(a, b) { return a + Math.random() * (b - a); }
+
+  for (let i = 0; i < 55; i++) {
+    pts.push({
+      x: Math.random() * 1600 - 400,
+      y: Math.random() * 2400,
+      r: randBetween(.4, 1.4),
+      vy: randBetween(.1, .35),
+      o: randBetween(.1, .45)
+    });
+  }
+
+  function drawParticles() {
+    ctx.clearRect(0, 0, W, H);
+    pts.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y % H, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(212,175,55,${p.o})`;
+      ctx.fill();
+      p.y += p.vy;
+      if (p.y > H + 10) p.y = -10;
+    });
+    requestAnimationFrame(drawParticles);
+  }
+  drawParticles();
+
+  /* ── Scroll fade-in ── */
+  const fades = document.querySelectorAll('.fade');
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+    });
+  }, { threshold: 0.06 });
+  fades.forEach(el => io.observe(el));
+</script>
+<script>
+  // ── Drawer ──
+  function toggleDrawer() {
+    document.getElementById('drawer').classList.toggle('open');
+    document.getElementById('drawerOverlay').classList.toggle('open');
+  }
+  function closeDrawer() {
+    document.getElementById('drawer').classList.remove('open');
+    document.getElementById('drawerOverlay').classList.remove('open');
+  }
+  function toggleAcc(id) {
+    document.getElementById(id).classList.toggle('open');
+  }
+  function drawerSignOut() {
+    localStorage.removeItem('sp_token');
+    window.location.href = '/login';
+  }
+  // Show hamburger for internal users, back button for public
+  (function() {
+    const token = localStorage.getItem('sp_token');
+    if (!token) return;
+    fetch('/api/auth/me', { headers: { Authorization: 'Bearer ' + token } })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        const user = data && data.user; if (!user || user.role !== 'admin') return;
+        const back = document.getElementById('navBackBtn');
+        const ham  = document.getElementById('navHamburgerBtn');
+        if (ham)  ham.style.display  = 'flex';
+        const el = document.getElementById('drawerUser');
+        if (el && user.email) el.textContent = user.email;
+      })
+      .catch(() => {});
+  })();
+</script>
+<script>
+  /* ── Share ── */
+  async function sharePage() {
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: document.title, url: location.href });
+      } else {
+        await navigator.clipboard.writeText(location.href);
+        const t = document.createElement('div');
+        t.textContent = 'คัดลอกลิงก์แล้ว ✓';
+        t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#222;border:1px solid rgba(255,255,255,.12);color:#f0f0f0;padding:9px 18px;border-radius:10px;font-size:13px;font-weight:600;z-index:9999;pointer-events:none;';
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 2000);
+      }
+    } catch {}
+  }
+  </script>
+<script>
+  /* ── One-click RSVP ── */
+  const TAMBOON_SELF = '/events/tamboon';
+  let tamboonRegistered = false;
+  async function loadTamboonJoin() {
+    const btn = document.getElementById('tamboonJoinBtn');
+    const txt = document.getElementById('tamboonJoinText');
+    const st  = document.getElementById('tamboonJoinStatus');
+    if (!btn) return;
+    try {
+      const s = await (await fetch('/api/tamboon/status')).json();
+      if (!s || !s.round) { btn.disabled = true; txt.textContent = 'ยังไม่เปิดรับลงทะเบียน'; return; }
+      if (s.ended)        { btn.disabled = true; txt.textContent = 'กิจกรรมนี้จบแล้ว'; return; }
+      const token = localStorage.getItem('sp_token');
+      if (token) {
+        try { const me = await (await fetch('/api/tamboon/me', { headers:{ Authorization:'Bearer '+token } })).json(); tamboonRegistered = !!(me && me.registered); } catch {}
+      }
+      if (tamboonRegistered) {
+        btn.disabled = true; txt.textContent = '✓ คุณลงทะเบียนแล้ว'; btn.style.background = '#22c55e';
+        st.style.color = '#4ade80'; st.textContent = '🎉 คุณลงทะเบียนเข้าร่วมแล้ว';
+        return;
+      }
+      btn.disabled = false; txt.textContent = 'ลงทะเบียนเข้าร่วม';
+      if (s.count) st.textContent = s.count + ' คนลงทะเบียนแล้ว';
+    } catch {}
+  }
+  async function tamboonJoin() {
+    const token = localStorage.getItem('sp_token');
+    if (!token) { window.location.href = '/login?next=' + encodeURIComponent(TAMBOON_SELF); return; }
+    const btn = document.getElementById('tamboonJoinBtn');
+    const txt = document.getElementById('tamboonJoinText');
+    const st  = document.getElementById('tamboonJoinStatus');
+    const prev = txt.textContent;
+    btn.disabled = true; txt.textContent = 'กำลังลงทะเบียน…'; st.textContent = '';
+    try {
+      const r = await fetch('/api/tamboon/join', { method:'POST', headers:{ Authorization:'Bearer '+token } });
+      if (r.status === 401) { localStorage.removeItem('sp_token'); window.location.href = '/login?next=' + encodeURIComponent(TAMBOON_SELF); return; }
+      const d = await r.json().catch(()=>({}));
+      if (r.status === 400 && d.code === 'profile') {
+        st.style.color = '#f5d96b'; st.textContent = 'กรุณากรอกข้อมูลส่วนตัวให้ครบก่อน กำลังพาไป…';
+        setTimeout(()=>{ window.location.href = '/update-profile?reason=register&next=' + encodeURIComponent(TAMBOON_SELF); }, 1200);
+        return;
+      }
+      if (r.status === 409 && d.code === 'joined') {
+        tamboonRegistered = true; txt.textContent = '✓ คุณลงทะเบียนแล้ว'; btn.style.background = '#22c55e';
+        st.style.color = '#4ade80'; st.textContent = '🎉 คุณลงทะเบียนไว้แล้ว';
+        return;
+      }
+      if (!r.ok) throw new Error(d.error || 'ลงทะเบียนไม่สำเร็จ');
+      txt.textContent = '✓ ลงทะเบียนสำเร็จแล้ว'; btn.style.background = '#22c55e';
+      st.style.color = '#4ade80'; st.textContent = '🎉 ลงทะเบียนเข้าร่วมสำเร็จ — แล้วเจอกัน!';
+    } catch (e) { st.style.color = '#ff6b76'; st.textContent = e.message; btn.disabled = false; txt.textContent = prev; }
+  }
+  loadTamboonJoin();
+
+  // Show the current round's date/time/venue (NEVER the round number). No round → RSVP via LINE.
+  (function () {
+    var el = document.getElementById('tamboonMeta'); if (!el) return;
+    var TZ = 'Asia/Bangkok';
+    fetch('/api/tamboon/status').then(function (r){ return r.ok ? r.json() : null; }).then(function (s){
+      if (!s || !s.eventStart) return;
+      var d = new Date(s.eventStart), e = new Date(s.eventEnd);
+      var date = d.toLocaleDateString('th-TH-u-ca-gregory', { day:'numeric', month:'short', year:'numeric', timeZone:TZ });
+      var t = function (x){ return x.toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit', hour12:false, timeZone:TZ }); };
+      el.innerHTML = '<span class="hero-pill">🗓️ <span class="p-gold">' + date + '</span></span>'
+        + '<span class="hero-pill">⏰ ' + t(d) + '–' + t(e) + '</span>'
+        + '<span class="hero-pill">📍 ' + (s.venue || '') + '</span>';
+      el.style.display = 'flex';
+    }).catch(function(){});
+  })();
+</script>
+  <a class="line-fab" href="https://lin.ee/8WkoRmL" target="_blank" rel="noopener" aria-label="สอบถาม / ติดต่อ Admin" title="สอบถาม / ติดต่อ Admin"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.070 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg></a>
+</body>
+</html>

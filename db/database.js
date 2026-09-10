@@ -195,6 +195,53 @@ async function init() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
+  // ทำบุญ Bussay — same round/RSVP model as กินข้าวบ้านจารย์ (dinner).
+  await pool.execute(`
+    CREATE TABLE IF NOT EXISTS tamboon_editions (
+      round        SMALLINT     NOT NULL PRIMARY KEY,
+      opens_at     VARCHAR(40)  NOT NULL,
+      event_start  VARCHAR(40)  NOT NULL,
+      event_end    VARCHAR(40)  NOT NULL,
+      venue        VARCHAR(255) NOT NULL DEFAULT '',
+      created_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+  await pool.execute(`
+    CREATE TABLE IF NOT EXISTS tamboon_registrations (
+      id           INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      round        SMALLINT     NOT NULL DEFAULT 1,
+      user_id      INT UNSIGNED NULL,
+      first_name   VARCHAR(120) NOT NULL DEFAULT '',
+      last_name    VARCHAR(120) NOT NULL DEFAULT '',
+      nickname     VARCHAR(120) NOT NULL DEFAULT '',
+      phone        VARCHAR(50)  NOT NULL DEFAULT '',
+      email        VARCHAR(255) NOT NULL DEFAULT '',
+      line_id      VARCHAR(120) NOT NULL DEFAULT '',
+      confirmed    TINYINT(1)   NOT NULL DEFAULT 0,
+      confirmed_at DATETIME     NULL,
+      created_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE KEY uniq_tamboon_round_email (round, email)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+  // Seed the first ทำบุญ round if none exists: Sat 12 Sep 2026, 10:00–13:00, ออฟฟิศ Strike Pro.
+  {
+    const [tb] = await pool.execute('SELECT COUNT(*) AS c FROM tamboon_editions');
+    if (Number(tb[0].c) === 0) {
+      await pool.execute(
+        'INSERT INTO tamboon_editions (round, opens_at, event_start, event_end, venue) VALUES (1, ?, ?, ?, ?)',
+        [new Date().toISOString(), '2026-09-12T10:00:00+07:00', '2026-09-12T13:00:00+07:00', 'ออฟฟิศ Strike Pro']
+      );
+      try {
+        const title = 'ทำบุญ Bussay';
+        const [ex] = await pool.execute('SELECT id FROM events WHERE title = ? LIMIT 1', [title]);
+        if (!ex.length) await pool.execute(
+          'INSERT INTO events (title, start_date, end_date, color, href, live) VALUES (?, ?, ?, ?, ?, 0)',
+          [title, '2026-09-12', '2026-09-12', '#f5d97a', '/events/tamboon']);
+      } catch (_) {}
+      console.log('  Seeded ทำบุญ Bussay round 1 (2026-09-12).');
+    }
+  }
+
   // Fund portfolios — MT5 accounts + their daily equity snapshots (for Myfxbook-
   // style time-weighted returns). Fed by the VPS fetcher that loops each login.
   await pool.execute(`
@@ -1461,6 +1508,82 @@ async function upsertDinnerCalendarEvent(dateYMD) {
   return r.insertId;
 }
 
+// ── ทำบุญ Bussay — same model as dinner (rounds + RSVP + check-in) ─────────────
+async function getActiveTamboonEdition() {
+  const [rows] = await pool.execute('SELECT * FROM tamboon_editions ORDER BY round DESC LIMIT 1');
+  return rows[0] || null;
+}
+async function getTamboonEditionRow(round) {
+  const [rows] = await pool.execute('SELECT * FROM tamboon_editions WHERE round = ? LIMIT 1', [round]);
+  return rows[0] || null;
+}
+async function createNextTamboonEdition(d) {
+  const [m] = await pool.execute('SELECT COALESCE(MAX(round), 0) AS mx FROM tamboon_editions');
+  const next = Number(m[0].mx) + 1;
+  await pool.execute(
+    'INSERT INTO tamboon_editions (round, opens_at, event_start, event_end, venue) VALUES (?, ?, ?, ?, ?)',
+    [next, d.opens_at, d.event_start, d.event_end, String(d.venue || '').slice(0, 255)]
+  );
+  return getTamboonEditionRow(next);
+}
+async function updateTamboonEdition(round, d) {
+  await pool.execute(
+    'UPDATE tamboon_editions SET event_start = ?, event_end = ?, venue = ? WHERE round = ?',
+    [d.event_start, d.event_end, String(d.venue || '').slice(0, 255), round]
+  );
+  return getTamboonEditionRow(round);
+}
+async function countTamboonRegistrations(round) {
+  const [r] = await pool.execute('SELECT COUNT(*) AS c FROM tamboon_registrations WHERE round = ?', [round]);
+  return Number(r[0].c);
+}
+async function hasTamboonRegistration(email, round) {
+  const [r] = await pool.execute(
+    'SELECT 1 FROM tamboon_registrations WHERE email = ? AND round = ? LIMIT 1',
+    [String(email || '').toLowerCase().trim(), round]);
+  return r.length > 0;
+}
+async function createTamboonRegistration(data, round) {
+  const [r] = await pool.execute(
+    `INSERT INTO tamboon_registrations (round, user_id, first_name, last_name, nickname, phone, email, line_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    [round, data.user_id || null, data.first_name, data.last_name, data.nickname, data.phone, data.email, data.line_id]);
+  return { id: r.insertId };
+}
+async function listTamboonRegistrations(round) {
+  const where = round == null ? '' : 'WHERE r.round = ?';
+  const args  = round == null ? [] : [round];
+  const [rows] = await pool.execute(
+    `SELECT r.id, r.round, r.first_name, r.last_name, r.nickname, r.phone, r.email, r.line_id,
+            r.confirmed, r.confirmed_at, r.created_at, COALESCE(u.verified, 0) AS verified
+     FROM tamboon_registrations r
+     LEFT JOIN users u ON LOWER(TRIM(u.email)) = LOWER(TRIM(r.email))
+     ${where} ORDER BY r.created_at ASC`, args);
+  return rows;
+}
+async function setTamboonFlag(id, value) {
+  const v = value ? 1 : 0;
+  await pool.execute(
+    `UPDATE tamboon_registrations SET confirmed = ?, confirmed_at = ${v ? 'NOW()' : 'NULL'} WHERE id = ?`, [v, id]);
+}
+async function getTamboonEmailById(id) {
+  const [rows] = await pool.execute('SELECT email FROM tamboon_registrations WHERE id = ? LIMIT 1', [id]);
+  return rows[0] ? rows[0].email : null;
+}
+async function upsertTamboonCalendarEvent(dateYMD) {
+  const title = 'ทำบุญ Bussay', href = '/events/tamboon', color = '#f5d97a';
+  const [rows] = await pool.execute('SELECT id FROM events WHERE title = ? LIMIT 1', [title]);
+  if (rows.length) {
+    await pool.execute('UPDATE events SET start_date = ?, end_date = ?, color = ?, href = ? WHERE id = ?',
+      [dateYMD, dateYMD, color, href, rows[0].id]);
+    return rows[0].id;
+  }
+  const [r] = await pool.execute(
+    'INSERT INTO events (title, start_date, end_date, color, href, live) VALUES (?, ?, ?, ?, ?, 0)',
+    [title, dateYMD, dateYMD, color, href]);
+  return r.insertId;
+}
+
 // The active edition = the highest edition number (the newest one opened).
 async function getActiveTheLastDayEdition() {
   const [rows] = await pool.execute(
@@ -2029,6 +2152,9 @@ module.exports = {
   updateDinnerEdition, upsertDinnerCalendarEvent,
   countDinnerRegistrations, hasDinnerRegistration, createDinnerRegistration,
   listDinnerRegistrations, setDinnerFlag, getDinnerEmailById, emailInDinner,
+  getActiveTamboonEdition, getTamboonEditionRow, createNextTamboonEdition, updateTamboonEdition,
+  countTamboonRegistrations, hasTamboonRegistration, createTamboonRegistration,
+  listTamboonRegistrations, setTamboonFlag, getTamboonEmailById, upsertTamboonCalendarEvent,
   upsertPortfolioAccount, upsertPortfolioDaily, listPortfolioAccounts, getPortfolioDaily,
   upsertMaster, listMasters,
   saveMasterAccount, listMasterAccountsAdmin, listMasterAccountsForFetch, deleteMasterAccount, setMasterActive,
