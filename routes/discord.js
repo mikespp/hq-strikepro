@@ -52,6 +52,27 @@ background:#0d0d0d;color:#f1f1f1;font-family:'IBM Plex Sans Thai',system-ui,sans
 <div class="b">BUSSAY · COMMUNITY</div></div></div></body></html>`;
 }
 
+// Build a Discord nickname from a Bussay profile via a configurable template.
+// DISCORD_NICK_TEMPLATE placeholders: {nickname} {first} {last} {fullname} {email}
+// (default '{nickname}' = ชื่อเล่น). Empty placeholders and leftover "()" wrappers
+// are trimmed; returns '' when there's nothing usable to set.
+function renderNickname(u) {
+  if (!u) return '';
+  const first = String(u.first_name || '').trim();
+  const last  = String(u.last_name  || '').trim();
+  const map = {
+    nickname: String(u.nickname || '').trim(),
+    first, last,
+    fullname: [first, last].filter(Boolean).join(' '),
+    email: String(u.email || '').split('@')[0],
+  };
+  const tpl = process.env.DISCORD_NICK_TEMPLATE || '{nickname}';
+  let s = tpl.replace(/\{(\w+)\}/g, (_, k) => (map[k] != null ? map[k] : ''));
+  s = s.replace(/\(\s*\)/g, '').replace(/\s+/g, ' ').trim();     // drop empty "()" wrappers
+  if (!s) s = map.nickname || map.fullname || map.email || '';   // fallback if template blank
+  return s.slice(0, 32);
+}
+
 router.get('/verify', async (req, res) => {
   const token = String(req.query.token || '');
   let payload;
@@ -62,6 +83,14 @@ router.get('/verify', async (req, res) => {
   try {
     await db.upsertDiscordVerification(payload.discordId, payload.email, payload.username, payload.guildId);
     await bot.grantRole(payload.guildId, payload.discordId, ROLE_ID);
+    // Rename the member to their Bussay profile name (best-effort; needs Manage
+    // Nicknames + the bot ranked above them). Skipped if they have no Bussay
+    // profile yet — those are asked to sign up Bussay first.
+    try {
+      const u = await db.findUserByEmail(payload.email);
+      const nick = renderNickname(u);
+      if (nick) await bot.setMemberNickname(payload.guildId, payload.discordId, nick);
+    } catch (e) { console.error('discord nickname set failed:', e.message); }
     // Back-fill event roles the user already earned (joined before verifying Discord).
     await backfillEventRoles(payload.guildId, payload.discordId, payload.email);
     return res.send(page('ยืนยันสำเร็จ ✅', 'คุณได้รับยศใน Discord เรียบร้อยแล้ว — กลับไปที่ Discord ได้เลย', '#22c55e'));
