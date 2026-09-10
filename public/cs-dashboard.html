@@ -182,7 +182,7 @@
 
 <div class="wrap" id="wrap" style="display:none">
   <h1>CS Dashboard — Onboarding ลูกค้าใหม่</h1>
-  <p class="lead">ติดตามความคืบหน้าของลูกค้าทีละขั้นตอน · ระบบตรวจให้อัตโนมัติว่าลูกค้าสมัคร <b>StrikePro</b> และ <b>HQ</b> แล้วหรือยัง · ขั้นตอนจะถูกติ๊กอัตโนมัติเมื่อเชื่อม API (หรือกดเองได้) · เพิ่มลูกค้า/ตั้งค่าขั้นตอนที่ <a href="/onboarding-admin" style="color:var(--blue-light)">จัดการ Onboarding</a></p>
+  <p class="lead">ติดตามความคืบหน้าของลูกค้าทีละขั้นตอน · ระบบตรวจให้อัตโนมัติว่าลูกค้าสมัคร <b>StrikePro</b> และ <b>Bussay</b> แล้วหรือยัง · ขั้นตอนจะถูกติ๊กอัตโนมัติเมื่อเชื่อม API (หรือกดเองได้) · เพิ่มลูกค้า/ตั้งค่าขั้นตอนที่ <a href="/onboarding-admin" style="color:var(--blue-light)">จัดการ Onboarding</a></p>
 
   <div class="toolbar">
     <input id="search" placeholder="ค้นหาอีเมล / ชื่อ / ช่องทางติดต่อ…" oninput="renderList()" />
@@ -251,7 +251,7 @@
       if (c.hq_phone) p.push('📱 <a href="tel:'+esc(c.hq_phone)+'">'+esc(c.hq_phone)+'</a>');
       if (c.hq_line)  p.push('Line: <a href="https://line.me/ti/p/~' + encodeURIComponent(String(c.hq_line).replace(/^@/,'')) + '" target="_blank" rel="noopener">' + esc(c.hq_line) + '</a>');
       if (c.hq_nickname) p.push('ชื่อเล่น ' + esc(c.hq_nickname));
-      if (p.length) bits.push('<div><span class="lbl">โปรไฟล์ HQ:</span> ' + p.join(' · ') + '</div>');
+      if (p.length) bits.push('<div><span class="lbl">โปรไฟล์ Bussay:</span> ' + p.join(' · ') + '</div>');
     }
     return bits.length ? '<div class="contact">' + bits.join('') + '</div>' : '';
   }
@@ -285,7 +285,7 @@
       + '<div class="cust-head"><div><div class="cust-name">' + esc(nm) + '</div><div class="cust-email">' + esc(c.email) + '</div></div>'
       +   '<span class="grp ' + g + '">' + GROUPS[g] + '</span></div>'
       + '<div class="prereq">'
-      +   (c.hq_registered ? '<span class="badge ok">✓ สมัคร HQ แล้ว</span>' : '<span class="badge no">✕ ยังไม่สมัคร HQ</span>')
+      +   (c.hq_registered ? '<span class="badge ok">✓ สมัคร Bussay แล้ว</span>' : '<span class="badge no">✕ ยังไม่สมัคร Bussay</span>')
       +   (c.strikepro_registered ? '<span class="badge ok">✓ StrikePro</span>' : '<span class="badge no">✕ ยังไม่พบใน StrikePro</span>')
       + '</div>'
       + contactBlock(c)

@@ -109,12 +109,12 @@
 
 <div class="wrap" id="wrap" style="display:none">
   <h1>จัดการ Onboarding ลูกค้าใหม่</h1>
-  <p class="lead">เพิ่มลูกค้าด้วย <b>อีเมล</b> ที่ใช้สมัคร (ชื่อ/เบอร์/Line จะดึงจากโปรไฟล์ HQ มาแสดงเองในหน้า CS) · ตั้งค่าขั้นตอน onboarding · ติดตามความคืบหน้าได้ที่ <a href="/cs" style="color:var(--blue-light)">CS Dashboard</a></p>
+  <p class="lead">เพิ่มลูกค้าด้วย <b>อีเมล</b> ที่ใช้สมัคร (ชื่อ/เบอร์/Line จะดึงจากโปรไฟล์ Bussay มาแสดงเองในหน้า CS) · ตั้งค่าขั้นตอน onboarding · ติดตามความคืบหน้าได้ที่ <a href="/cs" style="color:var(--blue-light)">CS Dashboard</a></p>
 
   <div class="panel">
     <h2>เพิ่มลูกค้าใหม่</h2>
     <div class="addrow">
-      <div class="field"><label>อีเมลที่ลูกค้าใช้สมัคร StrikePro / HQ</label><input id="cEmail" type="email" placeholder="customer@email.com" autocomplete="off" /></div>
+      <div class="field"><label>อีเมลที่ลูกค้าใช้สมัคร StrikePro / Bussay</label><input id="cEmail" type="email" placeholder="customer@email.com" autocomplete="off" /></div>
       <div class="field"><label>โน้ต (ถ้ามี)</label><textarea id="cNote" rows="2" placeholder="บันทึกเพิ่มเติม เช่น ช่องทางที่ทักมา"></textarea></div>
     </div>
     <div class="err" id="cErr"></div>
@@ -197,7 +197,7 @@
         const nm = c.name || c.hq_name || c.email.split('@')[0];
         return '<tr><td><b>' + esc(nm) + '</b><div class="email">' + esc(c.email) + '</div></td>'
           + '<td>' + grpBadge(c) + '</td>'
-          + '<td>' + (Number(c.hq_registered)?'<span class="badge ok">HQ</span>':'<span class="badge no">HQ</span>')
+          + '<td>' + (Number(c.hq_registered)?'<span class="badge ok">Bussay</span>':'<span class="badge no">Bussay</span>')
           +   ' ' + (Number(c.strikepro_registered)?'<span class="badge ok">StrikePro</span>':'<span class="badge no">StrikePro</span>') + '</td>'
           + '<td style="color:var(--muted);max-width:220px">' + (esc(c.note)||'—') + '</td>'
           + '<td><div class="acts"><button class="btn-mini" onclick="editNote(' + c.id + ')">โน้ต</button>'
@@ -219,7 +219,7 @@
       await load();
       const c = CUSTOMERS.find(x => x.email === email);
       if (c && (!c.hq_registered || !c.strikepro_registered))
-        toast('เพิ่มแล้ว — ⚠️ ' + (!c.hq_registered?'ยังไม่พบบัญชี HQ ':'') + (!c.strikepro_registered?'ยังไม่พบใน StrikePro':''));
+        toast('เพิ่มแล้ว — ⚠️ ' + (!c.hq_registered?'ยังไม่พบบัญชี Bussay ':'') + (!c.strikepro_registered?'ยังไม่พบใน StrikePro':''));
       else toast('เพิ่มลูกค้าแล้ว');
     } catch { $('cErr').textContent='บันทึกไม่สำเร็จ'; }
     finally { $('cSave').disabled = false; }
