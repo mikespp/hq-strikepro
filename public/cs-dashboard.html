@@ -98,6 +98,7 @@
     .cust-head { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
     .cust-name { font-size:16px; font-weight:800; }
     .cust-email { font-size:12px; color:var(--muted); margin-top:2px; word-break:break-all; }
+    .cust-spid { font-size:11px; color:var(--blue-light); font-weight:700; margin-top:3px; }
     .cust-actions { display:flex; gap:6px; flex-shrink:0; }
     .mini { background:var(--card2); color:var(--text); border:1px solid var(--border); padding:6px 10px; font-size:12px; border-radius:8px; }
     .mini.danger { background:rgba(248,113,113,.14); color:var(--red); border-color:rgba(248,113,113,.3); }
@@ -277,6 +278,8 @@
       const r = await fetch('/api/onboarding/customers', { headers: auth() });
       const d = r.ok ? await r.json() : { customers:[], steps:[] };
       STEPS = d.steps || []; CUSTOMERS = d.customers || []; OA_ENABLED = !!d.oaEnabled;
+      // Sort by StrikePro Client ID, high → low (customers without one go last).
+      CUSTOMERS.sort(function(a,b){ return (Number(b.sp_client_id)||0) - (Number(a.sp_client_id)||0); });
       renderList();
     } catch { $('content').innerHTML = '<div class="state">โหลดข้อมูลไม่สำเร็จ</div>'; }
   }
@@ -336,7 +339,8 @@
     const task = amTask(c);
     const taskBanner = task ? '<div class="amtask ' + task.cls + '">' + task.text + '</div>' : '';
     return '<div class="cust g-' + g + '">'
-      + '<div class="cust-head"><div><div class="cust-name">' + esc(nm) + '</div><div class="cust-email">' + esc(c.email) + '</div></div>'
+      + '<div class="cust-head"><div><div class="cust-name">' + esc(nm) + '</div><div class="cust-email">' + esc(c.email) + '</div>'
+      +   (c.sp_client_id ? '<div class="cust-spid">SP Client ID: ' + esc(c.sp_client_id) + '</div>' : '') + '</div>'
       +   '<span class="grp ' + g + '">' + GROUPS[g] + '</span></div>'
       + '<div class="prereq">'
       +   (c.hq_registered ? '<span class="badge ok">✓ สมัคร Bussay แล้ว</span>' : '<span class="badge no">✕ ยังไม่สมัคร Bussay</span>')

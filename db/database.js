@@ -589,6 +589,8 @@ async function init() {
     // StrikePro customer name (b2_clients.name) — shown for StrikePro-only leads
     // that have no Bussay profile, instead of the email prefix.
     `ALTER TABLE onboarding_customers ADD COLUMN sp_name VARCHAR(255) NOT NULL DEFAULT ''`,
+    // StrikePro client_id (b2_clients.client_id) — used to sort the CS dashboard.
+    `ALTER TABLE onboarding_customers ADD COLUMN sp_client_id BIGINT NULL`,
     // LINE Login — the LINE OAuth userId linked to this account (for 1-click login)
     `ALTER TABLE users ADD COLUMN line_user_id VARCHAR(64) NOT NULL DEFAULT ''`,
     // Bussay membership badge number (e.g. "000".."300"). Empty = no badge assigned.
@@ -722,12 +724,14 @@ async function importStrikeproLeads(leads) {
     const name  = String((l && l.name) || '').trim().slice(0, 255);
     const created = /^\d{4}-\d{2}-\d{2}$/.test(String((l && l.created) || '').trim())
       ? String(l.created).trim() : null;      // StrikePro signup date (YYYY-MM-DD)
+    const clientId = /^\d+$/.test(String((l && l.client_id) || '').trim()) ? String(l.client_id).trim() : null;
     const [r] = await pool.execute(
-      `INSERT INTO onboarding_customers (email, added_by, sp_phone, sp_created, sp_name) VALUES (?, 'strikepro', ?, ?, ?)
-       ON DUPLICATE KEY UPDATE sp_phone   = IF(VALUES(sp_phone) <> '', VALUES(sp_phone), sp_phone),
-                               sp_created = COALESCE(VALUES(sp_created), sp_created),
-                               sp_name    = IF(VALUES(sp_name) <> '', VALUES(sp_name), sp_name)`,
-      [e, phone, created, name]);
+      `INSERT INTO onboarding_customers (email, added_by, sp_phone, sp_created, sp_name, sp_client_id) VALUES (?, 'strikepro', ?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE sp_phone     = IF(VALUES(sp_phone) <> '', VALUES(sp_phone), sp_phone),
+                               sp_created    = COALESCE(VALUES(sp_created), sp_created),
+                               sp_name       = IF(VALUES(sp_name) <> '', VALUES(sp_name), sp_name),
+                               sp_client_id  = COALESCE(VALUES(sp_client_id), sp_client_id)`,
+      [e, phone, created, name, clientId]);
     if (r.affectedRows === 1) added++;
     else if (r.affectedRows === 2) updated++;   // 2 = existing row updated
   }
@@ -1902,7 +1906,7 @@ async function deleteOnboardingCustomer(id) {
 // Customers + live registration status (HQ profile join + StrikePro allowlist) + progress map.
 async function listOnboardingCustomers() {
   const [rows] = await pool.execute(
-    `SELECT c.id, c.email, c.name, c.contact, c.note, c.added_by, c.account_manager, c.sp_phone, c.sp_name,
+    `SELECT c.id, c.email, c.name, c.contact, c.note, c.added_by, c.account_manager, c.sp_phone, c.sp_name, c.sp_client_id,
             DATE_FORMAT(c.sp_created, '%Y-%m-%d') AS sp_created,
             DATEDIFF(CURDATE(), c.sp_created) AS sp_days,
             DATE_FORMAT(c.created_at, '%Y-%m-%d %H:%i') AS created_at,
