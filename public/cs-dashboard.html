@@ -135,6 +135,10 @@
     .step { font-size:12px; font-weight:700; padding:7px 12px; border-radius:9px; cursor:pointer; border:1px solid var(--border); background:var(--card2); color:var(--muted); display:inline-flex; align-items:center; gap:6px; transition:.15s; }
     .step:hover { border-color:var(--blue-border); }
     .step.done { background:rgba(74,222,128,.14); color:var(--green); border-color:rgba(74,222,128,.32); }
+    .step.auto { cursor:default; }
+    .step.auto:hover { border-color:var(--border); }
+    .step.auto.done:hover { border-color:rgba(74,222,128,.32); }
+    .step.auto .ck { border-style:dashed; }
     .step .ck { width:15px; height:15px; border-radius:4px; border:1.5px solid currentColor; display:inline-flex; align-items:center; justify-content:center; font-size:10px; }
     .note { font-size:12px; color:var(--muted); margin-top:11px; padding-top:11px; border-top:1px solid var(--border); white-space:pre-wrap; }
     .note-txt { color:var(--text); }
@@ -226,6 +230,7 @@
   let STEPS = [], CUSTOMERS = [], amFilter = '', grpFilter = '', dayFilter = '', OA_ENABLED = false, ME = null;   // amFilter: '' all, '__none__' unassigned, else a manager
   const MANAGERS = ['Phot', 'Di', 'Namkang'];
   const KPI_KEYS = ['topup_l1', 'cs_notify'];   // shown as prominent KPI cards
+  const AUTO_STEP_KEYS = ['kyc_l1', 'kyc_l2', 'deposit'];   // auto-synced from StrikePro — not manually tickable
   // Group is derived: a Bussay account → 'bussay'; otherwise a StrikePro-only
   // customer → 'strikepro'. When they later sign up Bussay, hq_registered flips
   // to true and they move to the Bussay group automatically (nothing stored).
@@ -312,6 +317,13 @@
     const nm = c.name || c.hq_name || c.email.split('@')[0];
     const steps = STEPS.map(s => {
       const on = c.progress[s.id] && c.progress[s.id].done;
+      const auto = AUTO_STEP_KEYS.includes(s.step_key);
+      if (auto) {
+        // Auto-synced from StrikePro — locked (no manual tick). ✓ when done, 🔒 otherwise.
+        const at = on && c.progress[s.id].done_at ? ' (เสร็จ ' + esc(c.progress[s.id].done_at) + ')' : '';
+        return '<span class="step auto ' + (on?'done':'') + '" title="ติ๊กอัตโนมัติจาก StrikePro — แก้เองไม่ได้' + at + '">'
+          + '<span class="ck">' + (on?'✓':'🔒') + '</span>' + esc(s.label) + '</span>';
+      }
       const t = on && c.progress[s.id].done_at ? ' title="เสร็จ ' + esc(c.progress[s.id].done_at) + '"' : '';
       return '<span class="step ' + (on?'done':'') + '"' + t + ' onclick="toggleStep(' + c.id + ',' + s.id + ',' + (on?0:1) + ')">'
         + '<span class="ck">' + (on?'✓':'') + '</span>' + esc(s.label) + '</span>';

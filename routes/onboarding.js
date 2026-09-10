@@ -117,12 +117,20 @@ router.delete('/customers/:id', requireAdmin, async (req, res) => {
   try { await db.deleteOnboardingCustomer(id); res.json({ ok: true }); }
   catch (e) { console.error(e); res.status(500).json({ error: 'ลบไม่สำเร็จ' }); }
 });
-// Manual admin override of a step (before the API feed is wired up).
+// Steps auto-marked from StrikePro/B2 (via /sync) — manual toggling is blocked so
+// the CS view can't drift from the source data.
+const AUTO_STEP_KEYS = ['kyc_l1', 'kyc_l2', 'deposit'];
+// Manual admin tick of a step (for the steps that AREN'T auto-synced).
 router.patch('/customers/:id/step/:stepId', requireAdmin, async (req, res) => {
   const id = parseInt(req.params.id, 10), stepId = parseInt(req.params.stepId, 10);
   if (!id || !stepId) return res.status(400).json({ error: 'invalid' });
-  try { await db.setOnboardingProgress(id, stepId, !!req.body.done); res.json({ ok: true }); }
-  catch (e) { console.error(e); res.status(500).json({ error: 'บันทึกไม่สำเร็จ' }); }
+  try {
+    const step = (await db.listOnboardingSteps()).find(s => Number(s.id) === stepId);
+    if (step && AUTO_STEP_KEYS.includes(step.step_key))
+      return res.status(403).json({ error: 'ขั้นตอนนี้ติ๊กอัตโนมัติจากระบบ StrikePro — แก้ด้วยมือไม่ได้' });
+    await db.setOnboardingProgress(id, stepId, !!req.body.done);
+    res.json({ ok: true });
+  } catch (e) { console.error(e); res.status(500).json({ error: 'บันทึกไม่สำเร็จ' }); }
 });
 
 // ── GET /api/onboarding/emails  (sync key) — VPS pulls the customer email list ──
