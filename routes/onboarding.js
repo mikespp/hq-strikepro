@@ -130,6 +130,18 @@ router.get('/emails', requireSyncKey, async (req, res) => {
 // ── POST /api/onboarding/sync  (sync key) — the future automatic data feed ──────
 // Body: { updates: [{ email, step_key, done }] }  — done defaults to true.
 // Only updates customers already added by admin; unknown email/step_key is skipped.
+// POST /api/onboarding/import  (sync key) — the VPS pushes StrikePro-only leads.
+// Body: { emails: ["a@x.com", ...] }. Creates onboarding rows (added_by='strikepro'),
+// INSERT IGNORE so existing customers (incl. Bussay signups) are untouched. New rows
+// have no Bussay account yet → they show in the Strike Pro group until they sign up.
+router.post('/import', requireSyncKey, async (req, res) => {
+  const emails = Array.isArray(req.body.emails) ? req.body.emails : [];
+  try {
+    const added = await db.bulkAddOnboarding(emails, 'strikepro');
+    res.json({ ok: true, received: emails.length, added });
+  } catch (e) { console.error(e); res.status(500).json({ error: 'Import failed.' }); }
+});
+
 router.post('/sync', requireSyncKey, async (req, res) => {
   const updates = Array.isArray(req.body.updates) ? req.body.updates : [];
   try {

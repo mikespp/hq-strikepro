@@ -622,6 +622,23 @@ async function autoAddOnboarding(email) {
   try { await pool.execute("INSERT IGNORE INTO onboarding_customers (email, added_by) VALUES (?, 'auto')", [e]); }
   catch (err) { console.error('auto onboarding add failed:', err.message); }
 }
+// Bulk add onboarding customers (e.g. StrikePro-only leads pushed hourly from the
+// VPS). INSERT IGNORE dedupes by email, so re-sending the same recent signups is a
+// harmless no-op and never disturbs existing rows. Returns how many were newly added.
+async function bulkAddOnboarding(emails, addedBy = 'strikepro') {
+  const clean = [...new Set((emails || [])
+    .map(e => String(e || '').toLowerCase().trim())
+    .filter(e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)))];
+  let added = 0; const CH = 500;
+  for (let i = 0; i < clean.length; i += CH) {
+    const chunk = clean.slice(i, i + CH);
+    const ph = chunk.map(() => '(?,?)').join(',');
+    const vals = []; chunk.forEach(e => vals.push(e, addedBy));
+    const [r] = await pool.query(`INSERT IGNORE INTO onboarding_customers (email, added_by) VALUES ${ph}`, vals);
+    added += r.affectedRows;
+  }
+  return added;
+}
 
 async function createMember(d) {
   const e = (d.email || '').toLowerCase().trim();
@@ -2018,4 +2035,5 @@ module.exports = {
   listOnboardingSteps, addOnboardingStep, updateOnboardingStep, deleteOnboardingStep, reorderOnboardingSteps,
   addOnboardingCustomer, updateOnboardingCustomer, deleteOnboardingCustomer, listOnboardingCustomers,
   setOnboardingProgress, setOnboardingProgressByKey, listOnboardingEmails, getOnboardingCustomerById,
+  bulkAddOnboarding,
 };
