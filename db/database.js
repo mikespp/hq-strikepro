@@ -353,6 +353,20 @@ async function init() {
   await pool.execute(
     "UPDATE onboarding_steps SET label = 'AM โทรแจ้งสิทธิ์' WHERE step_key = 'cs_notify' AND label = 'CS โทรแจ้งสิทธิ์'"
   );
+  // Add "KYC StrikePro Lv.2" (auto-marked from B2 verificationLevel_id >= 5) right
+  // after Lv.1. One-time: only when it doesn't exist yet, so a later manual reorder
+  // by the owner is never clobbered.
+  {
+    const [ex] = await pool.execute("SELECT 1 FROM onboarding_steps WHERE step_key = 'kyc_l2' LIMIT 1");
+    if (!ex.length) {
+      await pool.execute("INSERT INTO onboarding_steps (step_key, label, sort_order) VALUES ('kyc_l2', 'KYC StrikePro Lv.2', 2)");
+      await pool.execute(`UPDATE onboarding_steps SET sort_order = CASE step_key
+        WHEN 'kyc_l1' THEN 1 WHEN 'kyc_l2' THEN 2 WHEN 'topup_l1' THEN 3
+        WHEN 'topup_l2' THEN 4 WHEN 'deposit' THEN 5 WHEN 'cs_notify' THEN 6
+        ELSE sort_order + 6 END`);
+      console.log('  Added onboarding step kyc_l2 (KYC StrikePro Lv.2).');
+    }
+  }
 
   // The Last Day — per-edition admin state (registration closed / event completed).
   await pool.execute(`
