@@ -259,6 +259,7 @@
   // Registration-status filter (Bussay vs StrikePro sign-up):
   const regMatch = c => {
     if (!regFilter) return true;
+    if (regFilter === 'both')         return !!c.hq_registered && !!c.strikepro_registered;   // สมัครครบทั้งสอง
     if (regFilter === 'bussay_no_sp') return !!c.hq_registered && !c.strikepro_registered;   // สมัคร Bussay แต่ยังไม่สมัคร StrikePro
     if (regFilter === 'no_sp')        return !c.strikepro_registered;                          // ยังไม่พบใน StrikePro
     if (regFilter === 'no_hq')        return !c.hq_registered;                                 // ยังไม่สมัคร Bussay
@@ -414,6 +415,7 @@
       + label + '<span class="c">' + n + '</span></button>'; };
     $('regbar').innerHTML = '<span class="flbl">สถานะสมัคร:</span>'
       + chip('', 'ทั้งหมด', CUSTOMERS.length)
+      + chip('both', 'สมัครครบ ✓✓', cnt('both'))
       + chip('bussay_no_sp', 'Bussay ✓ · StrikePro ✗', cnt('bussay_no_sp'))
       + chip('no_sp', 'ยังไม่สมัคร StrikePro', cnt('no_sp'))
       + chip('no_hq', 'ยังไม่สมัคร Bussay', cnt('no_hq'));

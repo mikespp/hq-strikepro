@@ -1944,7 +1944,19 @@ async function onboardingStats() {
       WHERE p.done = 1 GROUP BY s.step_key`);
   const byStep = {};
   for (const r of rows) byStep[r.step_key] = Number(r.c);
-  return { total: Number(tot[0].c), byStep };
+  // Registration breakdown: how many are in Bussay (users) and/or StrikePro (eligible_emails).
+  const [reg] = await pool.execute(
+    `SELECT SUM(hqreg=1 AND spreg=1) AS both,
+            SUM(hqreg=1 AND spreg=0) AS bussay_only,
+            SUM(hqreg=0 AND spreg=1) AS sp_only,
+            SUM(hqreg=0 AND spreg=0) AS neither
+       FROM (SELECT (u.id IS NOT NULL) AS hqreg,
+                    (SHA2(LOWER(TRIM(c.email)),256) IN (SELECT email_hash FROM eligible_emails)) AS spreg
+               FROM onboarding_customers c LEFT JOIN users u ON LOWER(u.email) = LOWER(c.email)) t`);
+  const g = reg[0] || {};
+  const regObj = { both: Number(g.both||0), bussay_only: Number(g.bussay_only||0),
+                   sp_only: Number(g.sp_only||0), neither: Number(g.neither||0) };
+  return { total: Number(tot[0].c), byStep, reg: regObj };
 }
 async function getOnboardingCustomerById(id) {
   const [rows] = await pool.execute('SELECT id, email, name FROM onboarding_customers WHERE id = ?', [id]);
