@@ -2,6 +2,7 @@ const express = require('express');
 const crypto  = require('crypto');
 const db      = require('../db/database');
 const { requireAdmin, requireSuperAdmin } = require('./auth');
+const { canAssignManager } = require('../lib/head-cs');
 
 const router = express.Router();
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -103,6 +104,10 @@ router.post('/customers', requireAdmin, async (req, res) => {
 router.patch('/customers/:id', requireAdmin, async (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (!id) return res.status(400).json({ error: 'invalid' });
+  // Assigning / changing the Account Manager is restricted to the Head CS (and
+  // super-admins). Other admins may still edit name/contact/note.
+  if (req.body.account_manager != null && !canAssignManager(req.user && req.user.email))
+    return res.status(403).json({ error: 'เฉพาะ Head CS เท่านั้นที่กำหนด Account Manager ได้' });
   try { const ok = await db.updateOnboardingCustomer(id, req.body); res.json({ ok }); }
   catch (e) { console.error(e); res.status(500).json({ error: 'บันทึกไม่สำเร็จ' }); }
 });

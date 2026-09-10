@@ -210,7 +210,7 @@
   function drawerSignOut(){ localStorage.removeItem(TOKEN_KEY); window.location.href='/login'; }
   function closeModal(id){ $(id).classList.remove('on'); }
 
-  let STEPS = [], CUSTOMERS = [], amFilter = '', grpFilter = '', OA_ENABLED = false;   // amFilter: '' all, '__none__' unassigned, else a manager
+  let STEPS = [], CUSTOMERS = [], amFilter = '', grpFilter = '', OA_ENABLED = false, ME = null;   // amFilter: '' all, '__none__' unassigned, else a manager
   const MANAGERS = ['Phot', 'Di', 'Namkang'];
   const KPI_KEYS = ['topup_l1', 'cs_notify'];   // shown as prominent KPI cards
   // Group is derived: a Bussay account → 'bussay'; otherwise a StrikePro-only
@@ -227,7 +227,7 @@
     try {
       const r = await fetch('/api/auth/me', { headers: auth() });
       if (!r.ok) { window.location.href = '/login'; return; }
-      const { user } = await r.json();
+      const { user } = await r.json(); ME = user;
       $('navUser').textContent = user.email;
       if (user.role !== 'admin') { $('gate').style.display='block'; $('gate').textContent='🔒 หน้านี้สำหรับผู้ดูแลระบบ (admin) เท่านั้น'; return; }
       $('wrap').style.display = 'block';
@@ -295,7 +295,7 @@
       + contactBlock(c)
       + lineActions(c)
       + '<div class="am"><span class="lb">Account&nbsp;Manager</span>'
-      +   '<select class="' + (c.account_manager?'set':'') + '" onchange="assignManager(' + c.id + ', this.value)">'
+      +   '<select class="' + (c.account_manager?'set':'') + '"' + (ME && ME.can_assign_am ? '' : ' disabled title="เฉพาะ Head CS กำหนด Account Manager ได้"') + ' onchange="assignManager(' + c.id + ', this.value)">'
       +     '<option value="">— ยังไม่ระบุ —</option>'
       +     MANAGERS.map(m => '<option value="' + esc(m) + '"' + (c.account_manager===m?' selected':'') + '>' + esc(m) + '</option>').join('')
       +   '</select></div>'
