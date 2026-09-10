@@ -343,11 +343,15 @@ async function init() {
   await pool.execute(
     `INSERT IGNORE INTO onboarding_steps (step_key, label, sort_order) VALUES
        ('kyc_l1',    'KYC StrikePro Lv.1', 1),
-       ('topup_l1',  'Top-Up KYC Lv.1',    2),
-       ('topup_l2',  'Top-Up KYC Lv.2',    3),
+       ('topup_l1',  'KYC 1109 Lv.1',      2),
+       ('topup_l2',  'KYC 1109 Lv.2',      3),
        ('deposit',   'ฝากเงิน',            4),
        ('cs_notify', 'AM โทรแจ้งสิทธิ์',   5)`
   );
+  // Rename the Top-Up KYC steps to "KYC 1109 …" (only if still the original default,
+  // so a manual rename by the owner is never clobbered). step_key stays topup_l1/l2.
+  await pool.execute("UPDATE onboarding_steps SET label = 'KYC 1109 Lv.1' WHERE step_key = 'topup_l1' AND label = 'Top-Up KYC Lv.1'");
+  await pool.execute("UPDATE onboarding_steps SET label = 'KYC 1109 Lv.2' WHERE step_key = 'topup_l2' AND label = 'Top-Up KYC Lv.2'");
   // Rename the notify step to "AM …" (only if still the original default — never
   // clobber an owner's manual rename).
   await pool.execute(
