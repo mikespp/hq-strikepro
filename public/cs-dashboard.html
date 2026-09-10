@@ -254,6 +254,9 @@
       if (c.hq_nickname) p.push('ชื่อเล่น ' + esc(c.hq_nickname));
       if (p.length) bits.push('<div><span class="lbl">โปรไฟล์ Bussay:</span> ' + p.join(' · ') + '</div>');
     }
+    // StrikePro-only (no Bussay phone) → show the phone pulled from the StrikePro DB
+    if (!c.hq_phone && c.sp_phone)
+      bits.push('<div><span class="lbl">เบอร์ StrikePro:</span> 📱 <a href="tel:'+esc(c.sp_phone)+'">'+esc(c.sp_phone)+'</a></div>');
     return bits.length ? '<div class="contact">' + bits.join('') + '</div>' : '';
   }
 

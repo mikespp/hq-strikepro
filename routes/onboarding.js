@@ -135,10 +135,12 @@ router.get('/emails', requireSyncKey, async (req, res) => {
 // INSERT IGNORE so existing customers (incl. Bussay signups) are untouched. New rows
 // have no Bussay account yet → they show in the Strike Pro group until they sign up.
 router.post('/import', requireSyncKey, async (req, res) => {
-  const emails = Array.isArray(req.body.emails) ? req.body.emails : [];
+  // Prefer { leads: [{email, phone}] }; accept { emails: [...] } for back-compat.
+  const leads = Array.isArray(req.body.leads) ? req.body.leads
+    : (Array.isArray(req.body.emails) ? req.body.emails.map(e => ({ email: e })) : []);
   try {
-    const added = await db.bulkAddOnboarding(emails, 'strikepro');
-    res.json({ ok: true, received: emails.length, added });
+    const r = await db.importStrikeproLeads(leads);
+    res.json({ ok: true, received: leads.length, ...r });
   } catch (e) { console.error(e); res.status(500).json({ error: 'Import failed.' }); }
 });
 

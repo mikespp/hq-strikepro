@@ -550,6 +550,9 @@ async function init() {
     `ALTER TABLE pf_accounts ADD COLUMN inv_pw LONGTEXT NULL`,
     // CS onboarding — assigned Account Manager (Phot / Di / Namkang / …)
     `ALTER TABLE onboarding_customers ADD COLUMN account_manager VARCHAR(100) NOT NULL DEFAULT ''`,
+    // Phone pulled from the StrikePro DB (b2_clients) for StrikePro-only leads that
+    // have no Bussay profile — pushed by the VPS onboarding-sync.
+    `ALTER TABLE onboarding_customers ADD COLUMN sp_phone VARCHAR(50) NOT NULL DEFAULT ''`,
     // LINE Login — the LINE OAuth userId linked to this account (for 1-click login)
     `ALTER TABLE users ADD COLUMN line_user_id VARCHAR(64) NOT NULL DEFAULT ''`,
     // Bussay membership badge number (e.g. "000".."300"). Empty = no badge assigned.
@@ -670,6 +673,24 @@ async function autoAddOnboarding(email) {
   if (!e) return;
   try { await pool.execute("INSERT IGNORE INTO onboarding_customers (email, added_by) VALUES (?, 'auto')", [e]); }
   catch (err) { console.error('auto onboarding add failed:', err.message); }
+}
+// Import StrikePro-only leads (email + phone from b2_clients), pushed hourly by the
+// VPS. Adds new customers and fills sp_phone; on an existing row it only updates
+// sp_phone (when a non-empty phone is sent) and never disturbs added_by/note/etc.
+async function importStrikeproLeads(leads) {
+  let added = 0, updated = 0;
+  for (const l of (leads || [])) {
+    const e = String((l && l.email) || '').toLowerCase().trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) continue;
+    const phone = String((l && l.phone) || '').trim().slice(0, 50);
+    const [r] = await pool.execute(
+      `INSERT INTO onboarding_customers (email, added_by, sp_phone) VALUES (?, 'strikepro', ?)
+       ON DUPLICATE KEY UPDATE sp_phone = IF(VALUES(sp_phone) <> '', VALUES(sp_phone), sp_phone)`,
+      [e, phone]);
+    if (r.affectedRows === 1) added++;
+    else if (r.affectedRows === 2) updated++;   // 2 = existing row updated
+  }
+  return { added, updated };
 }
 // Bulk add onboarding customers (e.g. StrikePro-only leads pushed hourly from the
 // VPS). INSERT IGNORE dedupes by email, so re-sending the same recent signups is a
@@ -1840,7 +1861,7 @@ async function deleteOnboardingCustomer(id) {
 // Customers + live registration status (HQ profile join + StrikePro allowlist) + progress map.
 async function listOnboardingCustomers() {
   const [rows] = await pool.execute(
-    `SELECT c.id, c.email, c.name, c.contact, c.note, c.added_by, c.account_manager,
+    `SELECT c.id, c.email, c.name, c.contact, c.note, c.added_by, c.account_manager, c.sp_phone,
             DATE_FORMAT(c.created_at, '%Y-%m-%d %H:%i') AS created_at,
             (u.id IS NOT NULL)                                   AS hq_registered,
             u.phone AS hq_phone, u.line_id AS hq_line, u.line_user_id AS hq_line_user_id, u.nickname AS hq_nickname,
@@ -2163,5 +2184,5 @@ module.exports = {
   listOnboardingSteps, addOnboardingStep, updateOnboardingStep, deleteOnboardingStep, reorderOnboardingSteps,
   addOnboardingCustomer, updateOnboardingCustomer, deleteOnboardingCustomer, listOnboardingCustomers,
   setOnboardingProgress, setOnboardingProgressByKey, listOnboardingEmails, getOnboardingCustomerById,
-  bulkAddOnboarding,
+  bulkAddOnboarding, importStrikeproLeads,
 };
