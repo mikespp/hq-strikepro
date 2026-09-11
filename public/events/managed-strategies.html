@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#d4af37" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Managed Strategies — Bussay 1 Year</title>
+  <meta name="description" content="Managed Strategies · Bussay 1 Year — ฉลองครบรอบ 1 ปี Bussay พอร์ตแห่งอนาคต รับประกันเงินต้น 100%" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --gold:#d4af37; --gold-light:#f5d96b; --gold-pale:#ffe99a;
+      --gold-dim:rgba(212,175,55,.12); --gold-border:rgba(212,175,55,.22);
+      --bg:#060606; --card:#0f0f0f; --card2:#131313; --border:rgba(255,255,255,.06);
+      --text:#f0f0f0; --muted:#7a7a7a; --green:#4ade80; --radius:18px; --radius-sm:12px;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family:'IBM Plex Sans Thai','Inter',sans-serif; background:var(--bg); color:var(--text); overflow-x:hidden; -webkit-font-smoothing:antialiased; }
+    #particles { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+    .glow-top { position: fixed; top:-200px; left:50%; transform:translateX(-50%); width:1000px; height:700px; pointer-events:none; z-index:0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(212,175,55,.10) 0%, transparent 65%); }
+
+    nav { position:sticky; top:0; z-index:200; display:flex; align-items:center; justify-content:space-between; padding:14px 20px;
+      background:rgba(6,6,6,.80); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border-bottom:1px solid var(--border); }
+    .nav-back { display:inline-flex; align-items:center; }
+    .nav-back img { width:34px; height:34px; object-fit:contain; display:block; }
+    .nav-share { background:none; border:none; cursor:pointer; color:var(--muted); padding:8px; margin-left:auto; display:flex; align-items:center; justify-content:center; border-radius:8px; transition:color .15s, background .15s; }
+    .nav-share:hover { color:var(--text); background:rgba(255,255,255,.08); }
+    .nav-share svg { width:19px; height:19px; stroke:currentColor; fill:none; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
+
+    .page { position:relative; z-index:1; }
+    .hero { min-height:88vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:72px 24px 60px; position:relative; overflow:hidden; }
+    .hero::before { content:''; position:absolute; top:0; left:50%; transform:translateX(-50%); width:2px; height:55%;
+      background:linear-gradient(to bottom, transparent, rgba(212,175,55,.5), transparent); filter:blur(1px); }
+    .hero::after { content:''; position:absolute; bottom:0; left:0; right:0; height:200px; background:linear-gradient(to bottom, transparent, var(--bg)); pointer-events:none; }
+    .streak { position:absolute; height:1px; pointer-events:none; background:linear-gradient(90deg, transparent, rgba(212,175,55,.25), transparent); }
+    .streak-1 { width:60%; top:30%; left:20%; } .streak-2 { width:40%; top:64%; left:30%; opacity:.5; }
+
+    .hero-eyebrow { display:inline-flex; align-items:center; gap:10px; font-size:11px; font-weight:700; letter-spacing:3px; text-transform:uppercase;
+      color:var(--gold); border:1px solid var(--gold-border); background:var(--gold-dim); padding:7px 18px; border-radius:50px; margin-bottom:30px; position:relative; z-index:1; }
+    .hero-eyebrow .dot { width:6px; height:6px; border-radius:50%; background:var(--gold); box-shadow:0 0 10px var(--gold); animation:blink 2.2s ease-in-out infinite; }
+    @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:.3;} }
+    .hero-label { font-size:clamp(13px,2.5vw,16px); font-weight:500; letter-spacing:4px; text-transform:uppercase; color:rgba(212,175,55,.6); margin-bottom:14px; position:relative; z-index:1; }
+    .hero-title { font-size:clamp(38px,9vw,82px); font-weight:900; letter-spacing:-1px; line-height:1.22; padding-top:.12em;
+      background:linear-gradient(160deg,#ffffff 20%,var(--gold-pale) 55%,var(--gold) 85%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom:22px; position:relative; z-index:1; }
+    .hero-sub { font-size:clamp(17px,3.5vw,23px); font-weight:300; color:rgba(240,240,240,.78); letter-spacing:.5px; margin-bottom:26px; position:relative; z-index:1; max-width:640px; }
+    .hero-meta { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; position:relative; z-index:1; }
+    .hero-pill { display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); border-radius:50px; padding:9px 20px; font-size:14px; font-weight:700; color:var(--text); letter-spacing:.3px; }
+    .hero-pill .p-gold { color:var(--gold); }
+
+    .content { max-width:780px; margin:0 auto; padding:0 20px 150px; }
+    .divider { display:flex; align-items:center; gap:16px; margin:52px 0 44px; }
+    .divider-line { flex:1; height:1px; background:var(--gold-border); }
+    .divider-diamond { width:8px; height:8px; background:var(--gold); transform:rotate(45deg); flex-shrink:0; box-shadow:0 0 12px rgba(212,175,55,.5); }
+    .s-label { font-size:10px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--gold); margin-bottom:16px; display:flex; align-items:center; gap:10px; }
+    .s-label::after { content:''; flex:1; height:1px; background:var(--gold-border); }
+
+    .desc-card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:34px 28px; position:relative; overflow:hidden; margin-bottom:14px; }
+    .desc-card::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg, transparent, rgba(212,175,55,.35), transparent); }
+    .desc-card p { font-size:16px; line-height:1.9; color:rgba(240,240,240,.82); }
+    .desc-card p + p { margin-top:16px; }
+    .desc-card .highlight { font-size:17px; font-weight:600; color:var(--text); border-left:3px solid var(--gold); padding-left:16px; margin-top:20px; line-height:1.7; }
+
+    /* Guarantee banner */
+    .guarantee { display:flex; align-items:center; gap:18px; background:linear-gradient(135deg,#141408 0%,#111 100%); border:1px solid var(--gold-border);
+      border-radius:var(--radius); padding:26px 26px; position:relative; overflow:hidden; margin-bottom:14px; }
+    .guarantee::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg, transparent, var(--gold), transparent); }
+    .guarantee .g-icon { font-size:44px; line-height:1; filter:drop-shadow(0 0 14px rgba(212,175,55,.5)); flex-shrink:0; }
+    .guarantee .g-big { font-size:clamp(24px,6vw,34px); font-weight:900; letter-spacing:-.5px;
+      background:linear-gradient(135deg,var(--gold-pale),var(--gold)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; line-height:1.15; }
+    .guarantee .g-sub { font-size:14px; color:rgba(240,240,240,.7); margin-top:4px; }
+
+    .exp-grid { display:flex; flex-direction:column; gap:12px; }
+    .exp-item { display:flex; align-items:flex-start; gap:16px; background:var(--card); border:1px solid var(--border); border-radius:var(--radius-sm); padding:20px; transition:border-color .2s, transform .2s; position:relative; overflow:hidden; }
+    .exp-item::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:linear-gradient(to bottom, var(--gold), rgba(212,175,55,.3)); border-radius:3px 0 0 3px; }
+    .exp-item:hover { border-color:var(--gold-border); transform:translateX(4px); }
+    .exp-num { width:32px; height:32px; border-radius:8px; flex-shrink:0; background:var(--gold-dim); border:1px solid var(--gold-border); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; color:var(--gold); }
+    .exp-text { font-size:15px; font-weight:500; color:var(--text); line-height:1.5; padding-top:6px; }
+
+    .cta-section { text-align:center; margin-top:60px; background:var(--card); border:1px solid var(--gold-border); border-radius:24px; padding:54px 28px 46px; position:relative; overflow:hidden; }
+    .cta-section::before { content:''; position:absolute; top:0; left:50%; transform:translateX(-50%); width:60%; height:1px; background:linear-gradient(90deg, transparent, var(--gold), transparent); }
+    .cta-section::after { content:''; position:absolute; top:-80px; left:50%; transform:translateX(-50%); width:600px; height:400px; background:radial-gradient(ellipse, rgba(212,175,55,.07) 0%, transparent 65%); pointer-events:none; }
+    .cta-icon { font-size:48px; margin-bottom:18px; display:block; filter:drop-shadow(0 0 16px rgba(212,175,55,.5)); }
+    .cta-title { font-size:clamp(22px,5vw,34px); font-weight:900; letter-spacing:-.5px; margin-bottom:10px; }
+    .cta-sub { font-size:15px; color:var(--muted); margin-bottom:14px; line-height:1.6; }
+    .cta-note { font-size:13px; color:var(--gold); background:var(--gold-dim); border:1px solid var(--gold-border); border-radius:50px; padding:7px 16px; display:inline-block; margin-bottom:26px; font-weight:700; }
+    .cta-btn { display:inline-flex; align-items:center; justify-content:center; gap:10px;
+      background:linear-gradient(135deg,var(--gold) 0%,var(--gold-light) 50%,var(--gold) 100%); background-size:200% 200%; color:#080808; text-decoration:none;
+      font-size:16px; font-weight:900; letter-spacing:.3px; padding:18px 44px; border-radius:50px; border:none; cursor:pointer; font-family:inherit;
+      box-shadow:0 8px 32px rgba(212,175,55,.4), 0 2px 8px rgba(212,175,55,.2); transition:background-position .4s, transform .15s, box-shadow .2s;
+      -webkit-tap-highlight-color:transparent; position:relative; z-index:1; width:100%; max-width:420px; }
+    .cta-btn:hover:not(:disabled) { background-position:100% 100%; box-shadow:0 14px 48px rgba(212,175,55,.55), 0 4px 16px rgba(212,175,55,.3); transform:translateY(-3px); }
+    .cta-btn:active:not(:disabled) { transform:scale(.97); }
+    .cta-btn:disabled { opacity:.65; cursor:default; }
+    .cta-btn svg { width:20px; height:20px; fill:#080808; flex-shrink:0; }
+    .cta-btn.line { background:#06C755; color:#fff; box-shadow:0 8px 32px rgba(6,199,85,.35); }
+    .cta-btn.line:hover:not(:disabled) { background:#05b34d; box-shadow:0 14px 48px rgba(6,199,85,.5); }
+    .cta-btn.line svg { fill:#fff; }
+
+    .page-footer { text-align:center; padding:28px 20px 32px; font-size:12px; color:rgba(122,122,122,.5); letter-spacing:.5px; }
+    .page-footer span { color:var(--gold); opacity:.7; }
+    .fade { opacity:0; transform:translateY(28px); transition:opacity .65s ease, transform .65s ease; }
+    .fade.in { opacity:1; transform:translateY(0); }
+    .fade-d1 { transition-delay:.08s; } .fade-d2 { transition-delay:.16s; } .fade-d3 { transition-delay:.24s; }
+
+    .line-fab { position:fixed; right:18px; bottom:18px; z-index:900; width:56px; height:56px; border-radius:50%; background:#06C755; box-shadow:0 6px 20px rgba(0,0,0,.35); display:flex; align-items:center; justify-content:center; text-decoration:none; transition:transform .15s, box-shadow .15s; }
+    .line-fab:hover { transform:scale(1.06); box-shadow:0 8px 26px rgba(6,199,85,.5); }
+    .line-fab:active { transform:scale(.95); }
+    .line-fab svg { width:30px; height:30px; fill:#fff; }
+    @media(max-width:600px){ .line-fab{right:14px;bottom:14px;width:52px;height:52px;} .line-fab svg{width:28px;height:28px;} }
+  </style>
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="glow-top"></div>
+
+<nav>
+  <a class="nav-back" href="/" aria-label="หน้าหลัก"><img src="/logo.png.png" alt="Bussay Community" /></a>
+  <button class="nav-share" onclick="sharePage()" aria-label="แชร์">
+    <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+  </button>
+</nav>
+
+<div class="page">
+
+  <section class="hero">
+    <div class="streak streak-1"></div>
+    <div class="streak streak-2"></div>
+    <div class="hero-eyebrow"><span class="dot"></span> Managed Strategies</div>
+    <p class="hero-label">ฉลองครบรอบ 1 ปี Bussay</p>
+    <h1 class="hero-title">Bussay 1 Year</h1>
+    <p class="hero-sub">พอร์ตแห่งอนาคต ที่ออกแบบมาเพื่อครอบครัว Bussay — รับประกันเงินต้น 100%</p>
+    <div class="hero-meta">
+      <span class="hero-pill">🛡️ <span class="p-gold">รับประกันเงินต้น 100%</span></span>
+      <span class="hero-pill">👤 1 คน / 1 account</span>
+    </div>
+  </section>
+
+  <div class="content">
+
+    <!-- About -->
+    <div class="fade">
+      <p class="s-label">เกี่ยวกับโปรเจกต์</p>
+      <div class="desc-card">
+        <p>เนื่องในโอกาส <b style="color:var(--text)">ครบรอบ 1 ปี Bussay</b> เราขอมอบโปรเจกต์พิเศษ <b style="color:var(--text)">Managed Strategies — Bussay 1 Year</b> พอร์ตแห่งอนาคตที่บริหารโดยทีมงาน เพื่อเป็นของขวัญขอบคุณครอบครัว Bussay ที่เดินทางร่วมกันมาตลอดปีแรก</p>
+        <p class="highlight">พอร์ตแห่งอนาคต — รับประกันเงินต้น 100% เข้าร่วมได้ง่าย ๆ เพียงคลิกเดียว</p>
+      </div>
+    </div>
+
+    <!-- Guarantee -->
+    <div class="fade fade-d1">
+      <div class="guarantee">
+        <span class="g-icon">🛡️</span>
+        <div>
+          <div class="g-big">รับประกันเงินต้น 100%</div>
+          <div class="g-sub">เงินต้นของคุณได้รับการดูแลอย่างเต็มที่ — อุ่นใจทุกการเข้าร่วม</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"><div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-line"></div></div>
+
+    <!-- Highlights -->
+    <div class="fade fade-d2">
+      <p class="s-label">ทำไมต้องเข้าร่วม</p>
+      <div class="exp-grid">
+        <div class="exp-item"><div class="exp-num">01</div><p class="exp-text">พอร์ตแห่งอนาคต บริหารโดยทีม Bussay — รับประกันเงินต้น 100%</p></div>
+        <div class="exp-item"><div class="exp-num">02</div><p class="exp-text">ของขวัญพิเศษ ฉลองครบรอบ 1 ปี Bussay สำหรับครอบครัวของเรา</p></div>
+        <div class="exp-item"><div class="exp-num">03</div><p class="exp-text">1 คนเข้าร่วมได้เพียง 1 account เท่านั้น — สิทธิ์เฉพาะสมาชิก</p></div>
+        <div class="exp-item"><div class="exp-num">04</div><p class="exp-text">ลงชื่อเข้าร่วมง่าย ๆ เพียงคลิกเดียว ทีมงานจะติดต่อกลับ</p></div>
+      </div>
+    </div>
+
+    <div class="divider"><div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-line"></div></div>
+
+    <!-- CTA -->
+    <div class="cta-section fade fade-d3">
+      <span class="cta-icon">💎</span>
+      <h2 class="cta-title">สนใจเข้าร่วมโปรเจกต์</h2>
+      <p class="cta-sub">พอร์ตแห่งอนาคต ฉลองครบรอบ 1 ปี Bussay — สอบถามรายละเอียดและลงชื่อกับทีมงานได้เลย</p>
+      <div class="cta-note">👤 1 คนเข้าร่วมได้เพียง 1 account เท่านั้น</div>
+      <a class="cta-btn line" href="https://lin.ee/8WkoRmL" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.070 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+        <span>สอบถาม / ลงชื่อผ่าน LINE</span>
+      </a>
+    </div>
+
+    <p class="page-footer" style="margin-top:28px;">© 2026 <span>Bussay</span> · Managed Strategies — Bussay 1 Year</p>
+  </div>
+</div>
+
+<script>
+  /* ── Particle canvas ── */
+  const canvas = document.getElementById('particles');
+  const ctx = canvas.getContext('2d');
+  let W, H, pts = [];
+  function resize(){ W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+  resize(); window.addEventListener('resize', resize);
+  function randBetween(a,b){ return a + Math.random()*(b-a); }
+  for (let i=0;i<55;i++) pts.push({ x:Math.random()*1600-400, y:Math.random()*2400, r:randBetween(.4,1.4), vy:randBetween(.1,.35), o:randBetween(.1,.45) });
+  function drawParticles(){
+    ctx.clearRect(0,0,W,H);
+    pts.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y%H, p.r, 0, Math.PI*2); ctx.fillStyle='rgba(212,175,55,'+p.o+')'; ctx.fill(); p.y += p.vy; if (p.y>H+10) p.y=-10; });
+    requestAnimationFrame(drawParticles);
+  }
+  drawParticles();
+
+  /* ── Scroll fade-in ── */
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.06 });
+  document.querySelectorAll('.fade').forEach(el => io.observe(el));
+
+  /* ── Share ── */
+  async function sharePage(){
+    try {
+      if (navigator.share) await navigator.share({ title: document.title, url: location.href });
+      else {
+        await navigator.clipboard.writeText(location.href);
+        const t = document.createElement('div');
+        t.textContent = 'คัดลอกลิงก์แล้ว ✓';
+        t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#222;border:1px solid rgba(255,255,255,.12);color:#f0f0f0;padding:9px 18px;border-radius:10px;font-size:13px;font-weight:600;z-index:9999;pointer-events:none;';
+        document.body.appendChild(t); setTimeout(()=>t.remove(), 2000);
+      }
+    } catch {}
+  }
+
+</script>
+
+<a class="line-fab" href="https://lin.ee/8WkoRmL" target="_blank" rel="noopener" aria-label="สอบถาม / ติดต่อ Admin" title="สอบถาม / ติดต่อ Admin"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.070 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg></a>
+</body>
+</html>

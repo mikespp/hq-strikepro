@@ -141,6 +141,11 @@ app.get('/tamboon-admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'tamboon-admin.html'));
 });
 
+// /events/managed-strategies → serve Managed Strategies "Bussay 1 Year" announcement
+app.get('/events/managed-strategies', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'events', 'managed-strategies.html'));
+});
+
 // /portfolio → serve fund portfolio performance page
 app.get('/portfolio', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'portfolio.html'));
