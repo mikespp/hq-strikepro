@@ -254,6 +254,13 @@
     .strategy-card.gb     { border-color: rgba(74,222,128,.2); }
     .strategy-card.gb::before   { background: var(--gb); }
     .strategy-card.gb:hover     { border-color: var(--gb-mid); }
+    .strategy-card.b1y    { border-color: rgba(245,217,107,.24); background: linear-gradient(162deg, rgba(212,175,55,.07), #191919 60%); }
+    .strategy-card.b1y::before  { background: linear-gradient(to bottom,#ffe99a,#d4af37); }
+    .strategy-card.b1y:hover    { border-color: rgba(245,217,107,.5); }
+    .b1y .strategy-icon { background: rgba(245,217,107,.14); }
+    .b1y .strategy-name { color: #f5d96b; }
+    .strategy-badge { font-size:10px; font-weight:800; letter-spacing:.5px; color:#0a0a0a; background:linear-gradient(135deg,#ffe99a,#d4af37);
+      padding:2px 8px; border-radius:50px; margin-left:8px; vertical-align:middle; }
 
     .strategy-icon { width: 46px; height: 46px; border-radius: 12px; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center; font-size: 22px; }
@@ -331,7 +338,7 @@
       transition:opacity .25s; background:radial-gradient(340px circle at var(--mx) var(--my), var(--glow), transparent 60%); }
     .strategy-card:hover::after, .eco-card:hover::after, .event-banner:hover::after { opacity:1; }
     .strategy-card:hover, .eco-card:hover, .event-banner:hover { transform:translateY(-3px); box-shadow:0 12px 34px rgba(0,0,0,.45); }
-    .strategy-card.ppvp{--glow:rgba(129,140,248,.20)} .strategy-card.hq{--glow:rgba(212,175,55,.20)} .strategy-card.gb{--glow:rgba(74,222,128,.20)}
+    .strategy-card.ppvp{--glow:rgba(129,140,248,.20)} .strategy-card.hq{--glow:rgba(212,175,55,.20)} .strategy-card.gb{--glow:rgba(74,222,128,.20)} .strategy-card.b1y{--glow:rgba(245,217,107,.22)}
     .eco-card.stp{--glow:rgba(245,158,11,.20)} .eco-card.edu{--glow:rgba(56,189,248,.20)} .eco-card.trade{--glow:rgba(251,146,60,.20)} .eco-card.charity{--glow:rgba(244,114,182,.20)}
     .event-banner{--glow:rgba(212,175,55,.16)}
     .event-banner-icon {
@@ -755,6 +762,15 @@
   <h2 class="section-title">Managed Strategies</h2>
   <p class="section-sub">Professional fund management via PAMM model</p>
   <div class="strategy-list">
+
+    <a class="strategy-card b1y" href="/events/managed-strategies">
+      <div class="strategy-icon">💎</div>
+      <div class="strategy-body">
+        <div class="strategy-name">Bussay 1 Year<span class="strategy-badge">ครบรอบ 1 ปี</span></div>
+        <div class="strategy-desc">พอร์ตแห่งอนาคต · รับประกันเงินต้น 100%</div>
+      </div>
+      <div class="strategy-arrow">›</div>
+    </a>
 
     <a class="strategy-card ppvp" href="/products/ppvp.html">
       <div class="strategy-icon">💼</div>
