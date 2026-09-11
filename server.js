@@ -146,6 +146,11 @@ app.get('/events/managed-strategies', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'events', 'managed-strategies.html'));
 });
 
+// /kyc-guide → serve KYC (1109 Prime) verification guide
+app.get('/kyc-guide', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'kyc-guide.html'));
+});
+
 // /portfolio → serve fund portfolio performance page
 app.get('/portfolio', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'portfolio.html'));
