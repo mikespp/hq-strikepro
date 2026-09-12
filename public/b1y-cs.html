@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#d4af37" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bussay 1 Year — CS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    :root {
+      --gold:#d4af37; --gold-pale:#ffe99a; --gold-dim:rgba(212,175,55,.12); --gold-border:rgba(212,175,55,.22);
+      --bg:#060606; --card:#0f0f0f; --card2:#131313; --border:rgba(255,255,255,.08);
+      --text:#f0f0f0; --muted:#7a7a7a; --green:#4ade80; --red:#f87171; --radius:14px;
+    }
+    body { font-family:'IBM Plex Sans Thai','Inter',sans-serif; background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; }
+    nav { position:sticky; top:0; z-index:50; display:flex; align-items:center; gap:12px; padding:14px 20px;
+      background:rgba(6,6,6,.85); backdrop-filter:blur(20px); border-bottom:1px solid var(--border); }
+    .nav-back { display:inline-flex; align-items:center; }
+    .nav-back img { width:34px; height:34px; object-fit:contain; display:block; }
+    .nav-title { font-size:15px; font-weight:800; color:var(--gold); }
+    .nav-user { margin-left:auto; font-size:12px; color:var(--muted); }
+    .wrap { max-width:1400px; margin:0 auto; padding:24px 20px 80px; }
+    .state { text-align:center; padding:60px 20px; color:var(--muted); font-size:14px; }
+    h1 { font-size:22px; font-weight:900; letter-spacing:-.4px; }
+    .lead { color:var(--muted); font-size:13px; margin-top:6px; line-height:1.6; }
+
+    .kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; margin:18px 0 14px; }
+    .kpi { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px 18px; position:relative; overflow:hidden; }
+    .kpi::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--gold),transparent); }
+    .kpi .n { font-size:26px; font-weight:900; letter-spacing:-.5px; color:var(--gold-pale); }
+    .kpi .k { font-size:12px; color:var(--muted); margin-top:3px; }
+
+    .toolbar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:6px 0 14px; }
+    .toolbar input { flex:1; min-width:220px; background:var(--card2); border:1px solid var(--border); border-radius:10px; padding:11px 14px; color:var(--text); font-size:14px; font-family:inherit; }
+    .toolbar input:focus { outline:none; border-color:var(--gold-border); }
+    .chip { font-size:13px; font-weight:700; padding:8px 14px; border-radius:50px; border:1px solid var(--border); background:var(--card2); color:var(--muted); cursor:pointer; font-family:inherit; }
+    .chip:hover { border-color:var(--gold-border); color:var(--text); }
+    .chip.on { background:var(--gold-dim); border-color:var(--gold-border); color:var(--gold-pale); }
+
+    .table-wrap { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; min-width:1600px; }
+    th { font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:var(--muted); text-align:left; font-weight:700; padding:11px 12px; border-bottom:1px solid var(--border); white-space:nowrap; background:var(--card2); position:sticky; top:0; }
+    td { font-size:13px; padding:10px 12px; border-bottom:1px solid var(--border); white-space:nowrap; }
+    tr:last-child td { border-bottom:none; }
+    tr:hover td { background:rgba(255,255,255,.02); }
+    td.num, th.num { text-align:right; font-variant-numeric:tabular-nums; }
+    .pos { color:var(--green); } .neg { color:var(--red); }
+    .muted { color:var(--muted); }
+
+    .chk { background:var(--card2); border:1px solid var(--border); border-radius:8px; padding:6px 12px; font-size:12.5px; font-weight:700; color:var(--muted); cursor:pointer; font-family:inherit; white-space:nowrap; transition:.15s; }
+    .chk:hover { border-color:var(--gold); color:var(--text); }
+    .chk.rel { border-color:rgba(248,113,113,.3); color:var(--red); background:rgba(248,113,113,.1); margin-left:6px; padding:4px 8px; font-size:11px; }
+    .res { font-size:12.5px; font-weight:800; color:#4ade80; background:rgba(34,197,94,.14); border:1px solid rgba(34,197,94,.35); border-radius:50px; padding:4px 11px; white-space:nowrap; }
+    .res-lock { font-size:11px; color:var(--muted); }
+    .col-res { position:sticky; left:0; background:var(--card); z-index:1; }
+    th.col-res { background:var(--card2); }
+
+    .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#222; border:1px solid rgba(255,255,255,.12);
+      color:#f0f0f0; padding:10px 20px; border-radius:10px; font-size:13px; font-weight:600; z-index:999; opacity:0; transition:opacity .2s; pointer-events:none; }
+    .toast.show { opacity:1; }
+    .empty { text-align:center; padding:32px; color:var(--muted); font-size:13px; }
+
+    .hamburger { background:none; border:none; cursor:pointer; color:var(--text); padding:8px; display:flex; flex-direction:column; gap:5px; align-items:center; justify-content:center; border-radius:8px; flex-shrink:0; }
+    .hamburger:hover { background:rgba(255,255,255,.08); }
+    .hamburger span { display:block; width:22px; height:2px; background:currentColor; border-radius:2px; }
+    .drawer-overlay { position:fixed; inset:0; z-index:200; background:rgba(0,0,0,.6); opacity:0; pointer-events:none; transition:opacity .25s; }
+    .drawer-overlay.open { opacity:1; pointer-events:all; }
+    .drawer { position:fixed; top:0; left:0; bottom:0; z-index:201; width:275px; background:#1a1a1a; border-right:1px solid #2e2e2e; display:flex; flex-direction:column; transform:translateX(-100%); transition:transform .28s cubic-bezier(.4,0,.2,1); }
+    .drawer.open { transform:translateX(0); }
+    .drawer-header { display:flex; align-items:center; gap:10px; padding:14px 18px; border-bottom:1px solid #2e2e2e; }
+    .drawer-logo-name { font-size:16px; font-weight:800; color:#f1f1f1; }
+    .drawer-logo-name span { color:#E63946; }
+    .drawer-nav { flex:1; padding:10px 0; overflow-y:auto; display:block !important; }
+    .drawer-link { display:flex; align-items:center; gap:12px; padding:13px 20px; font-size:15px; font-weight:600; color:#777; text-decoration:none; }
+    .drawer-link:hover { color:#f1f1f1; background:#222; }
+    .drawer-link-icon { font-size:18px; }
+    .drawer-footer { padding:16px 18px; border-top:1px solid #2e2e2e; }
+    .drawer-signout { width:100%; background:none; border:1px solid #2e2e2e; color:#777; border-radius:8px; padding:10px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
+    .drawer-signout:hover { border-color:#E63946; color:#E63946; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <button class="hamburger" onclick="toggleDrawer()" aria-label="Menu"><span></span><span></span><span></span></button>
+  <a class="nav-back" href="/" aria-label="หน้าหลัก"><img src="/logo.png.png" alt="Bussay Community" /></a>
+  <span class="nav-title">💎 Bussay 1 Year — CS</span>
+  <span class="nav-user" id="navUser"></span>
+</nav>
+
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <img src="/logo.png.png" alt="Bussay" style="width:34px;height:34px;object-fit:contain;" />
+    <span class="drawer-logo-name">BUSSAY <span>COMMUNITY</span></span>
+  </div>
+  <nav class="drawer-nav">
+    <a class="drawer-link" href="/cs"><span class="drawer-link-icon">🎯</span> CS Dashboard</a>
+    <a class="drawer-link" href="/b1y-cs" style="color:#d4af37;"><span class="drawer-link-icon">💎</span> Bussay 1 Year</a>
+    <a class="drawer-link" href="/onboarding-admin"><span class="drawer-link-icon">🛠️</span> จัดการ Onboarding</a>
+    <a class="drawer-link" href="/tamboon-admin"><span class="drawer-link-icon">🙏</span> รอบ ทำบุญ Bussay</a>
+    <a class="drawer-link" href="/users-admin"><span class="drawer-link-icon">👤</span> จัดการผู้ใช้</a>
+    <a class="drawer-link" href="/portfolio-admin"><span class="drawer-link-icon">📈</span> จัดการพอร์ต Master</a>
+  </nav>
+  <div class="drawer-footer">
+    <button class="drawer-signout" onclick="drawerSignOut()">ออกจากระบบ</button>
+  </div>
+</div>
+
+<div class="wrap" id="wrap" style="display:none">
+  <h1>💎 Bussay 1 Year — คน Sub กอง (2121982033)</h1>
+  <p class="lead">รายชื่อผู้ Subscribe กอง Bussay 1 Year จาก STP Dashboard · ทีม CS ที่กำหนดกด <b>ติ๊กจอง</b> เพื่อรับผิดชอบลูกค้าได้ · ชื่อผู้จองจะแสดงในคอลัมน์ซ้ายสุด</p>
+  <div id="kpis" class="kpis"></div>
+  <div class="toolbar">
+    <input id="search" placeholder="ค้นหา ชื่อ / อีเมล / เบอร์ / เลขบัญชี…" oninput="renderTable()" />
+    <button class="chip on" id="f-all" onclick="setFilter('all')">ทั้งหมด</button>
+    <button class="chip" id="f-open" onclick="setFilter('open')">ยังไม่จอง</button>
+    <button class="chip" id="f-taken" onclick="setFilter('taken')">จองแล้ว</button>
+    <button class="chip" id="f-mine" onclick="setFilter('mine')">ของฉัน</button>
+  </div>
+  <div id="content"><div class="state">กำลังโหลด…</div></div>
+</div>
+
+<div class="state" id="gate" style="display:none"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+  const TOKEN_KEY = 'sp_token';
+  const $ = id => document.getElementById(id);
+  const auth = () => ({ Authorization:'Bearer '+localStorage.getItem(TOKEN_KEY) });
+  const authJson = () => ({ 'Content-Type':'application/json', ...auth() });
+  const esc = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const num = v => (Number(v)||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1900); }
+  function toggleDrawer(){ $('drawer').classList.toggle('open'); $('drawerOverlay').classList.toggle('open'); }
+  function closeDrawer(){ $('drawer').classList.remove('open'); $('drawerOverlay').classList.remove('open'); }
+  function drawerSignOut(){ localStorage.removeItem(TOKEN_KEY); window.location.href='/login'; }
+
+  let ME = null, ROWS = [], filter = 'all';
+  function setFilter(f){ filter=f; ['all','open','taken','mine'].forEach(x=>$('f-'+x).classList.toggle('on', x===f)); renderTable(); }
+
+  (async () => {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) { window.location.href = '/login'; return; }
+    try {
+      const r = await fetch('/api/auth/me', { headers: auth() });
+      if (!r.ok) { window.location.href = '/login'; return; }
+      const { user } = await r.json(); ME = user;
+      ME.email = String(ME.email||'').toLowerCase();
+      $('navUser').textContent = user.email;
+      if (user.role !== 'admin') { $('gate').style.display='block'; $('gate').textContent='🔒 หน้านี้สำหรับผู้ดูแลระบบ (admin) เท่านั้น'; return; }
+      $('wrap').style.display = 'block';
+      load();
+    } catch { window.location.href = '/login'; }
+  })();
+
+  async function load() {
+    try {
+      const r = await fetch('/api/b1y/subscribers', { headers: auth() });
+      ROWS = r.ok ? await r.json() : [];
+      renderKpis(); renderTable();
+    } catch { $('content').innerHTML = '<div class="state">โหลดข้อมูลไม่สำเร็จ</div>'; }
+  }
+
+  function renderKpis() {
+    const total = ROWS.length;
+    const taken = ROWS.filter(r => r.reserved_by_name).length;
+    const bal = ROWS.reduce((s,r)=> s + (Number(r.balance)||0), 0);
+    const eq  = ROWS.reduce((s,r)=> s + (Number(r.equity)||0), 0);
+    $('kpis').innerHTML =
+      '<div class="kpi"><div class="n">'+total+'</div><div class="k">ผู้ Sub ทั้งหมด</div></div>'
+      + '<div class="kpi"><div class="n" style="color:#4ade80">'+taken+'</div><div class="k">จองแล้ว</div></div>'
+      + '<div class="kpi"><div class="n">'+(total-taken)+'</div><div class="k">ยังไม่จอง</div></div>'
+      + '<div class="kpi"><div class="n">'+num(bal)+'</div><div class="k">รวม Balance</div></div>'
+      + '<div class="kpi"><div class="n">'+num(eq)+'</div><div class="k">รวม Equity</div></div>';
+  }
+
+  function resCell(r) {
+    const acc = JSON.stringify(String(r.account_number));
+    if (r.reserved_by_name) {
+      const mine = (r.reserved_by_email||'').toLowerCase() === ME.email;
+      const canRelease = ME.can_reserve_b1y && (ME.is_super || mine);
+      return '<span class="res">✓ ' + esc(r.reserved_by_name) + '</span>'
+        + (canRelease ? ' <button class="chk rel" onclick="toggleRes('+acc+',false)">ปลด</button>' : '');
+    }
+    if (ME.can_reserve_b1y) return '<button class="chk" onclick="toggleRes('+acc+',true)">ติ๊กจอง</button>';
+    return '<span class="res-lock">—</span>';
+  }
+
+  function renderTable() {
+    const q = $('search').value.trim().toLowerCase();
+    let list = ROWS.filter(r => {
+      if (filter==='open'  && r.reserved_by_name) return false;
+      if (filter==='taken' && !r.reserved_by_name) return false;
+      if (filter==='mine'  && (r.reserved_by_email||'').toLowerCase() !== ME.email) return false;
+      if (!q) return true;
+      return (r.client_name||'').toLowerCase().includes(q)
+        || (r.email||'').toLowerCase().includes(q)
+        || (r.phone||'').toLowerCase().includes(q)
+        || (r.nickname||'').toLowerCase().includes(q)
+        || String(r.account_number||'').toLowerCase().includes(q);
+    });
+    if (!list.length) { $('content').innerHTML = '<div class="table-wrap"><div class="empty">'+(ROWS.length?'ไม่พบรายการที่ค้นหา':'ยังไม่มีข้อมูล — รอ VPS sync รอบถัดไป')+'</div></div>'; return; }
+    const th = ['<th class="col-res">จอง</th>','<th>#</th>','<th>ชื่อลูกค้า</th>','<th>อีเมล</th>','<th>เบอร์โทร</th>','<th>ชื่อเล่น</th>',
+      '<th>เลขบัญชี</th>','<th>Product</th>','<th>สกุล</th>',
+      '<th class="num">Balance</th>','<th class="num">Equity</th>','<th class="num">Credit</th>','<th class="num">PnL</th>',
+      '<th class="num">Available</th>','<th class="num">Free Margin</th>','<th class="num">Margin</th>','<th class="num">Margin Lv.</th>',
+      '<th>ประเทศ</th>','<th>สถานะ</th>','<th>อัปเดตพอร์ต</th>'].join('');
+    const rows = list.map((r,i) => {
+      const pnlCls = (Number(r.pnl)||0) >= 0 ? 'pos' : 'neg';
+      return '<tr>'
+        + '<td class="col-res">' + resCell(r) + '</td>'
+        + '<td class="muted">' + (i+1) + '</td>'
+        + '<td>' + esc(r.client_name) + '</td>'
+        + '<td>' + esc(r.email) + '</td>'
+        + '<td>' + esc(r.phone) + '</td>'
+        + '<td>' + esc(r.nickname) + '</td>'
+        + '<td>' + esc(r.account_number) + '</td>'
+        + '<td>' + esc(r.product_name) + '</td>'
+        + '<td>' + esc(r.currency) + '</td>'
+        + '<td class="num">' + num(r.balance) + '</td>'
+        + '<td class="num">' + num(r.equity) + '</td>'
+        + '<td class="num">' + num(r.credit) + '</td>'
+        + '<td class="num ' + pnlCls + '">' + num(r.pnl) + '</td>'
+        + '<td class="num">' + num(r.available_balance) + '</td>'
+        + '<td class="num">' + num(r.free_margin) + '</td>'
+        + '<td class="num">' + num(r.margin) + '</td>'
+        + '<td class="num">' + num(r.margin_level) + '</td>'
+        + '<td>' + esc(r.country) + '</td>'
+        + '<td>' + esc(r.status) + '</td>'
+        + '<td class="muted">' + esc(r.update_time) + '</td>'
+        + '</tr>';
+    }).join('');
+    $('content').innerHTML = '<div class="table-wrap"><table><thead><tr>' + th + '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+  }
+
+  async function toggleRes(account, reserve) {
+    try {
+      const r = await fetch('/api/b1y/reserve', { method:'POST', headers: authJson(), body: JSON.stringify({ account_number: account, reserve }) });
+      const d = await r.json().catch(()=>({}));
+      if (!r.ok) { toast(d.error || 'ทำรายการไม่สำเร็จ'); if (d.code==='taken') load(); return; }
+      const row = ROWS.find(x => String(x.account_number) === String(account));
+      if (row) {
+        if (d.reserved) { row.reserved_by_name = d.by; row.reserved_by_email = d.by_email; }
+        else { row.reserved_by_name = null; row.reserved_by_email = null; }
+      }
+      renderKpis(); renderTable();
+      toast(d.reserved ? ('จองแล้ว โดย ' + d.by) : 'ปลดการจองแล้ว');
+    } catch { toast('ทำรายการไม่สำเร็จ'); }
+  }
+</script>
+</body>
+</html>

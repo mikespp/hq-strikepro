@@ -7,6 +7,7 @@ const { sendOtpEmail } = require('../lib/mailer');
 const { isSuperAdmin } = require('../lib/super-admin');
 const { canManageBadges } = require('../lib/badge-admin');
 const { canAssignManager } = require('../lib/head-cs');
+const { canReserveB1y } = require('../lib/b1y-cs');
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'strikepro_dev_secret_change_in_prod';
@@ -259,6 +260,7 @@ router.get('/me', requireAuth, async (req, res) => {
       is_super: isSuperAdmin(user.email),
       can_badges: canManageBadges(user.email),
       can_assign_am: canAssignManager(user.email),
+      can_reserve_b1y: canReserveB1y(user.email),
       badge_no: await db.getBadgeByEmail(user.email),
     } });
   } catch (err) {

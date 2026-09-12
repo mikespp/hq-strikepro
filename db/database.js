@@ -244,6 +244,43 @@ async function init() {
     await pool.execute("UPDATE tamboon_editions SET event_end = '' WHERE event_end = '2026-09-12T13:00:00+07:00'");
   }
 
+  // Bussay 1 Year — subscribers of the master fund 2121982033, synced from the VPS
+  // (StrikePro master_subscribers ⋈ b2_account2 ⋈ b2_clients). Replaced wholesale
+  // each sync. Reservations ("ติ๊กจอง" by CS) live in a separate table keyed by
+  // account_number so they survive re-syncs.
+  await pool.execute(`
+    CREATE TABLE IF NOT EXISTS b1y_subscribers (
+      account_number  VARCHAR(40)  NOT NULL PRIMARY KEY,
+      client_id       BIGINT       NULL,
+      client_name     VARCHAR(255) NOT NULL DEFAULT '',
+      email           VARCHAR(255) NOT NULL DEFAULT '',
+      phone           VARCHAR(60)  NOT NULL DEFAULT '',
+      nickname        VARCHAR(120) NOT NULL DEFAULT '',
+      country         VARCHAR(120) NOT NULL DEFAULT '',
+      status          VARCHAR(60)  NOT NULL DEFAULT '',
+      product_name    VARCHAR(160) NOT NULL DEFAULT '',
+      currency        VARCHAR(16)  NOT NULL DEFAULT '',
+      balance         DECIMAL(18,2) NOT NULL DEFAULT 0,
+      equity          DECIMAL(18,2) NOT NULL DEFAULT 0,
+      credit          DECIMAL(18,2) NOT NULL DEFAULT 0,
+      pnl             DECIMAL(18,2) NOT NULL DEFAULT 0,
+      available_balance DECIMAL(18,2) NOT NULL DEFAULT 0,
+      free_margin     DECIMAL(18,2) NOT NULL DEFAULT 0,
+      margin          DECIMAL(18,2) NOT NULL DEFAULT 0,
+      margin_level    DECIMAL(18,2) NOT NULL DEFAULT 0,
+      update_time     VARCHAR(40)  NOT NULL DEFAULT '',
+      synced_at       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+  await pool.execute(`
+    CREATE TABLE IF NOT EXISTS b1y_reservations (
+      account_number   VARCHAR(40)  NOT NULL PRIMARY KEY,
+      reserved_by_email VARCHAR(255) NOT NULL DEFAULT '',
+      reserved_by_name  VARCHAR(120) NOT NULL DEFAULT '',
+      reserved_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
   // Fund portfolios — MT5 accounts + their daily equity snapshots (for Myfxbook-
   // style time-weighted returns). Fed by the VPS fetcher that loops each login.
   await pool.execute(`
@@ -1638,6 +1675,71 @@ async function getTamboonEmailById(id) {
   const [rows] = await pool.execute('SELECT email FROM tamboon_registrations WHERE id = ? LIMIT 1', [id]);
   return rows[0] ? rows[0].email : null;
 }
+
+// ── Bussay 1 Year (master 2121982033 subscribers) ───────────────────────────────
+const B1Y_COLS = ['account_number','client_id','client_name','email','phone','nickname',
+  'country','status','product_name','currency','balance','equity','credit','pnl',
+  'available_balance','free_margin','margin','margin_level','update_time'];
+
+// Replace the whole subscriber set in one transaction (the VPS pushes the full list).
+async function replaceB1ySubscribers(rows) {
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+    await conn.execute('DELETE FROM b1y_subscribers');
+    for (const r of (rows || [])) {
+      const acc = String(r.account_number || '').trim();
+      if (!acc) continue;
+      await conn.execute(
+        `INSERT INTO b1y_subscribers (${B1Y_COLS.join(',')}) VALUES (${B1Y_COLS.map(() => '?').join(',')})`,
+        [
+          acc,
+          r.client_id != null && r.client_id !== '' ? Number(r.client_id) : null,
+          String(r.client_name || '').slice(0, 255),
+          String(r.email || '').slice(0, 255),
+          String(r.phone || '').slice(0, 60),
+          String(r.nickname || '').slice(0, 120),
+          String(r.country || '').slice(0, 120),
+          String(r.status || '').slice(0, 60),
+          String(r.product_name || '').slice(0, 160),
+          String(r.currency || '').slice(0, 16),
+          Number(r.balance) || 0, Number(r.equity) || 0, Number(r.credit) || 0, Number(r.pnl) || 0,
+          Number(r.available_balance) || 0, Number(r.free_margin) || 0, Number(r.margin) || 0,
+          Number(r.margin_level) || 0, String(r.update_time || '').slice(0, 40),
+        ]);
+    }
+    await conn.commit();
+    return { count: (rows || []).length };
+  } catch (err) { await conn.rollback(); throw err; }
+  finally { conn.release(); }
+}
+
+// List all subscribers with their reservation (reserved_by_name / email / at) attached.
+async function listB1ySubscribers() {
+  const [rows] = await pool.execute(
+    `SELECT s.*, r.reserved_by_email, r.reserved_by_name, r.reserved_at
+     FROM b1y_subscribers s
+     LEFT JOIN b1y_reservations r ON r.account_number = s.account_number
+     ORDER BY s.balance DESC, s.account_number ASC`);
+  return rows;
+}
+
+async function getB1yReservation(accountNumber) {
+  const [rows] = await pool.execute(
+    'SELECT * FROM b1y_reservations WHERE account_number = ? LIMIT 1', [String(accountNumber)]);
+  return rows[0] || null;
+}
+async function setB1yReservation(accountNumber, email, name) {
+  await pool.execute(
+    `INSERT INTO b1y_reservations (account_number, reserved_by_email, reserved_by_name)
+     VALUES (?, ?, ?)
+     ON DUPLICATE KEY UPDATE reserved_by_email = VALUES(reserved_by_email),
+       reserved_by_name = VALUES(reserved_by_name), reserved_at = CURRENT_TIMESTAMP`,
+    [String(accountNumber), String(email || '').slice(0, 255), String(name || '').slice(0, 120)]);
+}
+async function clearB1yReservation(accountNumber) {
+  await pool.execute('DELETE FROM b1y_reservations WHERE account_number = ?', [String(accountNumber)]);
+}
 async function upsertTamboonCalendarEvent(dateYMD) {
   const title = 'ทำบุญ Bussay', href = '/events/tamboon', color = '#f5d97a';
   const [rows] = await pool.execute('SELECT id FROM events WHERE title = ? LIMIT 1', [title]);
@@ -2254,6 +2356,7 @@ module.exports = {
   getActiveTamboonEdition, getTamboonEditionRow, createNextTamboonEdition, updateTamboonEdition,
   countTamboonRegistrations, hasTamboonRegistration, createTamboonRegistration,
   listTamboonRegistrations, setTamboonFlag, getTamboonEmailById, upsertTamboonCalendarEvent,
+  replaceB1ySubscribers, listB1ySubscribers, getB1yReservation, setB1yReservation, clearB1yReservation,
   upsertPortfolioAccount, upsertPortfolioDaily, listPortfolioAccounts, getPortfolioDaily,
   upsertMaster, listMasters,
   saveMasterAccount, listMasterAccountsAdmin, listMasterAccountsForFetch, deleteMasterAccount, setMasterActive,

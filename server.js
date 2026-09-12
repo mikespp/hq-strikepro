@@ -17,6 +17,7 @@ const lastAccountRouter      = require('./routes/last-account');
 const theLastDayRouter       = require('./routes/the-last-day');
 const dinnerRouter           = require('./routes/dinner');
 const tamboonRouter          = require('./routes/tamboon');
+const b1yRouter              = require('./routes/b1y');
 const portfolioRouter        = require('./routes/portfolio');
 const onboardingRouter       = require('./routes/onboarding');
 const eventsRouter           = require('./routes/events');
@@ -61,6 +62,7 @@ app.use('/api/last-account', lastAccountRouter);
 app.use('/api/the-last-day', theLastDayRouter);
 app.use('/api/dinner',    dinnerRouter);
 app.use('/api/tamboon',   tamboonRouter);
+app.use('/api/b1y',       b1yRouter);
 app.use('/api/portfolio', portfolioRouter);
 app.use('/api/onboarding', onboardingRouter);
 app.use('/api/events',    eventsRouter);
@@ -149,6 +151,11 @@ app.get('/events/managed-strategies', (req, res) => {
 // /kyc-guide → serve KYC (1109 Prime) verification guide
 app.get('/kyc-guide', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'kyc-guide.html'));
+});
+
+// /b1y-cs → Bussay 1 Year subscribers for CS (view all + reserve, admin-gated client-side)
+app.get('/b1y-cs', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'b1y-cs.html'));
 });
 
 // /portfolio → serve fund portfolio performance page
