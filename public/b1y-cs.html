@@ -206,14 +206,16 @@
   }
 
   function resCell(r) {
-    const acc = JSON.stringify(String(r.account_number));
+    // account numbers are numeric — strip to a safe token so it can sit inside the
+    // single-quoted inline handler without breaking the double-quoted attribute.
+    const acc = String(r.account_number).replace(/[^0-9A-Za-z_-]/g, '');
     if (r.reserved_by_name) {
       const mine = (r.reserved_by_email||'').toLowerCase() === ME.email;
       const canRelease = ME.can_reserve_b1y && (ME.is_super || mine);
       return '<span class="res">✓ ' + esc(r.reserved_by_name) + '</span>'
-        + (canRelease ? ' <button class="chk rel" onclick="toggleRes('+acc+',false)">ปลด</button>' : '');
+        + (canRelease ? ' <button class="chk rel" onclick="toggleRes(\'' + acc + '\',false)">ปลด</button>' : '');
     }
-    if (ME.can_reserve_b1y) return '<button class="chk" onclick="toggleRes('+acc+',true)">ติ๊กจอง</button>';
+    if (ME.can_reserve_b1y) return '<button class="chk" onclick="toggleRes(\'' + acc + '\',true)">ติ๊กจอง</button>';
     return '<span class="res-lock">—</span>';
   }
 
