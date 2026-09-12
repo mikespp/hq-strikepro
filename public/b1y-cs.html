@@ -65,6 +65,31 @@
     .toast.show { opacity:1; }
     .empty { text-align:center; padding:32px; color:var(--muted); font-size:13px; }
 
+    /* ── Mobile: turn the wide table into stacked cards ── */
+    @media (max-width: 860px) {
+      .wrap { padding:18px 12px 70px; }
+      h1 { font-size:18px; }
+      .table-wrap { overflow-x:visible; border:none; background:transparent; }
+      table { min-width:0; width:100%; }
+      thead { display:none; }
+      table, tbody, tr, td { display:block; width:100%; }
+      tr { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:12px 14px; margin-bottom:12px; }
+      tr:hover td { background:transparent; }
+      td { border:none; padding:5px 0; white-space:normal; display:flex; align-items:baseline; justify-content:space-between; gap:14px; text-align:right; word-break:break-word; }
+      td::before { content: attr(data-label); color:var(--muted); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; text-align:left; flex:0 0 40%; }
+      td.num { text-align:right; }
+      td.hide-m { display:none; }
+      td.col-res { display:flex; justify-content:flex-start; gap:10px; border-bottom:1px solid var(--border); padding:0 0 11px; margin-bottom:8px; }
+      td.col-res::before { display:none; }
+      .col-res { position:static !important; }
+      .chip { flex:1; text-align:center; }
+      .toolbar input { min-width:100%; }
+    }
+    @media (max-width: 420px) {
+      td::before { flex-basis:44%; }
+      .nav-title { font-size:13px; }
+    }
+
     .hamburger { background:none; border:none; cursor:pointer; color:var(--text); padding:8px; display:flex; flex-direction:column; gap:5px; align-items:center; justify-content:center; border-radius:8px; flex-shrink:0; }
     .hamburger:hover { background:rgba(255,255,255,.08); }
     .hamburger span { display:block; width:22px; height:2px; background:currentColor; border-radius:2px; }
@@ -214,26 +239,26 @@
     const rows = list.map((r,i) => {
       const pnlCls = (Number(r.pnl)||0) >= 0 ? 'pos' : 'neg';
       return '<tr>'
-        + '<td class="col-res">' + resCell(r) + '</td>'
-        + '<td class="muted">' + (i+1) + '</td>'
-        + '<td>' + esc(r.client_name) + '</td>'
-        + '<td>' + esc(r.email) + '</td>'
-        + '<td>' + esc(r.phone) + '</td>'
-        + '<td>' + esc(r.nickname) + '</td>'
-        + '<td>' + esc(r.account_number) + '</td>'
-        + '<td>' + esc(r.product_name) + '</td>'
-        + '<td>' + esc(r.currency) + '</td>'
-        + '<td class="num">' + num(r.balance) + '</td>'
-        + '<td class="num">' + num(r.equity) + '</td>'
-        + '<td class="num">' + num(r.credit) + '</td>'
-        + '<td class="num ' + pnlCls + '">' + num(r.pnl) + '</td>'
-        + '<td class="num">' + num(r.available_balance) + '</td>'
-        + '<td class="num">' + num(r.free_margin) + '</td>'
-        + '<td class="num">' + num(r.margin) + '</td>'
-        + '<td class="num">' + num(r.margin_level) + '</td>'
-        + '<td>' + esc(r.country) + '</td>'
-        + '<td>' + esc(r.status) + '</td>'
-        + '<td class="muted">' + esc(r.update_time) + '</td>'
+        + '<td class="col-res" data-label="จอง">' + resCell(r) + '</td>'
+        + '<td class="muted hide-m" data-label="#">' + (i+1) + '</td>'
+        + '<td data-label="ชื่อลูกค้า">' + esc(r.client_name) + '</td>'
+        + '<td data-label="อีเมล">' + esc(r.email) + '</td>'
+        + '<td data-label="เบอร์โทร">' + esc(r.phone) + '</td>'
+        + '<td data-label="ชื่อเล่น">' + esc(r.nickname) + '</td>'
+        + '<td data-label="เลขบัญชี">' + esc(r.account_number) + '</td>'
+        + '<td data-label="Product">' + esc(r.product_name) + '</td>'
+        + '<td data-label="สกุล">' + esc(r.currency) + '</td>'
+        + '<td class="num" data-label="Balance">' + num(r.balance) + '</td>'
+        + '<td class="num" data-label="Equity">' + num(r.equity) + '</td>'
+        + '<td class="num" data-label="Credit">' + num(r.credit) + '</td>'
+        + '<td class="num ' + pnlCls + '" data-label="PnL">' + num(r.pnl) + '</td>'
+        + '<td class="num" data-label="Available">' + num(r.available_balance) + '</td>'
+        + '<td class="num" data-label="Free Margin">' + num(r.free_margin) + '</td>'
+        + '<td class="num" data-label="Margin">' + num(r.margin) + '</td>'
+        + '<td class="num" data-label="Margin Lv.">' + num(r.margin_level) + '</td>'
+        + '<td data-label="ประเทศ">' + esc(r.country) + '</td>'
+        + '<td data-label="สถานะ">' + esc(r.status) + '</td>'
+        + '<td class="muted" data-label="อัปเดตพอร์ต">' + esc(r.update_time) + '</td>'
         + '</tr>';
     }).join('');
     $('content').innerHTML = '<div class="table-wrap"><table><thead><tr>' + th + '</tr></thead><tbody>' + rows + '</tbody></table></div>';
